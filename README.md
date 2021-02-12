@@ -1,2 +1,2 @@
 # SilkyNvg
-NanoVectorGraphicsExceptItUsesSilkNETNowWooHoo (Thank KoziLord for the name)
+NanoVectorGraphicsExceptItUsesSilkNETNowWooHoo (Thank KoziLord for the description)
