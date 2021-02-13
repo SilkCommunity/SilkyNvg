@@ -1,5 +1,6 @@
 ﻿using Silk.NET.GLFW;
 using Silk.NET.OpenGL;
+using SilkyNvg;
 using System;
 
 namespace SingleClassExample
@@ -49,7 +50,8 @@ namespace SingleClassExample
 
             gl.GetError();
 
-            var nvg = Nvg.Create((uint)CreateFlags.Antialias | (uint)CreateFlags.StencilStrokes | (uint)CreateFlags.Debug, gl);
+            // Create a new NVG context.
+            var nvg = Nvg.Create((uint)CreateFlag.EdgeAntialias | (uint)CreateFlag.StencilStrokes | (uint)CreateFlag.Debug, gl);
 
             if (nvg == null)
             {
@@ -70,14 +72,14 @@ namespace SingleClassExample
                 gl.ClearColor(0, 0, 0, 1.0f);
                 gl.Clear((uint)ClearBufferMask.ColorBufferBit | (uint)ClearBufferMask.DepthBufferBit | (uint)ClearBufferMask.StencilBufferBit);
 
-                nvg.BeginFrame(winWidth, winHeight, pxRatio);
+                /*nvg.BeginFrame(winWidth, winHeight, pxRatio);
 
                 nvg.BeginPath();
                 nvg.Circle(50, 100, 100);
                 nvg.FillColour(1.0f, 0.7f, 0.0f, 1.0f); // make this take colour object directly and also rgba!
                 nvg.Stroke(0.0f, 0.5f, 1.0f, 1.0f, 10.0); // see above!
 
-                nvg.EndFrame();
+                nvg.EndFrame();*/
 
                 glfw.SwapBuffers(window);
                 glfw.PollEvents();
