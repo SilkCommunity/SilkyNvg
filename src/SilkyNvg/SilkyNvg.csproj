@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Fontstash\Fontstash.csproj" />
+    <ProjectReference Include="..\SilkyNvg.Images\SilkyNvg.Images.csproj" />
+    <ProjectReference Include="..\SilkyNvg.OpenGL\SilkyNvg.OpenGL.csproj" />
+  </ItemGroup>
+
+</Project>

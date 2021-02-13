@@ -3,7 +3,21 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30907.101
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilkyNvg", "SilkyNvg\SilkyNvg.csproj", "{253712A2-22A3-4D12-A6E4-C1071B218F72}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{E94958C3-5109-4384-A9CB-E165EC5754CE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{225A277C-EFE4-47D6-A080-4005F7ED1D4C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SingleClassExample", "samples\SingleClassExample\SingleClassExample.csproj", "{574C14BE-7DE4-4803-962F-7C457C5DB34F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "source", "source", "{C5CB43B2-2946-4FD0-A035-B5FFCF9A0F4C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilkyNvg", "src\SilkyNvg\SilkyNvg.csproj", "{38F8C798-F756-4F2A-95B7-C407521CE7B5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fontstash", "src\Fontstash\Fontstash.csproj", "{831DDA59-8C6F-4F05-9410-A505458F011E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilkyNvg.Images", "src\SilkyNvg.Images\SilkyNvg.Images.csproj", "{E99258B1-3176-4DA9-8B02-AD63618A1C14}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilkyNvg.OpenGL", "src\SilkyNvg.OpenGL\SilkyNvg.OpenGL.csproj", "{D4402D72-93F0-4BEF-813F-01DBC0F4CDA3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,13 +25,36 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{253712A2-22A3-4D12-A6E4-C1071B218F72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{253712A2-22A3-4D12-A6E4-C1071B218F72}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{253712A2-22A3-4D12-A6E4-C1071B218F72}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{253712A2-22A3-4D12-A6E4-C1071B218F72}.Release|Any CPU.Build.0 = Release|Any CPU
+		{574C14BE-7DE4-4803-962F-7C457C5DB34F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{574C14BE-7DE4-4803-962F-7C457C5DB34F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{574C14BE-7DE4-4803-962F-7C457C5DB34F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{574C14BE-7DE4-4803-962F-7C457C5DB34F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38F8C798-F756-4F2A-95B7-C407521CE7B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38F8C798-F756-4F2A-95B7-C407521CE7B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38F8C798-F756-4F2A-95B7-C407521CE7B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38F8C798-F756-4F2A-95B7-C407521CE7B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{831DDA59-8C6F-4F05-9410-A505458F011E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{831DDA59-8C6F-4F05-9410-A505458F011E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{831DDA59-8C6F-4F05-9410-A505458F011E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{831DDA59-8C6F-4F05-9410-A505458F011E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E99258B1-3176-4DA9-8B02-AD63618A1C14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E99258B1-3176-4DA9-8B02-AD63618A1C14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E99258B1-3176-4DA9-8B02-AD63618A1C14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E99258B1-3176-4DA9-8B02-AD63618A1C14}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4402D72-93F0-4BEF-813F-01DBC0F4CDA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4402D72-93F0-4BEF-813F-01DBC0F4CDA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4402D72-93F0-4BEF-813F-01DBC0F4CDA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4402D72-93F0-4BEF-813F-01DBC0F4CDA3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{574C14BE-7DE4-4803-962F-7C457C5DB34F} = {E94958C3-5109-4384-A9CB-E165EC5754CE}
+		{38F8C798-F756-4F2A-95B7-C407521CE7B5} = {C5CB43B2-2946-4FD0-A035-B5FFCF9A0F4C}
+		{831DDA59-8C6F-4F05-9410-A505458F011E} = {C5CB43B2-2946-4FD0-A035-B5FFCF9A0F4C}
+		{E99258B1-3176-4DA9-8B02-AD63618A1C14} = {C5CB43B2-2946-4FD0-A035-B5FFCF9A0F4C}
+		{D4402D72-93F0-4BEF-813F-01DBC0F4CDA3} = {C5CB43B2-2946-4FD0-A035-B5FFCF9A0F4C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {08FE0BD8-4253-419D-9FBF-7F9671C9AAC2}
