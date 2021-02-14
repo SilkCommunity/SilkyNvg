@@ -38,20 +38,5 @@ namespace SilkyNvg
             return nvg;
         }
 
-        public static class Shape
-        {
-
-            public static void Ellipse(float cx, float cy, float rx, float ry)
-            {
-                
-            }
-
-            public static void Circle(float cx, float cy, float r)
-            { 
-                
-            }
-            
-        }
-
     }
 }

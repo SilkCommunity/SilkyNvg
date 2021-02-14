@@ -10,7 +10,6 @@ namespace SilkyNvg.Core.Paths
         private readonly ICollection<Vertex> _stroke = new List<Vertex>();
 
         private int _first;
-        private int _count;
         private int _bevelCount;
 
         private bool _winding;
