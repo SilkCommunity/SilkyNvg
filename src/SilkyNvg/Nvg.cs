@@ -31,7 +31,8 @@ namespace SilkyNvg
         /// <param name="gl">The GL Api object needed for rendering.</param>
         public static Nvg Create(uint flags, Silk.NET.OpenGL.GL gl)
         {
-            var launchParams = new LaunchParameters(flags);
+            var launchParams = new LaunchParameters((flags & (uint)CreateFlag.EdgeAntialias) != 0,
+                (flags & (uint)CreateFlag.StencilStrokes) != 0, (flags & (uint)CreateFlag.Debug) != 0);
             var gManager = new GraphicsManager(launchParams, gl);
             var nvg = new Nvg(gManager);
             return nvg;
