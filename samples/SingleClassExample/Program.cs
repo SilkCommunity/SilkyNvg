@@ -79,6 +79,8 @@ namespace SingleClassExample
                 glfw.PollEvents();
             }
 
+            // nvg.Delete();
+
             glfw.Terminate();
         }
     }
