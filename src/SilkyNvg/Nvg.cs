@@ -1,4 +1,5 @@
-﻿using SilkyNvg.Core.Paths;
+﻿using SilkyNvg.Core;
+using SilkyNvg.Core.Paths;
 using SilkyNvg.OpenGL;
 
 namespace SilkyNvg
@@ -30,8 +31,8 @@ namespace SilkyNvg
         /// <param name="gl">The GL Api object needed for rendering.</param>
         public static Nvg Create(uint flags, Silk.NET.OpenGL.GL gl)
         {
-            bool edgeAA = (flags & (uint)CreateFlag.EdgeAntialias) != 0;
-            var gManager = new GraphicsManager(flags, edgeAA, gl);
+            var launchParams = new LaunchParameters(flags);
+            var gManager = new GraphicsManager(launchParams, gl);
             var nvg = new Nvg(gManager);
             return nvg;
         }
