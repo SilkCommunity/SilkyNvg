@@ -6,15 +6,15 @@ namespace SilkyNvg.Common
     {
 
         //Return Commands instead of void?
-        public static void Ellipse(float cx, float cy, float rx, float ry)
+        public static Instruction Ellipse(float cx, float cy, float rx, float ry)
         {
-
+            return null;
         }
 
         //Return Commands instead of void?
-        public static void Circle(float cx, float cy, float r)
+        public static Instruction Circle(float cx, float cy, float r)
         {
-
+            return null;
         }
 
     }
