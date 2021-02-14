@@ -1,13 +1,23 @@
-﻿using SilkyNvg.OpenGL;
+﻿using SilkyNvg.Core.Paths;
+using SilkyNvg.OpenGL;
 
 namespace SilkyNvg
 {
     public sealed class Nvg
     {
 
-        private Nvg(GraphicsManager graphicsManager, bool edgeAntialiased)
+        private readonly GraphicsManager _graphicsManager;
+        private readonly PathCache _pathCache;
+
+        private Nvg(GraphicsManager graphicsManager)
         {
-            System.Console.WriteLine(edgeAntialiased);
+            _graphicsManager = graphicsManager;
+
+            // TODO: Images
+
+            // TODO Commands
+
+            _pathCache = new PathCache();
         }
 
         /// <summary>
@@ -20,9 +30,9 @@ namespace SilkyNvg
         /// <param name="gl">The GL Api object needed for rendering.</param>
         public static Nvg Create(uint flags, Silk.NET.OpenGL.GL gl)
         {
-            var gManager = new GraphicsManager(flags);
             bool edgeAA = (flags & (uint)CreateFlag.EdgeAntialias) != 0;
-            var nvg = new Nvg(gManager, edgeAA);
+            var gManager = new GraphicsManager(flags, edgeAA, gl);
+            var nvg = new Nvg(gManager);
             return nvg;
         }
 

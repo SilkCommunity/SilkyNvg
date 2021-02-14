@@ -53,12 +53,6 @@ namespace SingleClassExample
             // Create a new NVG context.
             var nvg = Nvg.Create((uint)CreateFlag.EdgeAntialias | (uint)CreateFlag.StencilStrokes | (uint)CreateFlag.Debug, gl);
 
-            if (nvg == null)
-            {
-                Console.Error.WriteLine("Could not initialize SilkyVG.");
-                Environment.Exit(-1);
-            }
-
             glfw.SwapInterval(0);
 
             while (!glfw.WindowShouldClose(window))

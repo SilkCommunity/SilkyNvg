@@ -1,15 +1,12 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Silk.NET.Maths" Version="2.0.0" />
-	</ItemGroup>
-	
-	<ItemGroup>
 		<ProjectReference Include="..\Fontstash\Fontstash.csproj" />
+		<ProjectReference Include="..\SilkyNvg.Core\SilkyNvg.Core.csproj" />
 		<ProjectReference Include="..\SilkyNvg.Images\SilkyNvg.Images.csproj" />
 		<ProjectReference Include="..\SilkyNvg.OpenGL\SilkyNvg.OpenGL.csproj" />
 	</ItemGroup>
