@@ -1,4 +1,5 @@
-﻿using SilkyNvg.Core;
+﻿using Silk.NET.Maths;
+using SilkyNvg.Core;
 using SilkyNvg.Core.Instructions;
 using SilkyNvg.Core.Paths;
 using SilkyNvg.OpenGL;
@@ -19,8 +20,55 @@ namespace SilkyNvg
             // TODO: Images
 
             _instructionManager = new InstructionManager();
-
             _pathCache = new PathCache();
+        }
+
+        /// <summary>
+        /// Save the current render state into the state stack.
+        /// </summary>
+        public void Save()
+        {
+
+        }
+
+        /// <summary>
+        /// Pops the state stack.
+        /// </summary>
+        public void Restore()
+        {
+
+        }
+
+        /// <summary>
+        /// Resets the current render state. Renderstack
+        /// is kept.
+        /// </summary>
+        public void Reset()
+        {
+            
+        }
+
+        /// <summary>
+        /// Transform a point by the specified transform.
+        /// </summary>
+        /// <param name="x">The point x position.</param>
+        /// <param name="y">The point y position.</param>
+        /// <param name="t">The transform.</param>
+        /// <returns>The transformed point.</returns>
+        public Vector2D<float> TransformPoint(float x, float y, params float[] t)
+        {
+            return Maths.TransformPoint(x, y, t);
+        }
+
+        /// <summary>
+        /// Transform a point by the specified transform.
+        /// </summary>
+        /// <param name="pos">The point</param>
+        /// <param name="t">The transform</param>
+        /// <returns>The transformed point.</returns>
+        public Vector2D<float> TransformPoint(Vector2D<float> pos, params float[] t)
+        {
+            return TransformPoint(pos.X, pos.Y, t);
         }
 
         /// <summary>

@@ -6,5 +6,6 @@ namespace SilkyNvg.Core.Instructions
 {
     class BezireToInstruction
     {
+
     }
 }

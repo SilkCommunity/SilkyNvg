@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Silk.NET.Maths;
+using System;
 
 namespace SilkyNvg.Core.Instructions
 {
@@ -8,8 +9,12 @@ namespace SilkyNvg.Core.Instructions
         private IInstruction[] _instructions;
         private int _instructionCount;
 
+        private Vector2D<float> _position = null;
+
         public IInstruction[] Instructions => _instructions;
         public int Length => _instructionCount;
+        public Vector2D<float> Position => _position;
+        public bool RequiresPosition => _position != null;
 
         public InstructionSequence(int instructionCount)
         {
@@ -24,6 +29,15 @@ namespace SilkyNvg.Core.Instructions
 
         public void Add(IInstruction instruction)
         {
+            if (_instructionCount == 0 && instruction.RequiresPosition)
+            {
+                _position = instruction.Position;
+            }
+            else
+            {
+                _position = null;
+            }
+
             _instructions[_instructionCount++] = instruction;
         }
 
