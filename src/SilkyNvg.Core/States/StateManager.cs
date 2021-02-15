@@ -13,6 +13,7 @@ namespace SilkyNvg.Core.States
         {
             _stateStack = new LinkedList<State>();
             _stateStack.Clear();
+            Reset();
         }
 
         public void Save()

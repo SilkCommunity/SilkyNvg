@@ -19,18 +19,12 @@ namespace SilkyNvg
         private Nvg(GraphicsManager graphicsManager)
         {
             _graphicsManager = graphicsManager;
-
             // TODO: Images
-
             _instructionManager = new InstructionManager();
-
             _pathCache = new PathCache();
-
             _stateManager = new StateManager();
-            Save();
-            Reset();
-
             _style = new Style(1.0f);
+            // TODO: Initialize rendering
         }
 
         /// <summary>

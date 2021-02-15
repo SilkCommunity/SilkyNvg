@@ -6,8 +6,6 @@ namespace SilkyNvg.Core.Instructions
     public sealed class InstructionManager
     {
 
-        public const int INITIAL_INSTRUCTIONS_SIZE = 256;
-
         public Vector2D<float> InstructionPosition
         {
             get => _instructionPosition;
@@ -30,13 +28,11 @@ namespace SilkyNvg.Core.Instructions
 
         private Queue<IInstruction> _instructionQueue;
         private Vector2D<float> _instructionPosition;
-        private int _instructionQueueCapacity;
 
         public InstructionManager()
         {
-            _instructionQueue = new Queue<IInstruction>(INITIAL_INSTRUCTIONS_SIZE);
+            _instructionQueue = new Queue<IInstruction>();
             _instructionQueue.Clear();
-            _instructionQueueCapacity = INITIAL_INSTRUCTIONS_SIZE;
         }
 
         public IInstruction Next()
@@ -56,16 +52,6 @@ namespace SilkyNvg.Core.Instructions
 
         public void AddSequence(InstructionSequence sequence)
         {
-            if (_instructionQueue.Count + sequence.Length > _instructionQueueCapacity)
-            {
-                int newCap = _instructionQueue.Count + sequence.Length + _instructionQueueCapacity / 2;
-                var cache = _instructionQueue.ToArray();
-                _instructionQueue = new Queue<IInstruction>(newCap);
-                foreach (var instruction in cache)
-                    _instructionQueue.Enqueue(instruction);
-                _instructionQueueCapacity = newCap;
-            }
-
             if (sequence.RequiresPosition)
             {
                 _instructionPosition = sequence.Position;
