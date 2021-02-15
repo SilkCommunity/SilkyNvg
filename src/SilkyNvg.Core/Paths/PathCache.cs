@@ -11,7 +11,7 @@ namespace SilkyNvg.Core.Paths
         private const int INITIAL_PATHS_SIZE = 16;
         private const int INITIAL_VERTICES_SIZE = 256;
 
-        private IList<Vector2D<float>> _points;
+        private IList<Point> _points;
         private int _pointsCapacity;
 
         private IList<Path> _paths;
@@ -24,7 +24,7 @@ namespace SilkyNvg.Core.Paths
 
         public PathCache()
         {
-            _points = new List<Vector2D<float>>(INITIAL_POINTS_SIZE);
+            _points = new List<Point>(INITIAL_POINTS_SIZE);
             _pointsCapacity = INITIAL_POINTS_SIZE;
 
             _paths = new List<Path>(INITIAL_PATHS_SIZE);

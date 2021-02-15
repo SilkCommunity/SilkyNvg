@@ -1,4 +1,5 @@
 ﻿using SilkyNvg.Core;
+using SilkyNvg.Core.Instructions;
 using SilkyNvg.Core.Paths;
 using SilkyNvg.OpenGL;
 
@@ -8,6 +9,7 @@ namespace SilkyNvg
     {
 
         private readonly GraphicsManager _graphicsManager;
+        private readonly InstructionManager _instructionManager;
         private readonly PathCache _pathCache;
 
         private Nvg(GraphicsManager graphicsManager)
@@ -16,7 +18,7 @@ namespace SilkyNvg
 
             // TODO: Images
 
-            // TODO Commands
+            _instructionManager = new InstructionManager();
 
             _pathCache = new PathCache();
         }
