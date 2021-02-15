@@ -2,6 +2,7 @@
 using SilkyNvg.Core;
 using SilkyNvg.Core.Instructions;
 using SilkyNvg.Core.Paths;
+using SilkyNvg.Core.States;
 using SilkyNvg.OpenGL;
 
 namespace SilkyNvg
@@ -11,7 +12,9 @@ namespace SilkyNvg
 
         private readonly GraphicsManager _graphicsManager;
         private readonly InstructionManager _instructionManager;
+        private readonly StateManager _stateManager;
         private readonly PathCache _pathCache;
+        private readonly Style _style;
 
         private Nvg(GraphicsManager graphicsManager)
         {
@@ -20,7 +23,14 @@ namespace SilkyNvg
             // TODO: Images
 
             _instructionManager = new InstructionManager();
+
             _pathCache = new PathCache();
+
+            _stateManager = new StateManager();
+            Save();
+            Reset();
+
+            _style = new Style(1.0f);
         }
 
         /// <summary>
@@ -28,7 +38,7 @@ namespace SilkyNvg
         /// </summary>
         public void Save()
         {
-
+            _stateManager.Save();
         }
 
         /// <summary>
@@ -36,7 +46,7 @@ namespace SilkyNvg
         /// </summary>
         public void Restore()
         {
-
+            _stateManager.Restore();
         }
 
         /// <summary>
@@ -45,7 +55,7 @@ namespace SilkyNvg
         /// </summary>
         public void Reset()
         {
-            
+            _stateManager.Reset();
         }
 
         /// <summary>

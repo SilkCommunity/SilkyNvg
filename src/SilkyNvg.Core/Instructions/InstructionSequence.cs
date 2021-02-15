@@ -9,12 +9,13 @@ namespace SilkyNvg.Core.Instructions
         private IInstruction[] _instructions;
         private int _instructionCount;
 
-        private Vector2D<float> _position = null;
+        private Vector2D<float> _position;
+        private bool _positioned = false;
 
         public IInstruction[] Instructions => _instructions;
         public int Length => _instructionCount;
         public Vector2D<float> Position => _position;
-        public bool RequiresPosition => _position != null;
+        public bool RequiresPosition => _positioned;
 
         public InstructionSequence(int instructionCount)
         {
@@ -32,10 +33,7 @@ namespace SilkyNvg.Core.Instructions
             if (_instructionCount == 0 && instruction.RequiresPosition)
             {
                 _position = instruction.Position;
-            }
-            else
-            {
-                _position = null;
+                _positioned = true;
             }
 
             _instructions[_instructionCount++] = instruction;

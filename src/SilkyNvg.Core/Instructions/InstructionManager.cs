@@ -71,16 +71,11 @@ namespace SilkyNvg.Core.Instructions
                 _instructionPosition = sequence.Position;
             }
 
-            int i = 0;
-            while (i < sequence.Length)
+            for (int i = 0; i < sequence.Length; i++)
             {
-                var command = sequence[i];
-                i += command.PreformInitilizationPointTransforms();
-            }
-
-            for (i = 0; i < sequence.Length; i++)
-            {
-                EnqueueInstruction(sequence[i]);
+                var instruction = sequence[i];
+                instruction.Prepare();
+                EnqueueInstruction(instruction);
             }
             sequence.Dispose();
         }

@@ -9,9 +9,9 @@ namespace SilkyNvg.Core.Instructions
 
         Vector2D<float> Position { get; }
 
-        void Execute();
+        void Prepare();
 
-        int PreformInitilizationPointTransforms();
+        void Execute();
 
     }
 }
