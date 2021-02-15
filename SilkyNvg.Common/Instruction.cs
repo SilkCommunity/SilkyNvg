@@ -8,31 +8,58 @@ namespace SilkyNvg.Common
     {
         Queue<float> sequence = new Queue<float>();
 
+        //Constant Placeholders
+        public const ushort CLOSE = (1 << 0);
+        public const ushort MOVE = (1 << 1);
+        public const ushort LINE =  (1 << 2);
+        public const ushort BEZIER = (1 << 3);
+        public const ushort WINDING = (1 << 4);
 
-
-        public static Instruction Move(float x, float y)
+        public void Queue(float instruction, params float[] args)
         {
-            return null;
+            sequence.Enqueue(instruction);
+            foreach (float arg in args)
+            {
+                sequence.Enqueue(arg);
+            }
         }
 
-        public static Instruction Line(float x, float y)
+
+        //Basic Default Instructions
+        public void Move(float x, float y)
         {
-            return null;
+            Queue(MOVE);
+            Queue(x);
+            Queue(y);
         }
 
-        public static Instruction Bezier(float x, float y)
+        public void Line(float x, float y)
         {
-            return null;
+            Queue(LINE);
+            Queue(x);
+            Queue(y);
         }
 
-        public static Instruction Close()
+        public void Bezier(float x1, float y1, float x2, float y2, float x3, float y3)
         {
-            return null;
+            Queue(BEZIER);
+            Queue(x1);
+            Queue(y1);
+            Queue(x2);
+            Queue(y2);
+            Queue(x3);
+            Queue(y3);
         }
 
-        public static Instruction Winding()
+        //Do we need that
+        public void Close()
         {
-            return null;
+            Queue(CLOSE);
+        }
+
+        public void Winding(float w)
+        {
+            Queue(WINDING);
         }
 
         //Merges two Queues of the Instructions
@@ -50,5 +77,6 @@ namespace SilkyNvg.Common
 
             return new_instruction;
         }
+
     }
 }

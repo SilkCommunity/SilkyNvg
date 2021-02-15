@@ -8,13 +8,16 @@ namespace SilkyNvg.Common
         //Return Commands instead of void?
         public static Instruction Ellipse(float cx, float cy, float rx, float ry)
         {
-            return null;
+            Instruction instruction = new Instruction();
+            //instruction.Queue(Instruction.MOVE, cx - rx, cy);
+            //instruction.Queue(Instruction.BEZIER, cx - rx, cy + ry);
+            return instruction;
         }
 
         //Return Commands instead of void?
         public static Instruction Circle(float cx, float cy, float r)
         {
-            return null;
+            return Ellipse( cx, cy, r, r);
         }
 
     }
