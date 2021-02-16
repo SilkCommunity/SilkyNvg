@@ -24,7 +24,8 @@ namespace SilkyNvg
             _pathCache = new PathCache();
             _stateManager = new StateManager();
             _style = new Style(1.0f);
-            // TODO: Initialize rendering
+            _graphicsManager.CreateRenderer();
+            // TODO: More images
         }
 
         /// <summary>
