@@ -26,13 +26,14 @@ namespace SilkyNvg.Core.Instructions
 
         public int QueueLength => _instructionQueue.Count;
 
-        private Queue<IInstruction> _instructionQueue;
+        private readonly Queue<IInstruction> _instructionQueue;
+
         private Vector2D<float> _instructionPosition;
 
         public InstructionManager()
         {
             _instructionQueue = new Queue<IInstruction>();
-            _instructionQueue.Clear();
+            Clear();
         }
 
         public IInstruction Next()
@@ -64,6 +65,11 @@ namespace SilkyNvg.Core.Instructions
                 EnqueueInstruction(instruction);
             }
             sequence.Dispose();
+        }
+
+        public void Clear()
+        {
+            _instructionQueue.Clear();
         }
 
     }

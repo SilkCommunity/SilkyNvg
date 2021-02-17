@@ -44,6 +44,11 @@ namespace SilkyNvg.Core.States
             _stateStack.AddLast(state);
         }
 
+        public void ClearStack()
+        {
+            _stateStack.Clear();
+        }
+
         public State GetState()
         {
             return _stateStack.Last.Value;

@@ -59,18 +59,19 @@ namespace SingleClassExample
             {
                 glfw.GetCursorPos(window, out double mx, out double my);
                 glfw.GetWindowSize(window, out int winWidth, out int winHeight);
+                glfw.GetFramebufferSize(window, out int fbWidth, out int fbHeight);
 
-                float pxRatio = (float)winWidth / (float)winHeight;
+                float pxRatio = (float)fbWidth / (float)winWidth;
 
                 gl.Viewport(0, 0, (uint)winWidth, (uint)winHeight);
                 gl.ClearColor(0, 0, 0, 1.0f);
                 gl.Clear((uint)ClearBufferMask.ColorBufferBit | (uint)ClearBufferMask.DepthBufferBit | (uint)ClearBufferMask.StencilBufferBit);
 
-                /*nvg.BeginFrame(winWidth, winHeight, pxRatio);
+                nvg.BeginFrame(winWidth, winHeight, pxRatio);
 
                 nvg.BeginPath();
-                nvg.Circle(50, 100, 100);
-                nvg.FillColour(1.0f, 0.7f, 0.0f, 1.0f); // make this take colour object directly and also rgba!
+                nvg.Circle(new Silk.NET.Maths.Vector2D<float>(120, 200), 100);
+                /*nvg.FillColour(1.0f, 0.7f, 0.0f, 1.0f); // make this take colour object directly and also rgba!
                 nvg.Stroke(0.0f, 0.5f, 1.0f, 1.0f, 10.0); // see above!
 
                 nvg.EndFrame();*/

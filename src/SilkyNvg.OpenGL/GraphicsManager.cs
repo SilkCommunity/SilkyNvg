@@ -27,5 +27,10 @@ namespace SilkyNvg.OpenGL
             _interface = new GLInterface(this);
         }
 
+        public void SetViewport(float width, float height)
+        {
+            _interface.SetupViewSize(width, height);
+        }
+
     }
 }

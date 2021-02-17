@@ -1,4 +1,5 @@
-﻿using Silk.NET.OpenGL;
+﻿using Silk.NET.Maths;
+using Silk.NET.OpenGL;
 using SilkyNvg.OpenGL.Shaders;
 using SilkyNvg.OpenGL.VertexArray;
 using System;
@@ -11,9 +12,10 @@ namespace SilkyNvg.OpenGL
         private readonly GraphicsManager _graphicsManager;
         private readonly GL _gl;
 
+        private Vector2D<float> _viewport = new Vector2D<float>(0.0F);
+
         private VAO _vao;
         private NvgShader _shader;
-        private FragmentData _fragmentData;
 
         private void CheckError(string str)
         {
@@ -40,9 +42,14 @@ namespace SilkyNvg.OpenGL
             CheckError("Uniform locations");
             _shader.GetUniforms();
             _vao = new VAO(_gl);
-            _fragmentData = new FragmentData();
             CheckError("Post initialization");
             _gl.Finish();
+        }
+
+        public void SetupViewSize(float width, float height)
+        {
+            _viewport.X = width;
+            _viewport.Y = height;
         }
 
     }

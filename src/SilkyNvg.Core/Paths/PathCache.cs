@@ -22,5 +22,17 @@ namespace SilkyNvg.Core.Paths
             _vertices = new List<Vertex>();
         }
 
+        public void Clear()
+        {
+            _points.Clear();
+            _paths.Clear();
+        }
+
+        public void Purge()
+        {
+            Clear();
+            _vertices.Clear();
+        }
+
     }
 }

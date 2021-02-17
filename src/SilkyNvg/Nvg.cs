@@ -15,6 +15,7 @@ namespace SilkyNvg
         private readonly StateManager _stateManager;
         private readonly PathCache _pathCache;
         private readonly Style _style;
+        private readonly FrameMeta _frameMeta;
 
         private Nvg(GraphicsManager graphicsManager)
         {
@@ -25,7 +26,63 @@ namespace SilkyNvg
             _stateManager = new StateManager();
             _style = new Style(1.0f);
             _graphicsManager.CreateRenderer();
+            // TODO: Font
             // TODO: More images
+
+            _frameMeta = new FrameMeta();
+        }
+
+        /// <summary>
+        /// Creates a new instance of the NanoVG API. Each Nvg-API has its own
+        /// context, so instead of needing to parse it in all the time, one creates
+        /// a new API-Instance. An API instance will also be refered to as "context"
+        /// in the following documentation, when it is more applicable.
+        /// </summary>
+        /// <param name="flags">The flags to be used when this context is running <see cref="CreateFlag"/>.</param>
+        /// <param name="gl">The GL Api object needed for rendering.</param>
+        public static Nvg Create(uint flags, Silk.NET.OpenGL.GL gl)
+        {
+            var launchParams = new LaunchParameters((flags & (uint)CreateFlag.EdgeAntialias) != 0,
+                (flags & (uint)CreateFlag.StencilStrokes) != 0, (flags & (uint)CreateFlag.Debug) != 0);
+            var gManager = new GraphicsManager(launchParams, gl);
+            var nvg = new Nvg(gManager);
+            return nvg;
+        }
+
+        /// <summary>
+        /// Begins rendering a new frame.
+        /// All calls to NanoVG per frame should be wrapped in
+        /// calls of this method and <see cref="EndFrame"/>.
+        /// </summary>
+        /// <param name="windowWidth">The width of the window
+        /// (or the portion of the window)</param>
+        /// <param name="windowHeight">The height of the window
+        /// (or the portion of the window)</param>
+        /// <param name="pixelRatio">The ratio of the frame buffer
+        /// size to the window size, computed as <code>pixelRatio = frameBufferWidth / windowWidth</code></param>
+        public void BeginFrame(float windowWidth, float windowHeight, float pixelRatio)
+        {
+            _stateManager.ClearStack();
+            _stateManager.Reset();
+            _style.CalculateForPixelRatio(pixelRatio);
+            _graphicsManager.SetViewport(windowWidth, windowHeight);
+            _frameMeta.Reset();
+        }
+
+        public void EndFrame()
+        {
+
+        }
+
+        /// <summary>
+        /// Transform a point by the specified transform.
+        /// </summary>
+        /// <param name="pos">The point</param>
+        /// <param name="t">The transform</param>
+        /// <returns>The transformed point.</returns>
+        public Vector2D<float> TransformPoint(Vector2D<float> pos, params float[] t)
+        {
+            return Maths.TransformPoint(pos.X, pos.Y, t);
         }
 
         /// <summary>
@@ -54,43 +111,22 @@ namespace SilkyNvg
         }
 
         /// <summary>
-        /// Transform a point by the specified transform.
+        /// Clear the current path and sub-path.
         /// </summary>
-        /// <param name="x">The point x position.</param>
-        /// <param name="y">The point y position.</param>
-        /// <param name="t">The transform.</param>
-        /// <returns>The transformed point.</returns>
-        public Vector2D<float> TransformPoint(float x, float y, params float[] t)
+        public void BeginPath()
         {
-            return Maths.TransformPoint(x, y, t);
+            _instructionManager.Clear();
+            _pathCache.Clear();
         }
 
-        /// <summary>
-        /// Transform a point by the specified transform.
-        /// </summary>
-        /// <param name="pos">The point</param>
-        /// <param name="t">The transform</param>
-        /// <returns>The transformed point.</returns>
-        public Vector2D<float> TransformPoint(Vector2D<float> pos, params float[] t)
+        public void Ellipse(Vector2D<float> position, float radiusX, float radiusY)
         {
-            return TransformPoint(pos.X, pos.Y, t);
+
         }
 
-        /// <summary>
-        /// Creates a new instance of the NanoVG API. Each Nvg-API has its own
-        /// context, so instead of needing to parse it in all the time, one creates
-        /// a new API-Instance. An API instance will also be refered to as "context"
-        /// in the following documentation, when it is more applicable.
-        /// </summary>
-        /// <param name="flags">The flags to be used when this context is running <see cref="CreateFlag"/>.</param>
-        /// <param name="gl">The GL Api object needed for rendering.</param>
-        public static Nvg Create(uint flags, Silk.NET.OpenGL.GL gl)
+        public void Circle(Vector2D<float> position, float radius)
         {
-            var launchParams = new LaunchParameters((flags & (uint)CreateFlag.EdgeAntialias) != 0,
-                (flags & (uint)CreateFlag.StencilStrokes) != 0, (flags & (uint)CreateFlag.Debug) != 0);
-            var gManager = new GraphicsManager(launchParams, gl);
-            var nvg = new Nvg(gManager);
-            return nvg;
+            Ellipse(position, radius, radius);
         }
 
     }
