@@ -12,9 +12,9 @@ namespace SilkyNvg.OpenGL
         private GLInterface _interface;
 
         public GLInterface GraphicsInterface => _interface;
+        public LaunchParameters LaunchParameters => _launchParameters;
 
         internal GL GL => _gl;
-        internal LaunchParameters LaunchParameters => _launchParameters;
 
         public GraphicsManager(LaunchParameters launchParameters, GL gl)
         {

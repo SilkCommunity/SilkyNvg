@@ -1,9 +1,9 @@
 ﻿using Silk.NET.Maths;
 using System.Collections.Generic;
 
-namespace SilkyNvg.Core.Instructions
+namespace SilkyNvg.Instructions
 {
-    public sealed class InstructionManager
+    internal sealed class InstructionManager
     {
 
         public Vector2D<float> InstructionPosition

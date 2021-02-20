@@ -1,4 +1,5 @@
 ﻿using Silk.NET.GLFW;
+using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using SilkyNvg;
 using System;
@@ -69,10 +70,11 @@ namespace SingleClassExample
 
                 nvg.BeginFrame(winWidth, winHeight, pxRatio);
 
+                var pos = new Vector2D<float>(200.0f, 200.0f);
                 nvg.BeginPath();
-                nvg.Circle(new Silk.NET.Maths.Vector2D<float>(120, 200), 100);
-                /*nvg.FillColour(1.0f, 0.7f, 0.0f, 1.0f); // make this take colour object directly and also rgba!
-                nvg.Stroke(0.0f, 0.5f, 1.0f, 1.0f, 10.0); // see above!
+                nvg.Circle(pos, 50);
+                nvg.FillColour(nvg.FromRGBAf(0.0f, 0.3f, 0.8f, 1.0f));
+                /*nvg.Fill();
 
                 nvg.EndFrame();*/
 

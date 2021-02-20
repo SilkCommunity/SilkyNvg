@@ -1,9 +1,9 @@
 ﻿using SilkyNvg.Core.Geometry;
 using System.Collections.Generic;
 
-namespace SilkyNvg.Core.Paths
+namespace SilkyNvg.Paths
 {
-    public class Path
+    internal class Path
     {
 
         private readonly ICollection<Vertex> _fill = new List<Vertex>();

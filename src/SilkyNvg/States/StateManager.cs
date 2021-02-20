@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using SilkyNvg.Core;
+using System.Collections.Generic;
 
-namespace SilkyNvg.Core.States
+namespace SilkyNvg.States
 {
-    public sealed class StateManager
+    internal sealed class StateManager
     {
 
         public const int MAX_STATES = 32;
@@ -35,9 +36,22 @@ namespace SilkyNvg.Core.States
 
         public void Reset()
         {
-            var state = new State();
+            var state = new State
+            {
+                // TODO: Paint
+                // TODO: Composite operations
+                ShapeAntiAlias = true,
+                StrokeWidth = 1.0f,
+                MiterLimit = 10.0f,
+                LineCap = LineCap.Butt,
+                LineJoin = LineCap.Miter,
+                Alpha = 1.0f,
+                XForm = Maths.TransformIdentity
 
-            // TODO: Reset state default values.
+                // TODO: Scissor
+
+                // TODO: Fonts
+            };
 
             if (_stateStack.Count > 0)
                 _stateStack.RemoveLast();
@@ -49,7 +63,7 @@ namespace SilkyNvg.Core.States
             _stateStack.Clear();
         }
 
-        public State GetState()
+        public State GetCurrentState()
         {
             return _stateStack.Last.Value;
         }

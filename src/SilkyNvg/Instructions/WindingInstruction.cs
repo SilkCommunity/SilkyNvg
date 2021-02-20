@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SilkyNvg.Core.Instructions
+namespace SilkyNvg.Instructions
 {
-    class CloseInstruction
+    internal class WindingInstruction
     {
     }
 }

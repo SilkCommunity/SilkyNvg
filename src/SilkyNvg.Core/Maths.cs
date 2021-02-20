@@ -1,15 +1,24 @@
 ﻿using Silk.NET.Maths;
+using System;
 
 namespace SilkyNvg.Core
 {
     public sealed class Maths
     {
 
-        public static Vector2D<float> TransformPoint(float sx, float sy, params float[] t)
+        public static float Kappa
         {
-            float dx = sx * t[0] + sy * t[2] + t[4];
-            float dy = sx * t[1] + sy * t[3] + t[5];
-            return new Vector2D<float>(dx, dy);
+            get
+            {
+                return 4.0f * (((float)Math.Sqrt(2.0) - 1.0f) / 3.0f);
+            }
+        }
+
+        public static Matrix3X2<float> TransformIdentity => Matrix3X2<float>.Identity;
+
+        public static Vector2D<float> TransformPoint(Vector2D<float> p, Matrix3X2<float> t)
+        {
+            return Vector2D.Transform(p, t);
         }
 
     }

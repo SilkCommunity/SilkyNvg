@@ -10,10 +10,10 @@
 
         public Style(float pixelRatio)
         {
-            CalculateForPixelRatio(pixelRatio);
+            Update(pixelRatio);
         }
 
-        public void CalculateForPixelRatio(float pixelRatio)
+        public void Update(float pixelRatio)
         {
             TesselationTollerance = 0.25f / pixelRatio;
             DistributionTollerance = 0.01f / pixelRatio;
