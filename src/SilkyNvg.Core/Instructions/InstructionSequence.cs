@@ -1,10 +1,10 @@
 ﻿using Silk.NET.Maths;
-using SilkyNvg.States;
+using SilkyNvg.Core.States;
 using System;
 
-namespace SilkyNvg.Instructions
+namespace SilkyNvg.Core.Instructions
 {
-    internal class InstructionSequence : IDisposable
+    public class InstructionSequence : IDisposable
     {
 
         private IInstruction[] _instructions;

@@ -1,9 +1,8 @@
-﻿using SilkyNvg.Core;
-using SilkyNvg.Paths;
+﻿using SilkyNvg.Core.Paths;
 
-namespace SilkyNvg.Instructions
+namespace SilkyNvg.Core.Instructions
 {
-    internal interface IInstruction
+    public interface IInstruction
     {
 
         bool RequiresPosition { get; }

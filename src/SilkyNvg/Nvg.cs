@@ -1,9 +1,10 @@
 ﻿using Silk.NET.Maths;
 using SilkyNvg.Core;
-using SilkyNvg.Instructions;
-using SilkyNvg.Paths;
 using SilkyNvg.OpenGL;
-using SilkyNvg.States;
+using SilkyNvg.Core.Instructions;
+using SilkyNvg.Core.States;
+using SilkyNvg.Core.Paths;
+using System.Collections.Generic;
 
 namespace SilkyNvg
 {
@@ -15,7 +16,7 @@ namespace SilkyNvg
         private readonly StateManager _stateManager;
         private readonly PathCache _pathCache;
         private readonly Style _style;
-        private readonly FrameMeta _frameMeta;
+        private FrameMeta _frameMeta;
 
         private Nvg(GraphicsManager graphicsManager)
         {
@@ -71,7 +72,7 @@ namespace SilkyNvg
 
         public void EndFrame()
         {
-
+            _graphicsManager.RenderFlush();
         }
 
         /// <summary>
@@ -225,7 +226,24 @@ namespace SilkyNvg
             _pathCache.FlattenPaths(_instructionManager, _style);
             if (_graphicsManager.LaunchParameters.EdgeAntialias && state.ShapeAntiAlias)
             {
+               _pathCache.ExpandFill(_style.FringeWidth, LineCap.Miter, 2.4f, _style);
+            }
+            else
+            {
+                _pathCache.ExpandFill(0.0f, LineCap.Miter, 2.4f, _style);
+            }
 
+            fillPaint.InnerColour.A *= state.Alpha;
+            fillPaint.OuterColour.A *= state.Alpha;
+
+            _graphicsManager.RenderFill(fillPaint, state.CompositeOperation, state.Scissor, _style.FringeWidth, _pathCache.Bounds,
+                ((List<Path>)_pathCache.Paths).ToArray(), _pathCache.Paths.Count);
+
+            foreach (Path path in _pathCache.Paths)
+            {
+                _frameMeta.FillTriCount += path.NFill - 2;
+                _frameMeta.FillTriCount += path.NStroke - 2;
+                _frameMeta.DrawCallCount += 2;
             }
 
         }

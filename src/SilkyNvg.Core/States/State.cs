@@ -1,12 +1,14 @@
 ﻿using Silk.NET.Maths;
 using SilkyNvg.Core;
+using SilkyNvg.Core.Composite;
 
-namespace SilkyNvg.States
+namespace SilkyNvg.Core.States
 {
-    internal struct State
+    public struct State
     {
 
-        // TODO: Composite operations.
+        public ICompositeOperation CompositeOperation { get; set; }
+        public Scissor Scissor { get; set; }
         public bool ShapeAntiAlias { get; set; }
         public Paint Fill { get; set; }
         public Paint Stroke { get; set; }

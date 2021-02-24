@@ -52,7 +52,8 @@ namespace SingleClassExample
             gl.GetError();
 
             // Create a new NVG context.
-            var nvg = Nvg.Create((uint)CreateFlag.EdgeAntialias | (uint)CreateFlag.StencilStrokes | (uint)CreateFlag.Debug, gl);
+            // var nvg = Nvg.Create((uint)CreateFlag.EdgeAntialias | (uint)CreateFlag.StencilStrokes | (uint)CreateFlag.Debug, gl);
+            var nvg = Nvg.Create((uint)CreateFlag.Debug, gl);
 
             glfw.SwapInterval(0);
 
@@ -65,7 +66,7 @@ namespace SingleClassExample
                 float pxRatio = (float)fbWidth / (float)winWidth;
 
                 gl.Viewport(0, 0, (uint)winWidth, (uint)winHeight);
-                gl.ClearColor(0, 0, 0, 1.0f);
+                gl.ClearColor(0.3f, 0.3f, 0.32f, 1.0f);
                 gl.Clear((uint)ClearBufferMask.ColorBufferBit | (uint)ClearBufferMask.DepthBufferBit | (uint)ClearBufferMask.StencilBufferBit);
 
                 nvg.BeginFrame(winWidth, winHeight, pxRatio);
@@ -74,9 +75,9 @@ namespace SingleClassExample
                 nvg.BeginPath();
                 nvg.Circle(pos, 50);
                 nvg.FillColour(nvg.FromRGBAf(0.0f, 0.3f, 0.8f, 1.0f));
-                /*nvg.Fill();
+                nvg.Fill();
 
-                nvg.EndFrame();*/
+                nvg.EndFrame();
 
                 glfw.SwapBuffers(window);
                 glfw.PollEvents();

@@ -1,9 +1,10 @@
 ﻿using SilkyNvg.Core;
+using SilkyNvg.Core.Composite;
 using System.Collections.Generic;
 
-namespace SilkyNvg.States
+namespace SilkyNvg.Core.States
 {
-    internal sealed class StateManager
+    public sealed class StateManager
     {
 
         public const int MAX_STATES = 32;
@@ -38,17 +39,18 @@ namespace SilkyNvg.States
         {
             var state = new State
             {
-                // TODO: Paint
-                // TODO: Composite operations
+                Fill = new Paint(Maths.TransformIdentity, 0.0f, 1.0f, Colour.FromRGBAf(1.0f, 1.0f, 1.0f, 1.0f), Colour.FromRGBAf(1.0f, 1.0f, 1.0f, 1.0f)),
+                Stroke = new Paint(Maths.TransformIdentity, 0.0f, 1.0f, Colour.FromRGBAf(0.0f, 0.0f, 0.0f, 1.0f), Colour.FromRGBAf(0.0f, 0.0f, 0.0f, 1.0f)),
+                CompositeOperation = new SrcOverOperation(),
                 ShapeAntiAlias = true,
                 StrokeWidth = 1.0f,
                 MiterLimit = 10.0f,
                 LineCap = LineCap.Butt,
                 LineJoin = LineCap.Miter,
                 Alpha = 1.0f,
-                XForm = Maths.TransformIdentity
+                XForm = Maths.TransformIdentity,
 
-                // TODO: Scissor
+                Scissor = new Scissor(new Silk.NET.Maths.Vector2D<float>(-1.0f, -1.0f))
 
                 // TODO: Fonts
             };

@@ -1,13 +1,12 @@
 ﻿using Silk.NET.Maths;
-using SilkyNvg.Core;
 using SilkyNvg.Core.Geometry;
-using SilkyNvg.Paths;
-using SilkyNvg.States;
+using SilkyNvg.Core.Paths;
+using SilkyNvg.Core.States;
 using System;
 
-namespace SilkyNvg.Instructions
+namespace SilkyNvg.Core.Instructions
 {
-    internal sealed class MoveToInstruction : IInstruction
+    public sealed class MoveToInstruction : IInstruction
     {
 
         public const float INSTRUCTION_ID = 0.0F;
@@ -39,10 +38,10 @@ namespace SilkyNvg.Instructions
             _position = Maths.TransformPoint(_position, _state.XForm);
         }
 
-        public void FlattenPath(PathCache cache, Style _)
+        public void FlattenPath(PathCache cache, Style style)
         {
             cache.AddPath();
-            cache.AddPoint(_position, (uint)PointFlags.PointCorner);
+            cache.AddPoint(_position, (uint)PointFlags.PointCorner, style);
         }
 
         public void Execute()

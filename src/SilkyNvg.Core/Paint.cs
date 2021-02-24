@@ -9,9 +9,11 @@ namespace SilkyNvg.Core
         public Vector2D<float> Extent { get; private set; }
         public float Radius { get; private set; }
         public float Feather { get; private set; }
-        public Colour InnerColour { get; private set; }
-        public Colour OuterColour { get; private set; }
-        // TODO: Images
+
+        public Colour InnerColour;
+        public Colour OuterColour;
+
+        // TODO: Image
 
         public Paint(Matrix3X2<float> transformation, float radius, float feather, Colour inner, Colour outer)
         {

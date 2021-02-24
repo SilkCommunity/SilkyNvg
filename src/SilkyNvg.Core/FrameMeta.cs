@@ -3,10 +3,10 @@
     public struct FrameMeta
     {
 
-        public int DrawCallCount { get; private set; }
-        public int FillTriCount { get; private set; }
-        public int StrokeTriCount { get; private set; }
-        public int TextTriCount { get; private set; }
+        public int DrawCallCount;
+        public int FillTriCount;
+        public int StrokeTriCount;
+        public int TextTriCount;
 
         public void Reset()
         {

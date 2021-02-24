@@ -1,13 +1,12 @@
 ﻿using Silk.NET.Maths;
-using SilkyNvg.Core;
 using SilkyNvg.Core.Geometry;
-using SilkyNvg.Paths;
-using SilkyNvg.States;
+using SilkyNvg.Core.Paths;
+using SilkyNvg.Core.States;
 using System;
 
-namespace SilkyNvg.Instructions
+namespace SilkyNvg.Core.Instructions
 {
-    internal class BeziereToInstruction : IInstruction
+    public class BeziereToInstruction : IInstruction
     {
 
         public const float INSTRUCTION_ID = 2.0F;
@@ -74,7 +73,7 @@ namespace SilkyNvg.Instructions
 
             if ((d1 + d2) * (d1 + d2) < style.TesselationTollerance * (dx * dx + dy * dy))
             {
-                cache.AddPoint(new Vector2D<float>(x3, y3), type);
+                cache.AddPoint(new Vector2D<float>(x3, y3), type, style);
                 return;
             }
 

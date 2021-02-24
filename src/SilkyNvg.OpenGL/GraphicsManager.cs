@@ -32,5 +32,16 @@ namespace SilkyNvg.OpenGL
             _interface.SetupViewSize(width, height);
         }
 
+        public void RenderFill(Paint paint, Core.Composite.ICompositeOperation compositeOperation, Scissor scissor,
+            float fringe, Silk.NET.Maths.Rectangle<float> bounds, Core.Paths.Path[] paths, int pathCount)
+        {
+            _interface.RenderFill(paint, compositeOperation, scissor, fringe, bounds, paths, pathCount);
+        }
+
+        public void RenderFlush()
+        {
+            _interface.RenderFlush();
+        }
+
     }
 }

@@ -5,14 +5,30 @@ namespace SilkyNvg.Core
     public struct Colour
     {
 
-        public float R => _rgba.X;
-        public float G => _rgba.Y;
-        public float B => _rgba.Z;
-        public float A => _rgba.W;
+        public float R
+        {
+            get => _rgba.X;
+            set { _rgba.X = value; }
+        }
+        public float G
+        {
+            get => _rgba.Y;
+            set { _rgba.Y = value; }
+        }
+        public float B
+        {
+            get => _rgba.Z;
+            set { _rgba.Z = value; }
+        }
+        public float A
+        {
+            get => _rgba.W;
+            set { _rgba.W = value; }
+        }
 
         public Vector4D<float> Rgba => _rgba;
 
-        private readonly Vector4D<float> _rgba;
+        private Vector4D<float> _rgba;
 
         private Colour(float r, float g, float b, float a)
         {

@@ -1,4 +1,5 @@
-﻿using Silk.NET.OpenGL;
+﻿using Silk.NET.Maths;
+using Silk.NET.OpenGL;
 using System.Collections.Generic;
 using System.IO;
 
@@ -17,8 +18,8 @@ namespace SilkyNvg.OpenGL.Shaders
             _gl = gl;
 
             _programmeID = _gl.CreateProgram();
-            _vertexShaderID = _gl.CreateShader(ShaderType.VertexShader);
-            _fragmentShaderID = _gl.CreateShader(ShaderType.FragmentShader);
+            _vertexShaderID = _gl.CreateShader(Silk.NET.OpenGL.ShaderType.VertexShader);
+            _fragmentShaderID = _gl.CreateShader(Silk.NET.OpenGL.ShaderType.FragmentShader);
             _gl.ShaderSource(_vertexShaderID, GetShaderSource("Vertex"));
             _gl.ShaderSource(_fragmentShaderID, GetShaderSource("Fragment"));
 
@@ -67,6 +68,37 @@ namespace SilkyNvg.OpenGL.Shaders
         public void Stop()
         {
             _gl.UseProgram(0);
+        }
+
+        public void LoadStdUniforms(Vector2D<float> viewSize)
+        {
+            _gl.Uniform2(_uniformVariables["viewSize"], viewSize.X, viewSize.Y);
+        }
+
+        private unsafe void LoadMatrix(Matrix3X4<float> value, int loc)
+        {
+            _gl.UniformMatrix3x4(loc, 1, false, (float*)&value);
+        }
+
+        public unsafe void LoadFragmentData(FragmentData data)
+        {
+            LoadMatrix(data.ScissorMatrix, _uniformVariables["scissorMatrix"]);
+            LoadMatrix(data.PaintMatrix, _uniformVariables["paintMatrix"]);
+            var innerRgba = data.InnerColour.Rgba;
+            var outerRgba = data.OuterColour.Rgba;
+            _gl.Uniform4(_uniformVariables["innerColour"], new System.Numerics.Vector4(innerRgba.X, innerRgba.Y, innerRgba.Z, innerRgba.W));
+            _gl.Uniform4(_uniformVariables["outerColour"], new System.Numerics.Vector4(outerRgba.X, outerRgba.Y, outerRgba.Z, outerRgba.W));
+            var scissorExt = data.ScissorExtent;
+            var scissorScl = data.ScissorScale;
+            _gl.Uniform2(_uniformVariables["scissorExtent"], new System.Numerics.Vector2(scissorExt.X, scissorExt.Y));
+            _gl.Uniform2(_uniformVariables["scissorScale"], new System.Numerics.Vector2(scissorScl.X, scissorScl.Y));
+            var ext = data.Extent;
+            _gl.Uniform2(_uniformVariables["extent"], new System.Numerics.Vector2(ext.X, ext.Y));
+            _gl.Uniform1(_uniformVariables["radius"], data.Radius);
+            _gl.Uniform1(_uniformVariables["feather"], data.Feather);
+            _gl.Uniform1(_uniformVariables["strokeMultiplier"], data.StrokeMultiplier);
+            _gl.Uniform1(_uniformVariables["strokeThreshold"], data.StrokeThreshold);
+            _gl.Uniform1(_uniformVariables["type"], (int)data.Type);
         }
 
         public void GetUniforms()

@@ -1,10 +1,9 @@
-﻿using SilkyNvg.Core;
-using SilkyNvg.Paths;
+﻿using SilkyNvg.Core.Paths;
 using System;
 
-namespace SilkyNvg.Instructions
+namespace SilkyNvg.Core.Instructions
 {
-    internal class CloseInstruction : IInstruction
+    public class CloseInstruction : IInstruction
     {
 
         public const float INSTRUCTION_ID = 3.0F;
@@ -23,7 +22,10 @@ namespace SilkyNvg.Instructions
 
         public void Prepare() { }
 
-        public void FlattenPath(PathCache _, Style _2) { }
+        public void FlattenPath(PathCache cache, Style _)
+        {
+            cache.ClosePath();
+        }
 
         public void Execute()
         {
