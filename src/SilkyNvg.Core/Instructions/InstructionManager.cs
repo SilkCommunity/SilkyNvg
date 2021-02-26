@@ -33,7 +33,6 @@ namespace SilkyNvg.Core.Instructions
         public InstructionManager()
         {
             _instructionQueue = new Queue<IInstruction>();
-            Clear();
         }
 
         public IInstruction Next()

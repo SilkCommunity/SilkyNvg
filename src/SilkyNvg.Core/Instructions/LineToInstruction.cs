@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SilkyNvg.Instructions
+namespace SilkyNvg.Core.Instructions
 {
-    internal class LineToInstruction
+    class LineToInstruction
     {
     }
 }

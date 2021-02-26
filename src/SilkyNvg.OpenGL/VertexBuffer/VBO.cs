@@ -23,7 +23,7 @@ namespace SilkyNvg.OpenGL.VertexBuffer
             Bind();
             fixed (void* d = data)
             {
-                _gl.BufferData(_type, (uint)sizeof(T) * (uint)data.Length, d, BufferUsageARB.StreamDraw);
+                _gl.BufferData(_type, (uint)sizeof(T) * (uint)data.Length, d, BufferUsageARB.StaticDraw);
             }
             Unbind();
         }

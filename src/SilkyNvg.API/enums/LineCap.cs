@@ -1,4 +1,4 @@
-﻿namespace SilkyNvg.Core
+﻿namespace SilkyNvg
 {
     public enum LineCap
     {

@@ -1,4 +1,4 @@
-﻿using SilkyNvg.Core.Paths;
+﻿using Silk.NET.Maths;
 
 namespace SilkyNvg.Core.Instructions
 {
@@ -7,12 +7,9 @@ namespace SilkyNvg.Core.Instructions
 
         bool RequiresPosition { get; }
 
-        float ID { get; }
-
-        float[] FieldsAsFloatArray { get; }
+        Vector2D<float> Position { get; }
 
         void Prepare();
-        void FlattenPath(PathCache cache, Style style);
 
         void Execute();
 

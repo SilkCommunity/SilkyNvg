@@ -1,10 +1,8 @@
-﻿using Silk.NET.Maths;
-using SilkyNvg.Core;
-using SilkyNvg.OpenGL;
+﻿using SilkyNvg.Core;
 using SilkyNvg.Core.Instructions;
-using SilkyNvg.Core.States;
 using SilkyNvg.Core.Paths;
-using System.Collections.Generic;
+using SilkyNvg.Core.States;
+using SilkyNvg.OpenGL;
 
 namespace SilkyNvg
 {
@@ -16,7 +14,7 @@ namespace SilkyNvg
         private readonly StateManager _stateManager;
         private readonly PathCache _pathCache;
         private readonly Style _style;
-        private FrameMeta _frameMeta;
+        private readonly FrameMeta _frameMeta;
 
         private Nvg(GraphicsManager graphicsManager)
         {
@@ -26,7 +24,7 @@ namespace SilkyNvg
             _pathCache = new PathCache();
             _stateManager = new StateManager();
             _style = new Style(1.0f);
-            _graphicsManager.CreateRenderer();
+            _graphicsManager.RenderCreate();
             // TODO: Font
             // TODO: More images
 
@@ -64,50 +62,27 @@ namespace SilkyNvg
         public void BeginFrame(float windowWidth, float windowHeight, float pixelRatio)
         {
             _stateManager.ClearStack();
+            _stateManager.Save();
             _stateManager.Reset();
-            _style.Update(pixelRatio);
-            _graphicsManager.SetViewport(windowWidth, windowHeight);
+            _style.CalculateForPixelRatio(pixelRatio);
+            _graphicsManager.RenderViewport(windowWidth, windowHeight);
             _frameMeta.Reset();
         }
 
-        public void EndFrame()
-        {
-            _graphicsManager.RenderFlush();
-        }
-
         /// <summary>
-        /// Create a new Colour with a vector.
-        /// All colours are represented between 0 and 1
-        /// where 0 is 0 and 1 is 255.
+        /// Create a new colour using the following
+        /// RGBA-Parameters, specified as parts of float.
+        /// I.E. devide the 0-255 by 255.
+        /// <seealso cref="Colour.Colour(float, float, float, float)"/>
         /// </summary>
-        /// <param name="r">Red component</param>
-        /// <param name="g">Green component</param>
-        /// <param name="b">Blue component</param>
-        /// <param name="a">Alpha component</param>
-        /// <returns>A new colour with the specified values.</returns>
-        public Colour FromRGBAf(float r, float g, float b, float a)
+        /// <param name="r">The red component.</param>
+        /// <param name="g">The green component.</param>
+        /// <param name="b">The blue component.</param>
+        /// <param name="a">The alpha component.</param>
+        /// <returns>A colour using the specified rgba values.</returns>
+        public Colour RGBAf(float r, float g, float b, float a)
         {
-            return Colour.FromRGBAf(r, g, b, a);
-        }
-
-        /// <summary>
-        /// Transform a point by the specified transform.
-        /// </summary>
-        /// <param name="pos">The point</param>
-        /// <param name="t">The transform</param>
-        /// <returns>The transformed point.</returns>
-        public Vector2D<float> TransformPoint(Vector2D<float> pos, Matrix3X2<float> transform)
-        {
-            return Maths.TransformPoint(pos, transform);
-        }
-
-        /// <summary>
-        /// NVG uses 3x2 matrices.
-        /// </summary>
-        /// <returns>A 3x2 identity matrix.</returns>
-        public Matrix3X2<float> TransformIdentity()
-        {
-            return Maths.TransformIdentity;
+            return new Colour(r, g, b, a);
         }
 
         /// <summary>
@@ -136,116 +111,12 @@ namespace SilkyNvg
         }
 
         /// <summary>
-        /// Set the colour to be used when
-        /// calling <see cref="Fill"/>
-        /// </summary>
-        /// <param name="colour">The new colour. <see cref="FromRGBAf(float, float, float, float)"/></param>
-        public void FillColour(Colour colour)
-        {
-            var state = _stateManager.GetCurrentState();
-            state.Fill = new Paint(Maths.TransformIdentity, 0.0f, 1.0f, colour, colour);
-        }
-
-        /// <summary>
         /// Clear the current path and sub-path.
         /// </summary>
         public void BeginPath()
         {
             _instructionManager.Clear();
             _pathCache.Clear();
-        }
-
-        /// <summary>
-        /// Draw an ellipse with the specified parameters.
-        /// </summary>
-        /// <param name="position">The centre of the ellipse.</param>
-        /// <param name="radiusX">The x-axis radius of the ellipse.</param>
-        /// <param name="radiusY">The y-axis radius of the ellipse.</param>
-        public void Ellipse(Vector2D<float> position, float radiusX, float radiusY)
-        {
-            float x = position.X;
-            float y = position.Y;
-            var sequence = new InstructionSequence(6, _stateManager.GetCurrentState());
-            sequence.AddMoveTo(x - radiusX, position.Y);
-            sequence.AddBezireTo(
-                x - radiusX,
-                y + radiusY * Maths.Kappa,
-                x - radiusX * Maths.Kappa,
-                y + radiusY,
-                x,
-                y + radiusY
-            );
-            sequence.AddBezireTo(
-                x + radiusX * Maths.Kappa,
-                y + radiusY,
-                x + radiusX,
-                y + radiusY * Maths.Kappa,
-                x + radiusX,
-                y
-            );
-            sequence.AddBezireTo(
-                x + radiusX,
-                y - radiusY * Maths.Kappa,
-                x + radiusX * Maths.Kappa,
-                y - radiusY,
-                x,
-                y - radiusY
-            );
-            sequence.AddBezireTo(
-                x - radiusX * Maths.Kappa,
-                y - radiusY,
-                x - radiusX,
-                y - radiusY * Maths.Kappa,
-                x - radiusX,
-                y
-            );
-            sequence.AddClose();
-            _instructionManager.AddSequence(sequence);
-        }
-
-        /// <summary>
-        /// Draw a "quadratic ellipse".
-        /// Some like to call them circles.
-        /// </summary>
-        /// <param name="position">The circle's centre.</param>
-        /// <param name="radius">The circle's radius. (X- and Y- axis!)</param>
-        public void Circle(Vector2D<float> position, float radius)
-        {
-            Ellipse(position, radius, radius);
-        }
-
-        /// <summary>
-        /// Apply fill. I.e. fill the path specified before with the
-        /// set fill colour. <see cref="FillColour(Colour)"/>
-        /// </summary>
-        public void Fill()
-        {
-            var state = _stateManager.GetCurrentState();
-            var fillPaint = state.Fill;
-
-            _pathCache.FlattenPaths(_instructionManager, _style);
-            if (_graphicsManager.LaunchParameters.EdgeAntialias && state.ShapeAntiAlias)
-            {
-               _pathCache.ExpandFill(_style.FringeWidth, LineCap.Miter, 2.4f, _style);
-            }
-            else
-            {
-                _pathCache.ExpandFill(0.0f, LineCap.Miter, 2.4f, _style);
-            }
-
-            fillPaint.InnerColour.A *= state.Alpha;
-            fillPaint.OuterColour.A *= state.Alpha;
-
-            _graphicsManager.RenderFill(fillPaint, state.CompositeOperation, state.Scissor, _style.FringeWidth, _pathCache.Bounds,
-                ((List<Path>)_pathCache.Paths).ToArray(), _pathCache.Paths.Count);
-
-            foreach (Path path in _pathCache.Paths)
-            {
-                _frameMeta.FillTriCount += path.NFill - 2;
-                _frameMeta.FillTriCount += path.NStroke - 2;
-                _frameMeta.DrawCallCount += 2;
-            }
-
         }
 
     }

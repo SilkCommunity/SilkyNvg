@@ -4,7 +4,8 @@ using System.Text;
 
 namespace SilkyNvg.Core.Instructions
 {
-    class MoveToInstruction
+    class BezireToInstruction
     {
+
     }
 }

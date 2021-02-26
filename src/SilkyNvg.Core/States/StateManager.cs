@@ -1,6 +1,4 @@
-﻿using SilkyNvg.Core;
-using SilkyNvg.Core.Composite;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace SilkyNvg.Core.States
 {
@@ -15,11 +13,19 @@ namespace SilkyNvg.Core.States
         {
             _stateStack = new LinkedList<State>();
             _stateStack.Clear();
+            Save();
             Reset();
         }
 
         public void Save()
         {
+            if (_stateStack.Count == 0)
+            {
+                _stateStack.AddLast(new State());
+                Reset();
+                return;
+            }
+
             if (_stateStack.Count > 0 && _stateStack.Count < MAX_STATES)
             {
                 _stateStack.AddBefore(_stateStack.Last, _stateStack.Last.Value);
@@ -37,27 +43,7 @@ namespace SilkyNvg.Core.States
 
         public void Reset()
         {
-            var state = new State
-            {
-                Fill = new Paint(Maths.TransformIdentity, 0.0f, 1.0f, Colour.FromRGBAf(1.0f, 1.0f, 1.0f, 1.0f), Colour.FromRGBAf(1.0f, 1.0f, 1.0f, 1.0f)),
-                Stroke = new Paint(Maths.TransformIdentity, 0.0f, 1.0f, Colour.FromRGBAf(0.0f, 0.0f, 0.0f, 1.0f), Colour.FromRGBAf(0.0f, 0.0f, 0.0f, 1.0f)),
-                CompositeOperation = new SrcOverOperation(),
-                ShapeAntiAlias = true,
-                StrokeWidth = 1.0f,
-                MiterLimit = 10.0f,
-                LineCap = LineCap.Butt,
-                LineJoin = LineCap.Miter,
-                Alpha = 1.0f,
-                XForm = Maths.TransformIdentity,
-
-                Scissor = new Scissor(new Silk.NET.Maths.Vector2D<float>(-1.0f, -1.0f))
-
-                // TODO: Fonts
-            };
-
-            if (_stateStack.Count > 0)
-                _stateStack.RemoveLast();
-            _stateStack.AddLast(state);
+            GetState().Reset();
         }
 
         public void ClearStack()
@@ -65,7 +51,7 @@ namespace SilkyNvg.Core.States
             _stateStack.Clear();
         }
 
-        public State GetCurrentState()
+        public State GetState()
         {
             return _stateStack.Last.Value;
         }

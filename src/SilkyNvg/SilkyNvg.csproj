@@ -3,11 +3,10 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.1</TargetFramework>
 	</PropertyGroup>
-
+	
 	<ItemGroup>
-		<ProjectReference Include="..\Fontstash\Fontstash.csproj" />
+		<ProjectReference Include="..\SilkyNvg.API\SilkyNvg.API.csproj" />
 		<ProjectReference Include="..\SilkyNvg.Core\SilkyNvg.Core.csproj" />
-		<ProjectReference Include="..\SilkyNvg.Images\SilkyNvg.Images.csproj" />
 		<ProjectReference Include="..\SilkyNvg.OpenGL\SilkyNvg.OpenGL.csproj" />
 	</ItemGroup>
 
