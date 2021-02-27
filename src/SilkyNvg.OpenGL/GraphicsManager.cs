@@ -29,7 +29,7 @@ namespace SilkyNvg.OpenGL
 
         public void RenderViewport(float width, float height)
         {
-            _interface.SetupViewSize(width, height);
+            _interface.RenderViewport(width, height);
         }
 
     }

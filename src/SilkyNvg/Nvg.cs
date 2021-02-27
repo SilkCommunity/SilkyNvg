@@ -119,5 +119,24 @@ namespace SilkyNvg
             _pathCache.Clear();
         }
 
+        /// <summary>
+        /// Draw a rectangle at give position
+        /// with given size.
+        /// </summary>
+        /// <param name="x">The X Position</param>
+        /// <param name="y">The Y Position</param>
+        /// <param name="w">The width</param>
+        /// <param name="h">The height</param>
+        public void Rect(float x, float y, float w, float h)
+        {
+            var sequence = new InstructionSequence(5);
+            sequence.AddMoveTo(x, y);
+            sequence.AddLineTo(x, y + h);
+            sequence.AddLineTo(x + w, y + h);
+            sequence.AddLineTo(x + w, h);
+            sequence.AddClose();
+            _instructionManager.AddSequence(sequence);
+        }
+
     }
 }

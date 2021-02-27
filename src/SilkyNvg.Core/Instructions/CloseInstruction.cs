@@ -1,10 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SilkyNvg.Core.Instructions
+﻿namespace SilkyNvg.Core.Instructions
 {
-    class CloseInstruction
+    public class CloseInstruction : IInstruction
     {
+        public bool RequiresPosition => false;
+
+        public void Execute()
+        {
+
+        }
+
+        public void Prepare()
+        {
+
+        }
     }
 }

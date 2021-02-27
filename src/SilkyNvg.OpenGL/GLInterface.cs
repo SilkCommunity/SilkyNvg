@@ -1,25 +1,25 @@
-﻿using Silk.NET.Maths;
-using Silk.NET.OpenGL;
+﻿using Silk.NET.OpenGL;
 using SilkyNvg.OpenGL.Shaders;
-using SilkyNvg.OpenGL.VertexArray;
 using System;
+using System.Runtime.InteropServices;
+using Shader = SilkyNvg.OpenGL.Shaders.Shader;
 
 namespace SilkyNvg.OpenGL
 {
     public sealed class GLInterface
     {
 
+        private readonly Shader _shader;
+
+        private readonly uint _vao;
+        private readonly uint _vertexVBO, _fragmentVBO;
+
         private readonly GraphicsManager _graphicsManager;
         private readonly GL _gl;
 
-        private Vector2D<float> _viewport = new Vector2D<float>(0.0F);
-
-        private VAO _vao;
-        private NvgShader _shader;
-
-        private void CheckError(string str)
+        internal void CheckError(string str)
         {
-            if (!_graphicsManager.LaunchParameters.Debug)
+            if (_graphicsManager.LaunchParameters.Debug)
                 return;
             GLEnum error = _gl.GetError();
             if (error != GLEnum.NoError)
@@ -32,24 +32,28 @@ namespace SilkyNvg.OpenGL
         {
             _graphicsManager = graphicsManager;
             _gl = _graphicsManager.GL;
-            Init();
-        }
 
-        private void Init()
-        {
             CheckError("init");
-            _shader = new NvgShader("NvgShader", _graphicsManager.LaunchParameters.EdgeAntialias, _gl);
-            CheckError("Uniform locations");
+            _shader = new Shader("SilkyNvg-Shader", _graphicsManager.LaunchParameters.EdgeAntialias, _gl);
+            CheckError("loaded shaders");
             _shader.GetUniforms();
-            _vao = new VAO(_gl);
-            CheckError("Post initialization");
+
+            _vao = _gl.GenVertexArray();
+            _vertexVBO = _gl.GenBuffer();
+
+            _shader.BindBlock();
+            _fragmentVBO = _gl.GenBuffer();
+            _gl.GetInteger(GetPName.UniformBufferOffsetAlignment, out int align);
+
+            _shader.UniformSize = Marshal.SizeOf(typeof(FragmentDataUniforms)) + align - Marshal.SizeOf(typeof(FragmentDataUniforms)) % align;
+
+            CheckError("create done!");
             _gl.Finish();
         }
 
-        public void SetupViewSize(float width, float height)
+        public void RenderViewport(float width, float height)
         {
-            _viewport.X = width;
-            _viewport.Y = height;
+
         }
 
     }

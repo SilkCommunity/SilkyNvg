@@ -30,24 +30,18 @@ namespace SilkyNvg.Core.Instructions
 
         public void Add(IInstruction instruction)
         {
-            if (_instructionCount == 0 && instruction.RequiresPosition)
-            {
-                _position = instruction.Position;
-                _positioned = true;
-            }
-
             _instructions[_instructionCount++] = instruction;
         }
 
         // TODO: Implement the following methods:
-        public void AddMoveTo()
+        public void AddMoveTo(float x, float y)
         {
-
+            Add(new MoveToInstruction(x, y));
         }
 
-        public void AddLineTo()
+        public void AddLineTo(float x, float y)
         {
-
+            Add(new LineToInstruction(x, y));
         }
 
         public void AddBezireTo()
@@ -57,7 +51,7 @@ namespace SilkyNvg.Core.Instructions
 
         public void AddClose()
         {
-
+            Add(new CloseInstruction());
         }
 
         public void AddWinding()

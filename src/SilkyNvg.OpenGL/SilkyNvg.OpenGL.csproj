@@ -28,10 +28,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Update="Shaders\nvgFragmentShader.glsl">
+	  <None Update="Shaders\fragmentShader.glsl">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
-	  <None Update="Shaders\nvgVertexShader.glsl">
+	  <None Update="Shaders\vertexShader.glsl">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
 	</ItemGroup>

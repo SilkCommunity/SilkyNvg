@@ -7,8 +7,6 @@ namespace SilkyNvg.Core.Instructions
 
         bool RequiresPosition { get; }
 
-        Vector2D<float> Position { get; }
-
         void Prepare();
 
         void Execute();
