@@ -1,17 +1,22 @@
-﻿namespace SilkyNvg.Core.Instructions
+﻿using SilkyNvg.Core.Paths;
+using SilkyNvg.Core.States;
+
+namespace SilkyNvg.Core.Instructions
 {
     public class CloseInstruction : IInstruction
     {
         public bool RequiresPosition => false;
 
-        public void Execute()
-        {
+        public InstructionType Type => InstructionType.Close;
 
+        public float[] Data => new float[] { (float)Type };
+
+        public void Prepare(State _) { }
+
+        public void Execute(PathCache cache, Style _)
+        {
+            cache.ClosePath();
         }
 
-        public void Prepare()
-        {
-
-        }
     }
 }

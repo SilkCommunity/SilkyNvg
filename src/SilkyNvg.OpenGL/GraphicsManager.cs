@@ -1,5 +1,7 @@
 ﻿using Silk.NET.OpenGL;
 using SilkyNvg.Core;
+using SilkyNvg.Core.Paths;
+using System.Collections.Generic;
 
 namespace SilkyNvg.OpenGL
 {
@@ -11,10 +13,10 @@ namespace SilkyNvg.OpenGL
 
         private GLInterface _interface;
 
-        public GLInterface GraphicsInterface => _interface;
+        internal GLInterface GraphicsInterface => _interface;
 
         internal GL GL => _gl;
-        internal LaunchParameters LaunchParameters => _launchParameters;
+        public LaunchParameters LaunchParameters => _launchParameters;
 
         public GraphicsManager(LaunchParameters launchParameters, GL gl)
         {
@@ -30,6 +32,11 @@ namespace SilkyNvg.OpenGL
         public void RenderViewport(float width, float height)
         {
             _interface.RenderViewport(width, height);
+        }
+
+        public void RenderFill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Silk.NET.Maths.Rectangle<float> bounds, List<Path> paths)
+        {
+            _interface.RenderFill(paint, compositeOperation, scissor, fringe, bounds, paths.ToArray());
         }
 
     }

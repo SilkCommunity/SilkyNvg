@@ -1,4 +1,5 @@
-﻿using Silk.NET.Maths;
+﻿using SilkyNvg.Core.Paths;
+using SilkyNvg.Core.States;
 
 namespace SilkyNvg.Core.Instructions
 {
@@ -7,9 +8,13 @@ namespace SilkyNvg.Core.Instructions
 
         bool RequiresPosition { get; }
 
-        void Prepare();
+        InstructionType Type { get; }
 
-        void Execute();
+        float[] Data { get; }
+
+        void Prepare(State state);
+
+        void Execute(PathCache cache, Style style);
 
     }
 }

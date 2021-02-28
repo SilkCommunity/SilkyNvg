@@ -33,6 +33,14 @@ namespace SilkyNvg.Core.Instructions
             _instructions[_instructionCount++] = instruction;
         }
 
+        public Vector2D<float> GetXY()
+        {
+            var list = new System.Collections.Generic.List<float>();
+            list.AddRange(_instructions[_instructionCount - 2].Data);
+            list.AddRange(_instructions[_instructionCount - 1].Data);
+            return new Vector2D<float>(list[^2], list[^1]);
+        }
+
         // TODO: Implement the following methods:
         public void AddMoveTo(float x, float y)
         {

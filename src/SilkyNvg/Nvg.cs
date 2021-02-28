@@ -111,6 +111,17 @@ namespace SilkyNvg
         }
 
         /// <summary>
+        /// Set the colour to be used when calling
+        /// <see cref="Fill"/>.
+        /// </summary>
+        /// <param name="colour">The colour the path is to be filled with.</param>
+        public void FillColour(Colour colour)
+        {
+            var state = _stateManager.GetState();
+            state.Fill = new Paint(colour);
+        }
+
+        /// <summary>
         /// Clear the current path and sub-path.
         /// </summary>
         public void BeginPath()
@@ -133,9 +144,36 @@ namespace SilkyNvg
             sequence.AddMoveTo(x, y);
             sequence.AddLineTo(x, y + h);
             sequence.AddLineTo(x + w, y + h);
-            sequence.AddLineTo(x + w, h);
+            sequence.AddLineTo(x + w, y);
             sequence.AddClose();
-            _instructionManager.AddSequence(sequence);
+            _instructionManager.AddSequence(sequence, _stateManager.GetState());
+        }
+
+        /// <summary>
+        /// Fill the current path using
+        /// the set fill colour <see cref="FillColour(Colour)"/>
+        /// </summary>
+        public void Fill()
+        {
+            var state = _stateManager.GetState();
+            var fillPaint = state.Fill;
+
+            _pathCache.FlattenPaths(_instructionManager, _style);
+            if (_graphicsManager.LaunchParameters.EdgeAntialias && state.ShapeAntiAlias)
+            {
+                _pathCache.ExpandFill(_style.FringeWidth, LineCap.Miter, 2.4f, _style);
+            }
+            else
+            {
+                _pathCache.ExpandFill(0.0f, LineCap.Miter, 2.4f, _style);
+            }
+
+            var inner = fillPaint.InnerColour;
+            var outer = fillPaint.OuterColour;
+            inner.A *= state.Alpha;
+            outer.A *= state.Alpha;
+
+
         }
 
     }

@@ -72,11 +72,11 @@ namespace SingleClassExample
                 nvg.BeginFrame(winWidth, winHeight, pxRatio);
 
                 nvg.BeginPath();
-                nvg.Rect(100, 100, 50, 50);
-                /*nvg.StrokeColour(nvg.RGBAf(1.0f, 1.0f, 1.0f, 1.0f));
-                nvg.Stroke();
+                nvg.Rect(100, 200, 50, 50);
+                nvg.FillColour(nvg.RGBAf(1.0f, 1.0f, 1.0f, 1.0f));
+                nvg.Fill();
 
-                nvg.EndFrame();*/
+                /*nvg.EndFrame();*/
 
                 glfw.SwapBuffers(window);
                 glfw.PollEvents();

@@ -1,4 +1,5 @@
 ﻿using Silk.NET.Maths;
+using SilkyNvg.Core.States;
 using System.Collections.Generic;
 
 namespace SilkyNvg.Core.Instructions
@@ -33,6 +34,7 @@ namespace SilkyNvg.Core.Instructions
         public InstructionManager()
         {
             _instructionQueue = new Queue<IInstruction>();
+            _instructionPosition = new Vector2D<float>();
         }
 
         public IInstruction Next()
@@ -50,20 +52,18 @@ namespace SilkyNvg.Core.Instructions
             _instructionQueue.Enqueue(instruction);
         }
 
-        public void AddSequence(InstructionSequence sequence)
+        public void AddSequence(InstructionSequence sequence, State state)
         {
-            if (sequence.RequiresPosition)
+            if (sequence[0].Type != InstructionType.Close && sequence[0].Type != InstructionType.Winding)
             {
-                _instructionPosition = sequence.Position;
+                _instructionPosition = sequence.GetXY();
             }
 
-            for (int i = 0; i < sequence.Length; i++)
+            foreach (IInstruction instruction in sequence.Instructions)
             {
-                var instruction = sequence[i];
-                instruction.Prepare();
+                instruction.Prepare(state);
                 EnqueueInstruction(instruction);
             }
-            sequence.Dispose();
         }
 
         public void Clear()

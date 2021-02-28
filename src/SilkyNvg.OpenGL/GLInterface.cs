@@ -1,4 +1,7 @@
-﻿using Silk.NET.OpenGL;
+﻿using Silk.NET.Maths;
+using Silk.NET.OpenGL;
+using SilkyNvg.Core;
+using SilkyNvg.Core.Paths;
 using SilkyNvg.OpenGL.Shaders;
 using System;
 using System.Runtime.InteropServices;
@@ -6,7 +9,7 @@ using Shader = SilkyNvg.OpenGL.Shaders.Shader;
 
 namespace SilkyNvg.OpenGL
 {
-    public sealed class GLInterface
+    internal sealed class GLInterface
     {
 
         private readonly Shader _shader;
@@ -16,6 +19,8 @@ namespace SilkyNvg.OpenGL
 
         private readonly GraphicsManager _graphicsManager;
         private readonly GL _gl;
+
+        private Vector2D<float> _view;
 
         internal void CheckError(string str)
         {
@@ -52,6 +57,11 @@ namespace SilkyNvg.OpenGL
         }
 
         public void RenderViewport(float width, float height)
+        {
+            _view = new Vector2D<float>(width, height);
+        }
+
+        public void RenderFill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Rectangle<float> bounds, Path[] paths)
         {
 
         }
