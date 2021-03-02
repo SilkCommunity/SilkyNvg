@@ -14,6 +14,8 @@ namespace SilkyNvg.OpenGL.Shaders
         private readonly IDictionary<UniformLocations, int> _locations;
         private readonly GL _gl;
 
+        public IDictionary<UniformLocations, int> Locations => _locations;
+
         private uint _programmeID;
         private uint _vertexShaderID, _fragmentShaderID;
         private int _fragmentDataSize;
@@ -76,6 +78,16 @@ namespace SilkyNvg.OpenGL.Shaders
                 Environment.Exit(-1);
             }
 
+        }
+
+        public void Start()
+        {
+            _gl.UseProgram(_programmeID);
+        }
+
+        public void Stop()
+        {
+            _gl.UseProgram(0);
         }
 
         private void DumpShaderError(uint shader, string name, Silk.NET.OpenGL.ShaderType type)

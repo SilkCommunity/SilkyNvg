@@ -154,7 +154,6 @@ namespace SilkyNvg.Core.Paths
                 for (int j = 0; j < path.Count; j++)
                 {
                     p1 = _points[start + j];
-                    var d = p0.D;
 
                     p0.Dx = p1.X - p0.X;
                     p0.Dy = p1.Y - p0.Y;
@@ -454,6 +453,11 @@ namespace SilkyNvg.Core.Paths
         public void Purge()
         {
             Clear();
+            ClearVerts();
+        }
+
+        public void ClearVerts()
+        {
             _vertices.Clear();
         }
 

@@ -3,6 +3,7 @@ using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using SilkyNvg;
 using System;
+using System.Threading;
 
 namespace SingleClassExample
 {
@@ -76,10 +77,12 @@ namespace SingleClassExample
                 nvg.FillColour(nvg.RGBAf(1.0f, 1.0f, 1.0f, 1.0f));
                 nvg.Fill();
 
-                /*nvg.EndFrame();*/
+                nvg.EndFrame();
 
                 glfw.SwapBuffers(window);
                 glfw.PollEvents();
+
+                Thread.Sleep(2);
             }
 
             // nvg.Delete();

@@ -1,19 +1,43 @@
 ﻿namespace SilkyNvg.Core
 {
-    public struct FrameMeta
+    public class FrameMeta
     {
 
-        public int DrawCallCount { get; private set; }
-        public int FillTriCount { get; private set; }
-        public int StrokeTriCount { get; private set; }
-        public int TextTriCount { get; private set; }
+        private int _drawCallCount;
+        private int _fillTriCount;
+        private int _strokeTriCount;
+        private int _textTriCount;
+
+        public int DrawCallCount
+        {
+            get => _drawCallCount;
+            set => _drawCallCount = value;
+        }
+
+        public int FillTriCount
+        {
+            get => _fillTriCount;
+            set => _fillTriCount = value;
+        }
+
+        public int StrokeTriCount
+        {
+            get => _strokeTriCount;
+            set => _strokeTriCount = value;
+        }
+
+        public int TextTriCount
+        {
+            get => _textTriCount;
+            set => _textTriCount = value;
+        }
 
         public void Reset()
         {
-            DrawCallCount = 0;
-            FillTriCount = 0;
-            StrokeTriCount = 0;
-            TextTriCount = 0;
+            _drawCallCount = 0;
+            _fillTriCount = 0;
+            _strokeTriCount = 0;
+            _textTriCount = 0;
         }
 
     }

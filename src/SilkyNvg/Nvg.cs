@@ -14,6 +14,7 @@ namespace SilkyNvg
         private readonly StateManager _stateManager;
         private readonly PathCache _pathCache;
         private readonly Style _style;
+
         private readonly FrameMeta _frameMeta;
 
         private Nvg(GraphicsManager graphicsManager)
@@ -67,6 +68,17 @@ namespace SilkyNvg
             _style.CalculateForPixelRatio(pixelRatio);
             _graphicsManager.RenderViewport(windowWidth, windowHeight);
             _frameMeta.Reset();
+        }
+
+        /// <summary>
+        /// Ends rendering a new frame.
+        /// All call to NanoVG per frame should be wrapped in
+        /// calls of <see cref="BeginFrame(float, float, float)"/> and this.
+        /// </summary>
+        public void EndFrame()
+        {
+            _graphicsManager.RenderFlush();
+            _pathCache.ClearVerts();
         }
 
         /// <summary>
@@ -173,7 +185,15 @@ namespace SilkyNvg
             inner.A *= state.Alpha;
             outer.A *= state.Alpha;
 
+            _graphicsManager.RenderFill(fillPaint, state.CompositeOperation, state.Scissor, _style.FringeWidth, _pathCache.Bounds, _pathCache.Paths);
 
+            for (int i = 0; i < _pathCache.Paths.Count; i++)
+            {
+                var path = _pathCache.Paths[i];
+                _frameMeta.FillTriCount += path.Fill.Count - 2;
+                _frameMeta.FillTriCount += path.Stroke.Count - 2;
+                _frameMeta.DrawCallCount += 2;
+            }
         }
 
     }

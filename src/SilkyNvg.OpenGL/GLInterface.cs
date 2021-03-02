@@ -1,9 +1,11 @@
 ﻿using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using SilkyNvg.Core;
-using SilkyNvg.Core.Paths;
+using SilkyNvg.Core.Geometry;
+using SilkyNvg.OpenGL.Calls;
 using SilkyNvg.OpenGL.Shaders;
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Shader = SilkyNvg.OpenGL.Shaders.Shader;
 
@@ -14,6 +16,12 @@ namespace SilkyNvg.OpenGL
 
         private readonly Shader _shader;
 
+        private readonly Queue<Call> _calls = new Queue<Call>();
+
+        private readonly List<Path> _paths = new List<Path>();
+        private readonly List<Vertex> _vertices = new List<Vertex>();
+        private readonly List<FragmentDataUniforms> _uniforms = new List<FragmentDataUniforms>();
+
         private readonly uint _vao;
         private readonly uint _vertexVBO, _fragmentVBO;
 
@@ -21,6 +29,7 @@ namespace SilkyNvg.OpenGL
         private readonly GL _gl;
 
         private Vector2D<float> _view;
+        private RenderMeta _renderMeta;
 
         internal void CheckError(string str)
         {
@@ -54,6 +63,8 @@ namespace SilkyNvg.OpenGL
 
             CheckError("create done!");
             _gl.Finish();
+
+            _renderMeta = new RenderMeta();
         }
 
         public void RenderViewport(float width, float height)
@@ -61,9 +72,267 @@ namespace SilkyNvg.OpenGL
             _view = new Vector2D<float>(width, height);
         }
 
-        public void RenderFill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Rectangle<float> bounds, Path[] paths)
+        private unsafe void SetUniforms(int uniformOffset, int image)
         {
+            _gl.BindBufferRange(BufferTargetARB.UniformBuffer, (uint)UniformBindings.FragmentDataBinding, _fragmentVBO, uniformOffset, (uint)sizeof(FragmentDataUniforms));
 
+            // TODO: Images
+
+            CheckError("tex paint tex");
+        }
+
+        private void BlendFuncSeperate(Blend blend)
+        {
+            if ((_renderMeta.SrcRgb != blend.SrcRgb) ||
+                (_renderMeta.DstRgb != blend.DstRgb) ||
+                (_renderMeta.SrcAlpha != blend.SrcAlpha) ||
+                (_renderMeta.DstAlpha != blend.DstAlpha))
+            {
+                _renderMeta.SrcRgb = blend.SrcRgb;
+                _renderMeta.DstRgb = blend.DstRgb;
+                _renderMeta.SrcAlpha = blend.SrcAlpha;
+                _renderMeta.DstAlpha = blend.DstAlpha;
+                _gl.BlendFuncSeparate(blend.SrcRgb, blend.DstRgb, blend.SrcAlpha, blend.DstAlpha);
+            }
+        }
+
+        private void ConvexFill(Call call)
+        {
+            var start = call.PathOffset;
+            int pathCount = call.PathCount;
+
+            SetUniforms(call.UniformOffset, 0);
+            CheckError("convex fill");
+
+            for (int i = 0; i < pathCount; i++)
+            {
+                _gl.DrawArrays(GLEnum.TriangleFan, _paths[start + i].FillOffset, (uint)_paths[start + i].FillCount);
+                if (_paths[start + i].StrokeCount > 0)
+                {
+                    _gl.DrawArrays(GLEnum.TriangleStrip, _paths[start + i].StrokeOffset, (uint)_paths[start + i].StrokeCount);
+                }
+            }
+
+        }
+
+        public unsafe void RenderFlush()
+        {
+            if (_calls.Count > 0)
+            {
+                _shader.Start();
+
+                _gl.Enable(EnableCap.CullFace);
+                _gl.CullFace(CullFaceMode.Back);
+                _gl.FrontFace(FrontFaceDirection.Ccw);
+                _gl.Enable(EnableCap.Blend);
+                _gl.Disable(EnableCap.DepthTest);
+                _gl.Disable(EnableCap.StencilTest);
+                _gl.ColorMask(true, true, true, true);
+                _gl.StencilMask(0xffffffff);
+                _gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Keep);
+                _gl.StencilFunc(GLEnum.Always, 0, 0xffffffff);
+                // _gl.ActiveTexture(TextureUnit.Texture0);
+                // _gl.BindTexture(TextureTarget.Texture2D, 0);
+                _renderMeta.BondTexture = 0;
+                _renderMeta.StencilMask = 0xffffffff;
+                _renderMeta.StencilFunk = GLEnum.Always;
+                _renderMeta.StencilFunkRef = 0;
+                _renderMeta.StencilFunkMask = 0xffffffff;
+                _renderMeta.SrcRgb = GLEnum.InvalidEnum;
+                _renderMeta.DstRgb = GLEnum.InvalidEnum;
+                _renderMeta.SrcAlpha = GLEnum.InvalidEnum;
+                _renderMeta.DstAlpha = GLEnum.InvalidEnum;
+
+                _gl.BindBuffer(BufferTargetARB.UniformBuffer, _fragmentVBO);
+                fixed (void* d = _uniforms.ToArray())
+                {
+                    _gl.BufferData(BufferTargetARB.UniformBuffer, (uint)_uniforms.ToArray().Length * (uint)sizeof(FragmentDataUniforms), d, BufferUsageARB.StreamDraw);
+                }
+
+                _gl.BindVertexArray(_vao);
+
+                _gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vertexVBO);
+
+                var verts = new float[_vertices.Count * 4];
+                int index = 0;
+                for (int i = 0; i < _vertices.Count; i++)
+                {
+                    verts[index++] = _vertices[i].X;
+                    verts[index++] = _vertices[i].Y;
+                    verts[index++] = _vertices[i].U;
+                    verts[index++] = _vertices[i].V;
+                }
+
+                fixed (void* d = verts)
+                {
+                    _gl.BufferData(BufferTargetARB.ArrayBuffer, (uint)verts.Length * (uint)sizeof(float), d, BufferUsageARB.StreamDraw);
+                }
+
+                _gl.EnableVertexAttribArray(0);
+                _gl.EnableVertexAttribArray(1);
+
+                _gl.VertexAttribPointer(0, 2, GLEnum.Float, false, 4 * sizeof(float), 0);
+                _gl.VertexAttribPointer(1, 2, GLEnum.Float, false, 4 * sizeof(float), 2 * sizeof(float));
+
+                _gl.Uniform1(_shader.Locations[UniformLocations.Tex], 0);
+                var vec = new System.Numerics.Vector2(_view.X, _view.Y);
+                _gl.Uniform2(_shader.Locations[UniformLocations.Viewsize], vec);
+
+                _gl.BindBuffer(BufferTargetARB.UniformBuffer, _fragmentVBO);
+
+                while (_calls.Count > 0)
+                {
+                    var call = _calls.Dequeue();
+                    BlendFuncSeperate(call.BlendFunc);
+                    switch (call.Type)
+                    {
+                        case CallType.Fill:
+                            // not yet
+                            break;
+                        case CallType.Convexfill:
+                            ConvexFill(call);
+                            break;
+                        case CallType.Stroke:
+                            // later
+                            break;
+                        case CallType.Triangles:
+                            // later
+                            break;
+                        default:
+                            throw new Exception("Invalid call type!");
+                    }
+                }
+
+                _gl.DisableVertexAttribArray(0);
+                _gl.DisableVertexAttribArray(1);
+
+                _gl.BindVertexArray(0);
+
+                _gl.Disable(EnableCap.CullFace);
+                _gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
+                _shader.Stop();
+                // texture reset
+
+                _vertices.Clear();
+                _paths.Clear();
+                _calls.Clear();
+                _uniforms.Clear();
+            }
+        }
+
+        private FragmentDataUniforms ConvertPaint(FragmentDataUniforms frag, Paint paint, Scissor scissor, float width, float fringe, float strokeThr)
+        {
+            frag.InnerColour = Colour.Premult(paint.InnerColour).Rgba;
+            frag.OuterColour = Colour.Premult(paint.OuterColour).Rgba;
+
+            if (scissor.Extent.X < -0.5f || scissor.Extent.Y < -0.5f)
+            {
+                frag.ScissorMatrix = new Matrix3X4<float>();
+                frag.ScissorExt = new Vector2D<float>(1.0f);
+                frag.ScissorScale = new Vector2D<float>(1.0f);
+            }
+            else
+            {
+                var inv = Maths.TransformInverse(scissor.XForm);
+                frag.ScissorMatrix = Maths.XFormToMat3X4(inv);
+                frag.ScissorExt = scissor.Extent;
+                frag.ScissorScale = new Vector2D<float>
+                (
+                    MathF.Sqrt(scissor.XForm.M11 * scissor.XForm.M11 + scissor.XForm.M21 * scissor.XForm.M21) / fringe,
+                    MathF.Sqrt(scissor.XForm.M12 * scissor.XForm.M12 + scissor.XForm.M22 * scissor.XForm.M22) / fringe
+                );
+            }
+
+            frag.Extent = paint.Extent;
+            frag.StrokeMult = (width * 0.5f + fringe * 0.5f) / fringe;
+            frag.StrokeThr = strokeThr;
+
+            Matrix3X2<float> invxform;
+
+            if (false) // Does it have images?
+            {
+                // TODO: Image stuff goes here!
+            }
+            else
+            {
+                frag.Type = (int)Shaders.ShaderType.Fillgrad;
+                frag.Radius = paint.Radius;
+                frag.Feather = paint.Feather;
+                invxform = Maths.TransformInverse(paint.XForm);
+            }
+
+            frag.PaintMatrix = Maths.XFormToMat3X4(invxform);
+
+            return frag;
+        }
+
+        public void RenderFill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Rectangle<float> bounds, SilkyNvg.Core.Paths.Path[] paths)
+        {
+            var call = new Call()
+            {
+                Type = CallType.Fill,
+                TriangleCount = 4,
+                PathOffset = _paths.Count,
+                PathCount = paths.Length,
+                // TODO: Image
+                BlendFunc = new Blend(compositeOperation)
+            };
+
+            if (paths.Length == 1 && paths[0].Convex)
+            {
+                call.Type = CallType.Convexfill;
+                call.TriangleCount = 0;
+            }
+
+            int offset = _vertices.Count;
+
+            for (int i = 0; i < paths.Length; i++)
+            {
+                var copy = new Path();
+                var path = paths[i];
+                if (path.Fill.Count > 0)
+                {
+                    copy.FillOffset = offset;
+                    copy.FillCount = path.Fill.Count;
+                    _vertices.AddRange(path.Fill);
+                    offset += path.Fill.Count;
+                }
+                if (path.Stroke.Count > 0)
+                {
+                    copy.StrokeOffset = offset;
+                    copy.StrokeCount = path.Stroke.Count;
+                    _vertices.AddRange(path.Stroke);
+                    offset += path.Stroke.Count;
+                }
+                _paths.Add(copy);
+            }
+
+            if (call.Type == CallType.Fill)
+            {
+                call.TriangleOffset = offset;
+                _vertices.Add(new Vertex(bounds.Max.X, bounds.Max.Y, 0.5f, 1.0f));
+                _vertices.Add(new Vertex(bounds.Max.X, bounds.Origin.Y, 0.5f, 1.0f));
+                _vertices.Add(new Vertex(bounds.Origin.X, bounds.Max.Y, 0.5f, 1.0f));
+                _vertices.Add(new Vertex(bounds.Origin.X, bounds.Origin.Y, 0.5f, 1.0f));
+
+                call.UniformOffset = _uniforms.Count;
+                var frag = new FragmentDataUniforms
+                {
+                    StrokeThr = -1.0f,
+                    Type = (int)SilkyNvg.OpenGL.Shaders.ShaderType.Simple
+                };
+
+                frag = ConvertPaint(frag, paint, scissor, fringe, fringe, -1.0f);
+                _uniforms.Add(frag);
+            }
+            else
+            {
+                call.UniformOffset = _uniforms.Count;
+                var frag = ConvertPaint(new FragmentDataUniforms(), paint, scissor, fringe, fringe, -1.0f);
+                _uniforms.Add(frag);
+            }
+
+            _calls.Enqueue(call);
         }
 
     }

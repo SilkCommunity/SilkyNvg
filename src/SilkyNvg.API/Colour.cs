@@ -64,6 +64,10 @@ namespace SilkyNvg
 
         public Colour(Vector3D<byte> rgb) : this(rgb.X, rgb.Y, rgb.Z) { }
 
+        public static Colour Premult(Colour colour)
+        {
+            return new Colour(colour.R * colour.A, colour.G * colour.A, colour.B * colour.A, colour.A);
+        }
 
     }
 }
