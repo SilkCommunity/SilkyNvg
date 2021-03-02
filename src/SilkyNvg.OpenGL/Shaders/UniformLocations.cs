@@ -5,7 +5,19 @@
 
         Viewsize,
         Tex,
-        FragmentData,
+
+        ScissorMat,
+        PaintMat,
+        InnerCol,
+        OuterCol,
+        ScissorExt,
+        ScissorScale,
+        Extent,
+        Radius,
+        Feather,
+        StrokeMult,
+        StrokeThr,
+        Type,
 
         MaxLocations
 

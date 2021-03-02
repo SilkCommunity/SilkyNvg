@@ -23,7 +23,7 @@ namespace SilkyNvg.OpenGL
         private readonly List<FragmentDataUniforms> _uniforms = new List<FragmentDataUniforms>();
 
         private readonly uint _vao;
-        private readonly uint _vertexVBO, _fragmentVBO;
+        private readonly uint _vertexVBO, _textureVBO;
 
         private readonly GraphicsManager _graphicsManager;
         private readonly GL _gl;
@@ -54,12 +54,7 @@ namespace SilkyNvg.OpenGL
 
             _vao = _gl.GenVertexArray();
             _vertexVBO = _gl.GenBuffer();
-
-            _shader.BindBlock();
-            _fragmentVBO = _gl.GenBuffer();
-            _gl.GetInteger(GetPName.UniformBufferOffsetAlignment, out int align);
-
-            _shader.UniformSize = Marshal.SizeOf(typeof(FragmentDataUniforms)) + align - Marshal.SizeOf(typeof(FragmentDataUniforms)) % align;
+            _textureVBO = _gl.GenBuffer();
 
             CheckError("create done!");
             _gl.Finish();
@@ -74,7 +69,7 @@ namespace SilkyNvg.OpenGL
 
         private unsafe void SetUniforms(int uniformOffset, int image)
         {
-            _gl.BindBufferRange(BufferTargetARB.UniformBuffer, (uint)UniformBindings.FragmentDataBinding, _fragmentVBO, uniformOffset, (uint)sizeof(FragmentDataUniforms));
+            _shader.LoadUniforms(_uniforms[uniformOffset]);
 
             // TODO: Images
 
@@ -92,8 +87,8 @@ namespace SilkyNvg.OpenGL
                 _renderMeta.DstRgb = blend.DstRgb;
                 _renderMeta.SrcAlpha = blend.SrcAlpha;
                 _renderMeta.DstAlpha = blend.DstAlpha;
-                _gl.BlendFuncSeparate(blend.SrcRgb, blend.DstRgb, blend.SrcAlpha, blend.DstAlpha);
             }
+            _gl.BlendFuncSeparate(blend.SrcRgb, blend.DstRgb, blend.SrcAlpha, blend.DstAlpha);
         }
 
         private void ConvexFill(Call call)
@@ -119,66 +114,59 @@ namespace SilkyNvg.OpenGL
         {
             if (_calls.Count > 0)
             {
-                _shader.Start();
+                int idx = 0;
+                float[] vertices = new float[_vertices.Count * 2];
+                float[] textureCoords = new float[_vertices.Count * 2];
+                foreach (Vertex vertex in _vertices)
+                {
+                    vertices[idx] = vertex.X;
+                    textureCoords[idx++] = vertex.U;
+                    vertices[idx] = vertex.Y;
+                    textureCoords[idx++] = vertex.V;
+                }
 
+                _shader.Start();
                 _gl.Enable(EnableCap.CullFace);
                 _gl.CullFace(CullFaceMode.Back);
                 _gl.FrontFace(FrontFaceDirection.Ccw);
                 _gl.Enable(EnableCap.Blend);
                 _gl.Disable(EnableCap.DepthTest);
-                _gl.Disable(EnableCap.StencilTest);
+                _gl.Disable(EnableCap.ScissorTest);
                 _gl.ColorMask(true, true, true, true);
                 _gl.StencilMask(0xffffffff);
                 _gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Keep);
                 _gl.StencilFunc(GLEnum.Always, 0, 0xffffffff);
-                // _gl.ActiveTexture(TextureUnit.Texture0);
-                // _gl.BindTexture(TextureTarget.Texture2D, 0);
+                _gl.ActiveTexture(TextureUnit.Texture0);
+                _gl.BindTexture(TextureTarget.Texture2D, 0);
                 _renderMeta.BondTexture = 0;
                 _renderMeta.StencilMask = 0xffffffff;
                 _renderMeta.StencilFunk = GLEnum.Always;
                 _renderMeta.StencilFunkRef = 0;
                 _renderMeta.StencilFunkMask = 0xffffffff;
                 _renderMeta.SrcRgb = GLEnum.InvalidEnum;
-                _renderMeta.DstRgb = GLEnum.InvalidEnum;
                 _renderMeta.SrcAlpha = GLEnum.InvalidEnum;
+                _renderMeta.DstRgb = GLEnum.InvalidEnum;
                 _renderMeta.DstAlpha = GLEnum.InvalidEnum;
-
-                _gl.BindBuffer(BufferTargetARB.UniformBuffer, _fragmentVBO);
-                fixed (void* d = _uniforms.ToArray())
-                {
-                    _gl.BufferData(BufferTargetARB.UniformBuffer, (uint)_uniforms.ToArray().Length * (uint)sizeof(FragmentDataUniforms), d, BufferUsageARB.StreamDraw);
-                }
 
                 _gl.BindVertexArray(_vao);
 
                 _gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vertexVBO);
-
-                var verts = new float[_vertices.Count * 4];
-                int index = 0;
-                for (int i = 0; i < _vertices.Count; i++)
+                fixed (void* d = vertices)
                 {
-                    verts[index++] = _vertices[i].X;
-                    verts[index++] = _vertices[i].Y;
-                    verts[index++] = _vertices[i].U;
-                    verts[index++] = _vertices[i].V;
+                    _gl.BufferData(BufferTargetARB.ArrayBuffer, (uint)(vertices.Length * sizeof(float)), d, BufferUsageARB.StreamDraw);
                 }
-
-                fixed (void* d = verts)
-                {
-                    _gl.BufferData(BufferTargetARB.ArrayBuffer, (uint)verts.Length * (uint)sizeof(float), d, BufferUsageARB.StreamDraw);
-                }
-
+                _gl.VertexAttribPointer(0, 2, GLEnum.Float, false, (uint)(2 * sizeof(float)), (float*)0);
                 _gl.EnableVertexAttribArray(0);
+                _gl.BindBuffer(BufferTargetARB.ArrayBuffer, _textureVBO);
+                fixed (void* d = textureCoords)
+                {
+                    _gl.BufferData(BufferTargetARB.ArrayBuffer, (uint)(textureCoords.Length * sizeof(float)), d, BufferUsageARB.StreamDraw);
+                }
+                _gl.VertexAttribPointer(1, 2, GLEnum.Float, false, (uint)(2 * sizeof(float)), (float*)0);
                 _gl.EnableVertexAttribArray(1);
 
-                _gl.VertexAttribPointer(0, 2, GLEnum.Float, false, 4 * sizeof(float), 0);
-                _gl.VertexAttribPointer(1, 2, GLEnum.Float, false, 4 * sizeof(float), 2 * sizeof(float));
-
                 _gl.Uniform1(_shader.Locations[UniformLocations.Tex], 0);
-                var vec = new System.Numerics.Vector2(_view.X, _view.Y);
-                _gl.Uniform2(_shader.Locations[UniformLocations.Viewsize], vec);
-
-                _gl.BindBuffer(BufferTargetARB.UniformBuffer, _fragmentVBO);
+                _gl.Uniform2(_shader.Locations[UniformLocations.Viewsize], _view.X, _view.Y);
 
                 while (_calls.Count > 0)
                 {
@@ -205,13 +193,9 @@ namespace SilkyNvg.OpenGL
 
                 _gl.DisableVertexAttribArray(0);
                 _gl.DisableVertexAttribArray(1);
-
-                _gl.BindVertexArray(0);
-
-                _gl.Disable(EnableCap.CullFace);
                 _gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
+                _gl.BindVertexArray(0);
                 _shader.Stop();
-                // texture reset
 
                 _vertices.Clear();
                 _paths.Clear();

@@ -1,4 +1,6 @@
-﻿using Silk.NET.OpenGL;
+﻿using Silk.NET.Maths;
+using Silk.NET.OpenGL;
+using SilkyNvg.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,13 +20,6 @@ namespace SilkyNvg.OpenGL.Shaders
 
         private uint _programmeID;
         private uint _vertexShaderID, _fragmentShaderID;
-        private int _fragmentDataSize;
-
-        public int UniformSize
-        {
-            get => _fragmentDataSize;
-            set => _fragmentDataSize = value;
-        }
 
         public Shader(string name, bool aa, GL gl)
         {
@@ -33,7 +28,7 @@ namespace SilkyNvg.OpenGL.Shaders
             CreateShader(name, aa);
         }
 
-        private void CreateShader(string name, bool aa)
+        private unsafe void CreateShader(string name, bool aa)
         {
             string vshader = File.ReadAllText("Shaders/vertexShader.glsl");
             vshader = vshader.Insert(0, SHADER_HEADER);
@@ -107,12 +102,63 @@ namespace SilkyNvg.OpenGL.Shaders
             _locations.Add(UniformLocations.Viewsize, _gl.GetUniformLocation(_programmeID, "viewSize"));
             _locations.Add(UniformLocations.Tex, _gl.GetUniformLocation(_programmeID, "texture"));
 
-            _locations.Add(UniformLocations.FragmentData, _gl.GetUniformLocation(_programmeID, "fragmentData"));
+            _locations.Add(UniformLocations.ScissorMat, _gl.GetUniformLocation(_programmeID, "scissorMat"));
+            _locations.Add(UniformLocations.PaintMat, _gl.GetUniformLocation(_programmeID, "paintMat"));
+            _locations.Add(UniformLocations.InnerCol, _gl.GetUniformLocation(_programmeID, "innerCol"));
+            _locations.Add(UniformLocations.OuterCol, _gl.GetUniformLocation(_programmeID, "outerCol"));
+            _locations.Add(UniformLocations.ScissorExt, _gl.GetUniformLocation(_programmeID, "scissorExt"));
+            _locations.Add(UniformLocations.ScissorScale, _gl.GetUniformLocation(_programmeID, "scissorScale"));
+            _locations.Add(UniformLocations.Extent, _gl.GetUniformLocation(_programmeID, "extent"));
+            _locations.Add(UniformLocations.Radius, _gl.GetUniformLocation(_programmeID, "radius"));
+            _locations.Add(UniformLocations.Feather, _gl.GetUniformLocation(_programmeID, "feather"));
+            _locations.Add(UniformLocations.StrokeMult, _gl.GetUniformLocation(_programmeID, "strokeMult"));
+            _locations.Add(UniformLocations.StrokeThr, _gl.GetUniformLocation(_programmeID, "strokeThr"));
+            _locations.Add(UniformLocations.Type, _gl.GetUniformLocation(_programmeID, "type"));
         }
 
-        public void BindBlock()
+        private void LoadFloat(UniformLocations loc, float val)
         {
-            _gl.UniformBlockBinding(_programmeID, (uint)_locations[UniformLocations.FragmentData], (uint)UniformBindings.FragmentDataBinding);
+            _gl.Uniform1(_locations[loc], val);
+        }
+
+        private void LoadInt(UniformLocations loc, int val)
+        {
+            _gl.Uniform1(_locations[loc], val);
+        }
+
+        private void LoadVector(UniformLocations loc, Vector2D<float> val)
+        {
+            _gl.Uniform2(_locations[loc], val.X, val.Y);
+        }
+
+        private void LoadVector(UniformLocations loc, Vector4D<float> val)
+        {
+            _gl.Uniform4(_locations[loc], val.X, val.Y, val.Z, val.W);
+        }
+
+        private unsafe void LoadMatrix(UniformLocations loc, Matrix3X4<float> val)
+        {
+            float[] mat = Maths.ToFloatArrayMatrix(val);
+            fixed(float* d = mat)
+            {
+                _gl.UniformMatrix3x4(_locations[loc], 1, false, d);
+            }
+        }
+
+        public void LoadUniforms(FragmentDataUniforms data)
+        {
+            LoadMatrix(UniformLocations.ScissorMat, data.ScissorMatrix);
+            LoadMatrix(UniformLocations.PaintMat, data.PaintMatrix);
+            LoadVector(UniformLocations.InnerCol, data.InnerColour);
+            LoadVector(UniformLocations.OuterCol, data.OuterColour);
+            LoadVector(UniformLocations.ScissorExt, data.ScissorExt);
+            LoadVector(UniformLocations.ScissorScale, data.ScissorScale);
+            LoadVector(UniformLocations.Extent, data.Extent);
+            LoadFloat(UniformLocations.Radius, data.Radius);
+            LoadFloat(UniformLocations.Feather, data.Feather);
+            LoadFloat(UniformLocations.StrokeMult, data.StrokeMult);
+            LoadFloat(UniformLocations.StrokeThr, data.StrokeThr);
+            LoadInt(UniformLocations.Type, data.Type);
         }
 
     }

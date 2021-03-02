@@ -7,21 +7,19 @@ in vec2 pass_position;
 
 out vec4 outColour;
 
-layout (std140) uniform fragmentData {
-    mat3 scissorMat;
-    mat3 paintMat;
-    vec4 innerCol;
-    vec4 outerCol;
-    vec2 scissorExt;
-    vec2 scissorScale;
-    vec2 extent;
-    float radius;
-    float feather;
-    float strokeMult;
-    float strokeThr;
-    // texture goes here!
-    int type;
-};
+uniform mat3 scissorMat;
+uniform mat3 paintMat;
+uniform vec4 innerCol;
+uniform vec4 outerCol;
+uniform vec2 scissorExt;
+uniform vec2 scissorScale;
+uniform vec2 extent;
+uniform float radius;
+uniform float feather;
+uniform float strokeMult;
+uniform float strokeThr;
+// texture goes here!
+uniform int type;
 
 // texture
 

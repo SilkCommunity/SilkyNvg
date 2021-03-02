@@ -25,6 +25,24 @@ namespace SilkyNvg.Core
             };
         }
 
+        public static float[] ToFloatArrayMatrix(Matrix3X4<float> t)
+        {
+            float[] m = new float[3 * 4];
+            m[0] = t.M11;
+            m[1] = t.M12;
+            m[2] = t.M13;
+            m[3] = t.M14;
+            m[4] = t.M21;
+            m[5] = t.M22;
+            m[6] = t.M23;
+            m[7] = t.M24;
+            m[8] = t.M31;
+            m[9] = t.M32;
+            m[10] = t.M33;
+            m[11] = t.M34;
+            return m;
+        }
+
         public static Matrix3X2<float> TransformInverse(Matrix3X2<float> t)
         {
             var inv = new Matrix3X2<float>();

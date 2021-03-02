@@ -15,6 +15,11 @@ namespace SingleClassExample
             Console.Error.WriteLine("GLFW Error: " + code + ": " + message + ".");
         }
 
+        private static void DebugOutput(GLEnum source, GLEnum type, int id, GLEnum severity, int length, uint message, uint userParam)
+        {
+
+        }
+
         static unsafe void Main(string[] args)
         {
             var glfw = Glfw.GetApi();
@@ -51,6 +56,21 @@ namespace SingleClassExample
             var gl = GL.GetApi(context);
 
             gl.GetError();
+
+            gl.GetInteger(GLEnum.ContextFlags, out int flags);
+            if ((flags & (int)GLEnum.ContextFlagDebugBit) != 0)
+            {
+                gl.Enable(EnableCap.DebugOutput);
+                gl.Enable(EnableCap.DebugOutputSynchronous);
+                gl.DebugMessageCallback((source, type, id, severity, length, message, userparam) =>
+                {
+                    if (id == 131169 || id == 131185 || id == 131218 || id == 131204) return;
+
+                    Console.WriteLine("------------------------------------------");
+                    Console.WriteLine("Debug message (" + id + "): " + Silk.NET.Core.Native.SilkMarshal.PtrToString(message) + " - " + source + " - " + type + " - " + severity);
+                }, null);
+                gl.DebugMessageControl(DebugSource.DontCare, DebugType.DontCare, DebugSeverity.DontCare, 0, null, true);
+            }
 
             // Create a new NVG context.
             // var nvg = Nvg.Create((uint)CreateFlag.EdgeAntialias | (uint)CreateFlag.StencilStrokes | (uint)CreateFlag.Debug, gl);
