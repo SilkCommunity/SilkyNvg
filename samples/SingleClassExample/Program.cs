@@ -1,9 +1,7 @@
 ﻿using Silk.NET.GLFW;
-using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using SilkyNvg;
 using System;
-using System.Threading;
 
 namespace SingleClassExample
 {
@@ -13,11 +11,6 @@ namespace SingleClassExample
         private static void Error(Silk.NET.GLFW.ErrorCode code, string message)
         {
             Console.Error.WriteLine("GLFW Error: " + code + ": " + message + ".");
-        }
-
-        private static void DebugOutput(GLEnum source, GLEnum type, int id, GLEnum severity, int length, uint message, uint userParam)
-        {
-
         }
 
         static unsafe void Main(string[] args)
@@ -64,7 +57,7 @@ namespace SingleClassExample
                 gl.Enable(EnableCap.DebugOutputSynchronous);
                 gl.DebugMessageCallback((source, type, id, severity, length, message, userparam) =>
                 {
-                    if (id == 131169 || id == 131185 || id == 131218 || id == 131204) return;
+                    if (id == 131169 || id == 131185 || id == 131218 || id == 131204  || id == 1282) return;
 
                     Console.WriteLine("------------------------------------------");
                     Console.WriteLine("Debug message (" + id + "): " + Silk.NET.Core.Native.SilkMarshal.PtrToString(message) + " - " + source + " - " + type + " - " + severity);
@@ -73,8 +66,7 @@ namespace SingleClassExample
             }
 
             // Create a new NVG context.
-            // var nvg = Nvg.Create((uint)CreateFlag.EdgeAntialias | (uint)CreateFlag.StencilStrokes | (uint)CreateFlag.Debug, gl);
-            var nvg = Nvg.Create((uint)CreateFlag.Debug, gl);
+            var nvg = Nvg.Create((uint)CreateFlags.Debug);
 
             glfw.SwapInterval(0);
 
@@ -90,22 +82,20 @@ namespace SingleClassExample
                 gl.ClearColor(0.3f, 0.3f, 0.32f, 1.0f);
                 gl.Clear((uint)ClearBufferMask.ColorBufferBit | (uint)ClearBufferMask.DepthBufferBit | (uint)ClearBufferMask.StencilBufferBit);
 
-                nvg.BeginFrame(winWidth, winHeight, pxRatio);
+                nvg.BeginFrame(winWidth, winHeight, fbWidth / winWidth);
 
                 nvg.BeginPath();
-                nvg.Rect(100, 200, 50, 50);
-                nvg.FillColour(nvg.RGBAf(1.0f, 1.0f, 1.0f, 1.0f));
+                nvg.Rect(100, 200, 50, 100);
+                nvg.FillColour(nvg.RgbaF(1.0f, 1.0f, 1.0f, 1.0f));
                 nvg.Fill();
 
                 nvg.EndFrame();
 
                 glfw.SwapBuffers(window);
                 glfw.PollEvents();
-
-                Thread.Sleep(2);
             }
 
-            // nvg.Delete();
+            nvg.Delete();
 
             glfw.Terminate();
         }

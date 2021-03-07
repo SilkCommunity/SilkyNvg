@@ -1,13 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetFramework>netstandard2.1</TargetFramework>
-	</PropertyGroup>
-	
-	<ItemGroup>
-		<ProjectReference Include="..\SilkyNvg.API\SilkyNvg.API.csproj" />
-		<ProjectReference Include="..\SilkyNvg.Core\SilkyNvg.Core.csproj" />
-		<ProjectReference Include="..\SilkyNvg.OpenGL\SilkyNvg.OpenGL.csproj" />
-	</ItemGroup>
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
 
 </Project>
