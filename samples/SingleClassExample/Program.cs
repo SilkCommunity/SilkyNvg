@@ -1,6 +1,8 @@
 ﻿using Silk.NET.GLFW;
 using Silk.NET.OpenGL;
 using SilkyNvg;
+using SilkyNvg.Base;
+using SilkyNvg.Colouring;
 using System;
 
 namespace SingleClassExample
@@ -66,7 +68,7 @@ namespace SingleClassExample
             }
 
             // Create a new NVG context.
-            var nvg = Nvg.Create((uint)CreateFlags.Debug);
+            var nvg = Nvg.Create((uint)CreateFlag.Debug, gl);
 
             glfw.SwapInterval(0);
 
@@ -86,7 +88,8 @@ namespace SingleClassExample
 
                 nvg.BeginPath();
                 nvg.Rect(100, 200, 50, 100);
-                nvg.FillColour(nvg.RgbaF(1.0f, 1.0f, 1.0f, 1.0f));
+                // nvg.FillColour(nvg.RgbaF(1.0f, 1.0f, 1.0f, 1.0f));
+                nvg.FillColour(new Colour(1.0f, 1.0f, 1.0f, 1.0f));
                 nvg.Fill();
 
                 nvg.EndFrame();
@@ -95,7 +98,7 @@ namespace SingleClassExample
                 glfw.PollEvents();
             }
 
-            nvg.Delete();
+            // nvg.Delete();
 
             glfw.Terminate();
         }
