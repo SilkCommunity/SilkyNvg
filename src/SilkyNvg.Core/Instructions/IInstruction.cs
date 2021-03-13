@@ -6,13 +6,11 @@ namespace SilkyNvg.Core.Instructions
     internal interface IInstruction
     {
 
-        bool RequiresPosition { get; }
-
         InstructionType Type { get; }
 
         float[] Data { get; }
 
-        void Prepare(State state);
+        void Setup(State state);
 
         void Execute(PathCache cache, Style style);
 

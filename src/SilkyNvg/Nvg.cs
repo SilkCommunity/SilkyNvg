@@ -32,7 +32,7 @@ namespace SilkyNvg
         }
 
         private readonly GraphicsManager _graphicsManager;
-        private readonly InstructionManager _instructionManager;
+        private readonly InstructionQueue _instructionManager;
         private readonly StateManager _stateManager;
         private readonly PathCache _pathCache;
         private readonly Style _style;
@@ -43,7 +43,7 @@ namespace SilkyNvg
         {
             _graphicsManager = graphicsManager;
             // TODO: Images
-            _instructionManager = new InstructionManager();
+            _instructionManager = new InstructionQueue();
             _pathCache = new PathCache();
             _stateManager = new StateManager();
             _style = new Style(1.0f);

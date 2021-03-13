@@ -8,22 +8,18 @@ namespace SilkyNvg.Core.Instructions
     internal class MoveToInstruction : IInstruction
     {
 
-        public bool RequiresPosition => true;
-
-        public InstructionType Type => InstructionType.MoveTo;
-
-        public float[] Data => new float[] { (float)Type, _position.X, _position.Y };
-
         private Vector2D<float> _position;
 
         public Vector2D<float> Position => _position;
+        public InstructionType Type => InstructionType.MoveTo;
+        public float[] Data => new float[] { (float)Type, _position.X, _position.Y };
 
-        internal MoveToInstruction(float x, float y)
+        public MoveToInstruction(float x, float y)
         {
             _position = new Vector2D<float>(x, y);
         }
 
-        public void Prepare(State state)
+        public void Setup(State state)
         {
             _position = Maths.TransformPoint(_position, state.Transform);
         }

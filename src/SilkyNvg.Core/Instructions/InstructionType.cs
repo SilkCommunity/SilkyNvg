@@ -1,14 +1,14 @@
 ﻿
 namespace SilkyNvg.Core.Instructions
 {
-    public enum InstructionType
+    internal enum InstructionType
     {
 
-        BezireTo,
-        LineTo,
-        MoveTo,
-        Winding,
-        Close
+        BezireTo, // set position
+        LineTo, // set position
+        MoveTo, // set position
+        Winding, // no position
+        Close // no position
 
     }
 }

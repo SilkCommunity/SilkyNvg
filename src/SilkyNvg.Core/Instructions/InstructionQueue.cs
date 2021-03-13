@@ -4,8 +4,12 @@ using System.Collections.Generic;
 
 namespace SilkyNvg.Core.Instructions
 {
-    internal sealed class InstructionManager
+    internal class InstructionQueue
     {
+
+        private readonly Queue<IInstruction> _instructionQueue;
+
+        private Vector2D<float> _instructionPosition;
 
         public Vector2D<float> InstructionPosition
         {
@@ -13,25 +17,9 @@ namespace SilkyNvg.Core.Instructions
             set => _instructionPosition = value;
         }
 
-        public float InstructionX
-        {
-            get => _instructionPosition.X;
-            set => _instructionPosition.X = value;
-        }
-
-        public float InstructionY
-        {
-            get => _instructionPosition.Y;
-            set => _instructionPosition.Y = value;
-        }
-
         public int QueueLength => _instructionQueue.Count;
 
-        private readonly Queue<IInstruction> _instructionQueue;
-
-        private Vector2D<float> _instructionPosition;
-
-        public InstructionManager()
+        public InstructionQueue()
         {
             _instructionQueue = new Queue<IInstruction>();
             _instructionPosition = new Vector2D<float>();
@@ -40,11 +28,6 @@ namespace SilkyNvg.Core.Instructions
         public IInstruction Next()
         {
             return _instructionQueue.Dequeue();
-        }
-
-        public IInstruction QueueAt(int index)
-        {
-            return _instructionQueue.ToArray()[index];
         }
 
         private void EnqueueInstruction(IInstruction instruction)
@@ -61,7 +44,7 @@ namespace SilkyNvg.Core.Instructions
 
             foreach (IInstruction instruction in sequence.Instructions)
             {
-                instruction.Prepare(state);
+                instruction.Setup(state);
                 EnqueueInstruction(instruction);
             }
         }

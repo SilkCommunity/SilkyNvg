@@ -7,20 +7,19 @@ namespace SilkyNvg.Core.Instructions
 {
     internal class LineToInstruction : IInstruction
     {
-        public bool RequiresPosition => true;
-        public InstructionType Type => InstructionType.LineTo;
-        public float[] Data => new float[] { (float)Type, _position.X, _position.Y };
 
         private Vector2D<float> _position;
 
         public Vector2D<float> Position => _position;
+        public InstructionType Type => InstructionType.LineTo;
+        public float[] Data => new float[] { (float)Type, _position.X, _position.Y };
 
-        internal LineToInstruction(float x, float y)
+        public LineToInstruction(float x, float y)
         {
             _position = new Vector2D<float>(x, y);
         }
 
-        public void Prepare(State state)
+        public void Setup(State state)
         {
             _position = Maths.TransformPoint(_position, state.Transform);
         }
