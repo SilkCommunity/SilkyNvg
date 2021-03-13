@@ -19,9 +19,9 @@ namespace SilkyNvg.Core.Paths
         private readonly Vector2D<float> _position;
 
         private uint _flags;
-        private Vector2D<float> _d;
+        private Vector2D<float> _determinant;
         private float _length;
-        private Vector2D<float> _dm;
+        private Vector2D<float> _matrixDeterminant;
 
         public float X => _position.X;
         public float Y => _position.Y;
@@ -29,38 +29,38 @@ namespace SilkyNvg.Core.Paths
 
         public float Dx
         {
-            get => _d.X;
-            set => _d.X = value;
+            get => _determinant.X;
+            set => _determinant.X = value;
         }
 
         public float Dy
         {
-            get => _d.Y;
-            set => _d.Y = value;
+            get => _determinant.Y;
+            set => _determinant.Y = value;
         }
 
-        public Vector2D<float> D
+        public Vector2D<float> Determinant
         {
-            get => _d;
-            set => _d = value;
+            get => _determinant;
+            set => _determinant = value;
         }
 
         public float DMx
         {
-            get => _dm.X;
-            set => _dm.X = value;
+            get => _matrixDeterminant.X;
+            set => _matrixDeterminant.X = value;
         }
 
         public float DMy
         {
-            get => _dm.Y;
-            set => _dm.Y = value;
+            get => _matrixDeterminant.Y;
+            set => _matrixDeterminant.Y = value;
         }
 
-        public Vector2D<float> DM
+        public Vector2D<float> MatrixDeterminat
         {
-            get => _dm;
-            set => _dm = value;
+            get => _matrixDeterminant;
+            set => _matrixDeterminant = value;
         }
 
         public float Length
@@ -101,6 +101,12 @@ namespace SilkyNvg.Core.Paths
         public bool IsInnerbevel()
         {
             return (_flags & (uint)PointFlags.PointInnerbevel) != 0;
+        }
+
+        public void Flag(PointFlags flag)
+        {
+            if ((_flags & (uint)flag) == 0)
+                _flags |= (uint)flag;
         }
 
         public bool Equals(float x, float y, float tol)

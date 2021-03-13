@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace SilkyNvg.Core.Paths
 {
-    public class Path
+    internal class Path
     {
 
         private readonly Winding _winding;
@@ -39,6 +39,11 @@ namespace SilkyNvg.Core.Paths
 
         public bool Closed => _closed;
 
+        public Path(Winding winding)
+        {
+            _winding = winding;
+        }
+
         private float PolyArea()
         {
             float area = 0;
@@ -65,7 +70,7 @@ namespace SilkyNvg.Core.Paths
             }
         }
 
-        internal void CalculateJoins(float iw, float miterLimit, LineCap lineJoin)
+        public void CalculateJoins(float iw, float miterLimit, LineCap lineJoin)
         {
             var p0 = _points[^1];
             var p1 = _points[0];
@@ -108,14 +113,14 @@ namespace SilkyNvg.Core.Paths
 
                 float limit = MathF.Max(1.01f, MathF.Min(p0.Length, p1.Length) * iw);
                 if ((dmr2 * limit * limit) < 1.0f)
-                    p1.Flags |= (uint)PointFlags.PointInnerbevel;
+                    p1.Flag(PointFlags.PointInnerbevel);
 
                 if (p1.IsCorner())
                 {
                     if ((dmr2 * miterLimit * miterLimit) < 1.0f ||
                         lineJoin == LineCap.Bevel || lineJoin == LineCap.Round)
                     {
-                        p1.Flags |= (uint)PointFlags.PointInnerbevel;
+                        p1.Flag(PointFlags.PointInnerbevel);
                     }
                 }
 
@@ -130,7 +135,7 @@ namespace SilkyNvg.Core.Paths
             _convex = nleft == _points.Count;
         }
 
-        internal void Flatten(PathCache cache, Style style)
+        public void Flatten(PathCache cache, Style style)
         {
             var p0 = _points[^1];
             var p1 = _points[0];
@@ -160,22 +165,19 @@ namespace SilkyNvg.Core.Paths
 
                 p0.Dx = p1.X - p0.X;
                 p0.Dy = p1.Y - p0.Y;
-                p0.Length = Maths.Normalize(p0.D);
-                p0.D = Vector2D.Normalize(p0.D);
+                p0.Length = Maths.Normalize(p0.Determinant);
+                p0.Determinant = Vector2D.Normalize(p0.Determinant);
 
-                cache.Bounds[0] = MathF.Min(cache.Bounds[0], p0.X);
-                cache.Bounds[1] = MathF.Min(cache.Bounds[1], p0.Y);
-                cache.Bounds[2] = MathF.Max(cache.Bounds[2], p0.X);
-                cache.Bounds[3] = MathF.Max(cache.Bounds[3], p0.Y);
+                var bounds = cache.Bounds;
+                bounds.X = MathF.Min(cache.Bounds.X, p0.X);
+                bounds.Y = MathF.Min(cache.Bounds.Y, p0.Y);
+                bounds.Z = MathF.Max(cache.Bounds.Z, p0.X);
+                bounds.W = MathF.Max(cache.Bounds.W, p0.Y);
+                cache.Bounds = bounds;
 
                 p0 = p1;
             }
 
-        }
-
-        public Path(Winding winding)
-        {
-            _winding = winding;
         }
 
         public void Close()

@@ -310,7 +310,7 @@ namespace SilkyNvg.OpenGL
             return frag;
         }
 
-        public void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, float[] bounds, SilkyNvg.Core.Paths.Path[] paths)
+        public void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Vector4D<float> bounds, SilkyNvg.Core.Paths.Path[] paths)
         {
             var call = new Call()
             {
@@ -354,10 +354,10 @@ namespace SilkyNvg.OpenGL
             if (call.Type == CallType.Fill)
             {
                 call.TriangleOffset = offset;
-                _vertices.Add(new Vertex(bounds[2], bounds[3], 0.5f, 1.0f));
-                _vertices.Add(new Vertex(bounds[2], bounds[1], 0.5f, 1.0f));
-                _vertices.Add(new Vertex(bounds[0], bounds[3], 0.5f, 1.0f));
-                _vertices.Add(new Vertex(bounds[0], bounds[1], 0.5f, 1.0f));
+                _vertices.Add(new Vertex(bounds.Z, bounds.W, 0.5f, 1.0f));
+                _vertices.Add(new Vertex(bounds.Z, bounds.Y, 0.5f, 1.0f));
+                _vertices.Add(new Vertex(bounds.X, bounds.W, 0.5f, 1.0f));
+                _vertices.Add(new Vertex(bounds.X, bounds.Y, 0.5f, 1.0f));
 
                 call.UniformOffset = _uniforms.Count;
                 var frag = new FragmentDataUniforms

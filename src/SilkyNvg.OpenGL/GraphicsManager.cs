@@ -1,4 +1,5 @@
-﻿using Silk.NET.OpenGL;
+﻿using Silk.NET.Maths;
+using Silk.NET.OpenGL;
 using SilkyNvg.Blending;
 using SilkyNvg.Colouring;
 using SilkyNvg.Common;
@@ -41,7 +42,7 @@ namespace SilkyNvg.OpenGL
         }
 
         public void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor,
-            float fringe, float[] bounds, List<Core.Paths.Path> paths)
+            float fringe, Vector4D<float> bounds, List<Core.Paths.Path> paths)
         {
             _interface.Fill(paint, compositeOperation, scissor, fringe, bounds, paths.ToArray());
         }

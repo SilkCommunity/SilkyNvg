@@ -12,9 +12,9 @@ namespace SilkyNvg.Core.Paths
         private readonly List<Path> _paths;
         private readonly List<Vertex> _vertices;
 
-        private float[] _bounds;
+        private Vector4D<float> _bounds;
 
-        public float[] Bounds
+        public Vector4D<float> Bounds
         {
             get => _bounds;
             set => _bounds = value;
@@ -26,7 +26,7 @@ namespace SilkyNvg.Core.Paths
         {
             _paths = new List<Path>();
             _vertices = new List<Vertex>();
-            _bounds = new float[4];
+            _bounds = new Vector4D<float>();
         }
 
         public void Clear()
@@ -93,11 +93,12 @@ namespace SilkyNvg.Core.Paths
                 instruction.Execute(this, style);
             }
 
-            _bounds[0] = _bounds[1] = 1e6f;
-            _bounds[2] = _bounds[3] = -1e6f;
+            _bounds.X = _bounds.Y = 1e6f;
+            _bounds.Z = _bounds.W = -1e6f;
 
-            foreach (Path path in _paths)
+            for (int i = 0; i <_paths.Count; i++)
             {
+                var path = _paths[i];
                 path.Flatten(this, style);
             }
         }
@@ -200,8 +201,9 @@ namespace SilkyNvg.Core.Paths
             if (w > 0.0f)
                 iw = 1.0f / w;
 
-            foreach (Path path in _paths)
+            for (int i = 0; i < _paths.Count; i++)
             {
+                var path = _paths[i];
                 path.CalculateJoins(iw, miterLimit, lineJoin);
             }
         }
@@ -271,7 +273,6 @@ namespace SilkyNvg.Core.Paths
                     }
                 }
 
-                path.Fill.Clear();
                 path.Fill.AddRange(dst);
                 _vertices.AddRange(dst);
 
@@ -319,12 +320,6 @@ namespace SilkyNvg.Core.Paths
                 }
             }
 
-        }
-
-        public void Purge()
-        {
-            Clear();
-            ClearVerts();
         }
 
         public void ClearVerts()
