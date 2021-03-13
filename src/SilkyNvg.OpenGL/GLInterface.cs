@@ -62,7 +62,27 @@ namespace SilkyNvg.OpenGL
             _renderMeta = new RenderMeta();
         }
 
-        public void RenderViewport(float width, float height)
+        private void StencilMask(uint mask)
+        {
+            if (_renderMeta.StencilMask != mask)
+            {
+                _renderMeta.StencilMask = mask;
+                _gl.StencilMask(mask);
+            }
+        }
+
+        private void StencilFunc(StencilFunction func, uint mask, int stencilFuncRef)
+        {
+            if ((_renderMeta.StencilFunk != (GLEnum)func) || (_renderMeta.StencilFunkRef != stencilFuncRef) || (_renderMeta.StencilFunkMask != mask))
+            {
+                _renderMeta.StencilFunk = (GLEnum)func;
+                _renderMeta.StencilFunkRef = stencilFuncRef;
+                _renderMeta.StencilFunkMask = mask;
+                _gl.StencilFunc(func, stencilFuncRef, mask);
+            }
+        }
+
+        public void Viewport(float width, float height)
         {
             _view = new Vector2D<float>(width, height);
         }
@@ -91,6 +111,45 @@ namespace SilkyNvg.OpenGL
             _gl.BlendFuncSeparate(blend.SrcRgb, blend.DstRgb, blend.SrcAlpha, blend.DstAlpha);
         }
 
+        private void Fill(Call call)
+        {
+            int start = call.PathOffset;
+            int pathCount = call.PathCount;
+
+            _gl.Enable(EnableCap.StencilTest);
+            StencilMask(0xff);
+            StencilFunc(StencilFunction.Always, 0xff, 0);
+            _gl.ColorMask(false, false, false, false);
+
+            SetUniforms(call.UniformOffset, 0);
+            CheckError("fill simple");
+
+            _gl.StencilOpSeparate(StencilFaceDirection.Front, StencilOp.Keep, StencilOp.Keep, StencilOp.IncrWrap);
+            _gl.StencilOpSeparate(StencilFaceDirection.Back, StencilOp.Keep, StencilOp.Keep, StencilOp.DecrWrap);
+            _gl.Disable(EnableCap.CullFace);
+            for (int i = 0; i < pathCount; i++)
+            {
+                _gl.DrawArrays(PrimitiveType.TriangleFan, _paths[start + i].FillOffset, (uint)_paths[start + i].FillCount);
+            }
+            _gl.Enable(EnableCap.CullFace);
+
+            _gl.ColorMask(true, true, true, true);
+
+            SetUniforms(call.UniformOffset, 0);
+            CheckError("Fill fill");
+
+            if (_graphicsManager.LaunchParameters.Antialias)
+            {
+                // TODO: Antialias
+            }
+
+            StencilFunc(StencilFunction.Notequal, 0xff, 0x0);
+            _gl.StencilOp(StencilOp.Zero, StencilOp.Zero, StencilOp.Zero);
+            _gl.DrawArrays(PrimitiveType.TriangleStrip, call.TriangleOffset, (uint)call.TriangleCount);
+
+            _gl.Disable(EnableCap.StencilTest);
+        }
+
         private void ConvexFill(Call call)
         {
             var start = call.PathOffset;
@@ -110,7 +169,7 @@ namespace SilkyNvg.OpenGL
 
         }
 
-        public unsafe void RenderFlush()
+        public unsafe void Flush()
         {
             if (_calls.Count > 0)
             {
@@ -157,6 +216,7 @@ namespace SilkyNvg.OpenGL
                 }
                 _gl.VertexAttribPointer(0, 2, GLEnum.Float, false, (uint)(2 * sizeof(float)), (float*)0);
                 _gl.EnableVertexAttribArray(0);
+
                 _gl.BindBuffer(BufferTargetARB.ArrayBuffer, _textureVBO);
                 fixed (void* d = textureCoords)
                 {
@@ -175,7 +235,7 @@ namespace SilkyNvg.OpenGL
                     switch (call.Type)
                     {
                         case CallType.Fill:
-                            // not yet
+                            Fill(call);
                             break;
                         case CallType.Convexfill:
                             ConvexFill(call);
@@ -250,7 +310,7 @@ namespace SilkyNvg.OpenGL
             return frag;
         }
 
-        public void RenderFill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Rectangle<float> bounds, SilkyNvg.Core.Paths.Path[] paths)
+        public void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, float[] bounds, SilkyNvg.Core.Paths.Path[] paths)
         {
             var call = new Call()
             {
@@ -294,10 +354,10 @@ namespace SilkyNvg.OpenGL
             if (call.Type == CallType.Fill)
             {
                 call.TriangleOffset = offset;
-                _vertices.Add(new Vertex(bounds.Max.X, bounds.Max.Y, 0.5f, 1.0f));
-                _vertices.Add(new Vertex(bounds.Max.X, bounds.Origin.Y, 0.5f, 1.0f));
-                _vertices.Add(new Vertex(bounds.Origin.X, bounds.Max.Y, 0.5f, 1.0f));
-                _vertices.Add(new Vertex(bounds.Origin.X, bounds.Origin.Y, 0.5f, 1.0f));
+                _vertices.Add(new Vertex(bounds[2], bounds[3], 0.5f, 1.0f));
+                _vertices.Add(new Vertex(bounds[2], bounds[1], 0.5f, 1.0f));
+                _vertices.Add(new Vertex(bounds[0], bounds[3], 0.5f, 1.0f));
+                _vertices.Add(new Vertex(bounds[0], bounds[1], 0.5f, 1.0f));
 
                 call.UniformOffset = _uniforms.Count;
                 var frag = new FragmentDataUniforms

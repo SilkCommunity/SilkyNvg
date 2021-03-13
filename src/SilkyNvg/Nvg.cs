@@ -47,7 +47,7 @@ namespace SilkyNvg
             _pathCache = new PathCache();
             _stateManager = new StateManager();
             _style = new Style(1.0f);
-            _graphicsManager.RenderCreate();
+            _graphicsManager.Create();
             // TODO: Font
             // TODO: More images
 
@@ -73,7 +73,7 @@ namespace SilkyNvg
             _stateManager.Save();
             _stateManager.Reset();
             _style.CalculateForPixelRatio(pixelRatio);
-            _graphicsManager.RenderViewport(windowWidth, windowHeight);
+            _graphicsManager.Viewport(windowWidth, windowHeight);
             _frameMeta.Reset();
         }
 
@@ -84,11 +84,12 @@ namespace SilkyNvg
         /// </summary>
         public void EndFrame()
         {
-            _graphicsManager.RenderFlush();
+            _graphicsManager.Flush();
             _pathCache.ClearVerts();
         }
         #endregion
 
+        #region Colours
         /// <summary>
         /// Create a new colour using the following
         /// RGBA-Parameters, specified as parts of float.
@@ -104,7 +105,9 @@ namespace SilkyNvg
         {
             return new Colour(r, g, b, a);
         }
+        #endregion
 
+        #region States
         /// <summary>
         /// Save the current render state into the state stack.
         /// </summary>
@@ -129,7 +132,9 @@ namespace SilkyNvg
         {
             _stateManager.Reset();
         }
+        #endregion
 
+        #region RenderStyles
         /// <summary>
         /// Set the colour to be used when calling
         /// <see cref="Fill"/>.
@@ -140,7 +145,9 @@ namespace SilkyNvg
             var state = _stateManager.GetState();
             state.Fill = new Paint(colour);
         }
+        #endregion
 
+        #region Paths
         /// <summary>
         /// Clear the current path and sub-path.
         /// </summary>
@@ -193,7 +200,7 @@ namespace SilkyNvg
             inner.A *= state.Alpha;
             outer.A *= state.Alpha;
 
-            _graphicsManager.RenderFill(fillPaint, state.CompositeOperation, state.Scissor, _style.FringeWidth, _pathCache.Bounds, _pathCache.Paths);
+            _graphicsManager.Fill(fillPaint, state.CompositeOperation, state.Scissor, _style.FringeWidth, _pathCache.Bounds, _pathCache.Paths);
 
             for (int i = 0; i < _pathCache.Paths.Count; i++)
             {
@@ -203,6 +210,7 @@ namespace SilkyNvg
                 _frameMeta.DrawCallCount += 2;
             }
         }
+        #endregion
 
     }
 }

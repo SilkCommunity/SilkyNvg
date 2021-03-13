@@ -87,9 +87,12 @@ namespace SingleClassExample
                 nvg.BeginFrame(winWidth, winHeight, fbWidth / winWidth);
 
                 nvg.BeginPath();
-                nvg.Rect(100, 200, 50, 100);
-                // nvg.FillColour(nvg.RgbaF(1.0f, 1.0f, 1.0f, 1.0f));
-                nvg.FillColour(new Colour(1.0f, 1.0f, 1.0f, 1.0f));
+                nvg.Rect(100, 200, 50, 50);
+                nvg.FillColour(nvg.RGBAf(0.0f, 1.0f, 0.0f, 1.0f));
+                nvg.Fill();
+                nvg.BeginPath();
+                nvg.Rect(200, 300, 200, 200);
+                nvg.FillColour(new Colour(0.0f, 0.0f, 1.0f, 1.0f));
                 nvg.Fill();
 
                 nvg.EndFrame();

@@ -163,12 +163,10 @@ namespace SilkyNvg.Core.Paths
                 p0.Length = Maths.Normalize(p0.D);
                 p0.D = Vector2D.Normalize(p0.D);
 
-                var bounds = cache.Bounds;
-                bounds.Origin.X = MathF.Min(bounds.Origin.X, p0.X);
-                bounds.Origin.Y = MathF.Min(bounds.Origin.Y, p0.Y);
-                bounds.Size.X = MathF.Max(bounds.Size.X, 0);
-                bounds.Size.Y = MathF.Max(bounds.Size.Y, 0);
-                cache.Bounds = bounds;
+                cache.Bounds[0] = MathF.Min(cache.Bounds[0], p0.X);
+                cache.Bounds[1] = MathF.Min(cache.Bounds[1], p0.Y);
+                cache.Bounds[2] = MathF.Max(cache.Bounds[2], p0.X);
+                cache.Bounds[3] = MathF.Max(cache.Bounds[3], p0.Y);
 
                 p0 = p1;
             }

@@ -25,25 +25,25 @@ namespace SilkyNvg.OpenGL
             _gl = gl;
         }
 
-        public void RenderCreate()
+        public void Create()
         {
             _interface = new GLInterface(this);
         }
 
-        public void RenderViewport(float width, float height)
+        public void Viewport(float width, float height)
         {
-            _interface.RenderViewport(width, height);
+            _interface.Viewport(width, height);
         }
 
-        public void RenderFlush()
+        public void  Flush()
         {
-            _interface.RenderFlush();
+            _interface.Flush();
         }
 
-        public void RenderFill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor,
-            float fringe, Silk.NET.Maths.Rectangle<float> bounds, List<Core.Paths.Path> paths)
+        public void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor,
+            float fringe, float[] bounds, List<Core.Paths.Path> paths)
         {
-            _interface.RenderFill(paint, compositeOperation, scissor, fringe, bounds, paths.ToArray());
+            _interface.Fill(paint, compositeOperation, scissor, fringe, bounds, paths.ToArray());
         }
 
     }

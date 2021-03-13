@@ -8,7 +8,7 @@ namespace SilkyNvg.OpenGL
         private int _bondTexture;
         private uint _stencilMask;
         private GLEnum _stencilFunk;
-        private uint _stencilFunkRef;
+        private int _stencilFunkRef;
         private uint _stencilFunkMask;
         private GLEnum _srcRgb;
         private GLEnum _srcAlpha;
@@ -27,7 +27,7 @@ namespace SilkyNvg.OpenGL
             set => _stencilMask = value;
         }
 
-        public uint StencilFunkRef
+        public int StencilFunkRef
         {
             get => _stencilFunkRef;
             set => _stencilFunkRef = value;

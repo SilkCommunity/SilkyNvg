@@ -2,7 +2,6 @@
 using SilkyNvg.Common;
 using SilkyNvg.Core.Instructions;
 using SilkyNvg.Paths;
-using System;
 using System.Collections.Generic;
 
 namespace SilkyNvg.Core.Paths
@@ -13,19 +12,21 @@ namespace SilkyNvg.Core.Paths
         private readonly List<Path> _paths;
         private readonly List<Vertex> _vertices;
 
-        private Rectangle<float> _bounds;
+        private float[] _bounds;
 
-        public Rectangle<float> Bounds
+        public float[] Bounds
         {
             get => _bounds;
             set => _bounds = value;
         }
+
         public List<Path> Paths => _paths;
 
         public PathCache()
         {
             _paths = new List<Path>();
             _vertices = new List<Vertex>();
+            _bounds = new float[4];
         }
 
         public void Clear()
@@ -70,8 +71,7 @@ namespace SilkyNvg.Core.Paths
                 }
             }
 
-            var p = new Point(x, y, flags);
-            path.Points.Add(p);
+            path.Points.Add(new Point(x, y, flags));
         }
 
         public void ClosePath()
@@ -93,13 +93,13 @@ namespace SilkyNvg.Core.Paths
                 instruction.Execute(this, style);
             }
 
-            _bounds = new Rectangle<float>(new Vector2D<float>(1e6f), new Vector2D<float>(0.0f));
+            _bounds[0] = _bounds[1] = 1e6f;
+            _bounds[2] = _bounds[3] = -1e6f;
 
             foreach (Path path in _paths)
             {
                 path.Flatten(this, style);
             }
-
         }
 
         private void ChooseBevel(bool bevel, Point p0, Point p1, float w, out float x0, out float y0, out float x1, out float y1)
@@ -221,7 +221,7 @@ namespace SilkyNvg.Core.Paths
                 var points = path.Points;
 
                 float woff = 0.5f * aa;
-                var dst = new List<Vertex>(_vertices);
+                var dst = new List<Vertex>();
 
                 if (fringe)
                 {
@@ -273,7 +273,6 @@ namespace SilkyNvg.Core.Paths
 
                 path.Fill.Clear();
                 path.Fill.AddRange(dst);
-                _vertices.Clear();
                 _vertices.AddRange(dst);
 
                 if (fringe)
@@ -282,7 +281,7 @@ namespace SilkyNvg.Core.Paths
                     float rw = w - woff;
                     float lu = 0;
                     float ru = 1;
-                    dst = new List<Vertex>(_vertices);
+                    dst = new List<Vertex>();
 
                     if (convex)
                     {
@@ -312,7 +311,6 @@ namespace SilkyNvg.Core.Paths
                     dst.Add(new Vertex(_vertices[0].X, _vertices[0].Y, lu, 1));
                     dst.Add(new Vertex(_vertices[1].X, _vertices[1].Y, ru, 1));
 
-                    _vertices.Clear();
                     _vertices.AddRange(dst);
                 }
                 else
