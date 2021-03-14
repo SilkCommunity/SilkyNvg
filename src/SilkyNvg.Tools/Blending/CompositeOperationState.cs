@@ -13,6 +13,11 @@
         public BlendFactor SrcAlpha => _srcAlpha;
         public BlendFactor DstAlpha => _dstAlpha;
 
+        /// <summary>
+        /// Sets both source factors to sfactor and both destination factors to dfactor.
+        /// </summary>
+        /// <param name="sfactor">The source factor</param>
+        /// <param name="dfactor">The destination factor</param>
         public CompositeOperationState(BlendFactor sfactor, BlendFactor dfactor) : this(sfactor, dfactor, sfactor, dfactor) { }
 
         public CompositeOperationState(BlendFactor srcRgb, BlendFactor dstRgb, BlendFactor srcAlpha, BlendFactor dstAlpha)
@@ -23,6 +28,10 @@
             _dstAlpha = dstAlpha;
         }
 
+        /// <summary>
+        /// Create a CompositeOperationState from <see cref="CompositeOperation"/>
+        /// </summary>
+        /// <param name="op">The CompositeOperation to base this on.</param>
         public CompositeOperationState(CompositeOperation op)
         {
             BlendFactor sfactor, dfactor;

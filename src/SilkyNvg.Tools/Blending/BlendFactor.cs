@@ -1,5 +1,9 @@
 ﻿namespace SilkyNvg
 {
+
+    /// <summary>
+    /// NanoVG implementation of OpenGL BlendingFactors.
+    /// </summary>
     public enum BlendFactor
     {
 

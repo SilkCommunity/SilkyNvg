@@ -91,16 +91,15 @@ namespace SilkyNvg
 
         #region Colours
         /// <summary>
-        /// Create a new colour using the following
-        /// RGBA-Parameters, specified as parts of float.
-        /// I.E. devide the 0-255 by 255.
-        /// <seealso cref="Colour.Colour(float, float, float, float)"/>
+        /// <inheritdoc cref="Docs.Colours"/>
+        ///
+        /// <seealso cref="Colour(float, float, float, float)"/>
         /// </summary>
         /// <param name="r">The red component.</param>
         /// <param name="g">The green component.</param>
         /// <param name="b">The blue component.</param>
         /// <param name="a">The alpha component.</param>
-        /// <returns>A colour using the specified rgba values.</returns>
+        /// <returns>A colour value from red, green, blue and alpha values.</returns>
         public Colour RGBAf(float r, float g, float b, float a)
         {
             return new Colour(r, g, b, a);
@@ -109,7 +108,10 @@ namespace SilkyNvg
 
         #region States
         /// <summary>
-        /// Save the current render state into the state stack.
+        /// <inheritdoc cref="Docs.States"/>
+        /// 
+        /// Pushes and saves the current render state into the state stack.
+        /// A matchin <see cref="Restore"/> call can be used to restore the state.
         /// </summary>
         public void Save()
         {
@@ -117,7 +119,9 @@ namespace SilkyNvg
         }
 
         /// <summary>
-        /// Pops the state stack.
+        /// <inheritdoc cref="Docs.States"/>
+        /// 
+        /// Pops and restores the current render state.
         /// </summary>
         public void Restore()
         {
@@ -125,8 +129,9 @@ namespace SilkyNvg
         }
 
         /// <summary>
-        /// Resets the current render state. Renderstack
-        /// is kept.
+        /// <inheritdoc cref="Docs.States"/>
+        /// 
+        /// Resets the current render state to default values. Does not affect the state stack.
         /// </summary>
         public void Reset()
         {
@@ -136,10 +141,11 @@ namespace SilkyNvg
 
         #region RenderStyles
         /// <summary>
-        /// Set the colour to be used when calling
-        /// <see cref="Fill"/>.
+        /// <inheritdoc cref="Docs.RenderStyles"/>
+        /// 
+        /// Sets the current fill style to a solid colour.
         /// </summary>
-        /// <param name="colour">The colour the path is to be filled with.</param>
+        /// <param name="colour">The colour to fill the path with.</param>
         public void FillColour(Colour colour)
         {
             var state = _stateManager.GetState();
@@ -149,6 +155,8 @@ namespace SilkyNvg
 
         #region Paths
         /// <summary>
+        /// <inheritdoc cref="Docs.Paths"/>
+        /// 
         /// Clear the current path and sub-path.
         /// </summary>
         public void BeginPath()
@@ -158,13 +166,14 @@ namespace SilkyNvg
         }
 
         /// <summary>
-        /// Draw a rectangle at give position
-        /// with given size.
+        /// <inheritdoc cref="Docs.Paths"/>
+        /// 
+        /// Creates a new rectangle shapes sub-path.
         /// </summary>
-        /// <param name="x">The X Position</param>
-        /// <param name="y">The Y Position</param>
-        /// <param name="w">The width</param>
-        /// <param name="h">The height</param>
+        /// <param name="x">The rectangle's X-Position</param>
+        /// <param name="y">The rectangle's Y-Position</param>
+        /// <param name="w">The rectangle's width</param>
+        /// <param name="h">The rectangle's height</param>
         public void Rect(float x, float y, float w, float h)
         {
             var sequence = new InstructionSequence(5);
@@ -177,8 +186,9 @@ namespace SilkyNvg
         }
 
         /// <summary>
-        /// Fill the current path using
-        /// the set fill colour <see cref="FillColour(Colour)"/>
+        /// <inheritdoc cref="Docs.Paths"/>
+        /// 
+        /// Fills the current path with the current fill style.
         /// </summary>
         public void Fill()
         {

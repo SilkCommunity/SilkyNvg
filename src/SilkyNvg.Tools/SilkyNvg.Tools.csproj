@@ -9,4 +9,8 @@
     <PackageReference Include="Silk.NET.Maths" Version="2.2.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\SilkyNvg.Common\SilkyNvg.Common.csproj" />
+  </ItemGroup>
+
 </Project>
