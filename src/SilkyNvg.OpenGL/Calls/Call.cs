@@ -1,59 +1,30 @@
-﻿namespace SilkyNvg.OpenGL.Calls
+﻿using Silk.NET.OpenGL;
+
+namespace SilkyNvg.OpenGL.Calls
 {
 
-    internal struct Call
+    internal abstract class Call
     {
 
-        private CallType _type;
         // TODO: Image
-        private int _pathOffset;
-        private int _pathCount;
-        private int _triangleOffset;
-        private int _triangleCount;
-        private int _uniformOffset;
-        private Blend _blendFunc;
+        protected readonly int _pathOffset;
+        protected readonly int _pathCount;
+        protected readonly int _triangleOffset;
+        protected readonly int _triangleCount;
+        protected readonly int _uniformOffset;
+        protected readonly Blend _blendFunc;
 
-        public CallType Type
+        public Call(int pathOffset, int pathCount, int triangleOffset, int triangleCount, int uniformOffset, Blend blendFunc)
         {
-            get => _type;
-            set => _type = value;
+            _pathOffset = pathOffset;
+            _pathCount = pathCount;
+            _triangleOffset = triangleOffset;
+            _triangleCount = triangleCount;
+            _uniformOffset = uniformOffset;
+            _blendFunc = blendFunc;
         }
 
-        public int PathOffset
-        {
-            get => _pathOffset;
-            set => _pathOffset = value;
-        }
-
-        public int PathCount
-        {
-            get => _pathCount;
-            set => _pathCount = value;
-        }
-
-        public int TriangleOffset
-        {
-            get => _triangleOffset;
-            set => _triangleOffset = value;
-        }
-
-        public int TriangleCount
-        {
-            get => _triangleCount;
-            set => _triangleCount = value;
-        }
-
-        public int UniformOffset
-        {
-            get => _uniformOffset;
-            set => _uniformOffset = value;
-        }
-
-        public Blend BlendFunc
-        {
-            get => _blendFunc;
-            set => _blendFunc = value;
-        }
+        public abstract void Run(GLInterface glInterface, GL gl);
 
     }
 }

@@ -26,6 +26,7 @@ namespace SilkyNvg.OpenGL.Shaders
             _gl = gl;
             _locations = new Dictionary<UniformLocations, int>();
             CreateShader(name, aa);
+            GetUniforms();
         }
 
         private unsafe void CreateShader(string name, bool aa)
@@ -97,7 +98,7 @@ namespace SilkyNvg.OpenGL.Shaders
             Console.Error.WriteLine("Programme " + name + " Error: " + info);
         }
 
-        public void GetUniforms()
+        private void GetUniforms()
         {
             _locations.Add(UniformLocations.Viewsize, _gl.GetUniformLocation(_programmeID, "viewSize"));
             _locations.Add(UniformLocations.Tex, _gl.GetUniformLocation(_programmeID, "texture"));

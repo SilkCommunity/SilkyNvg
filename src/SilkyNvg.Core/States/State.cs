@@ -5,7 +5,7 @@ using SilkyNvg.Paths;
 
 namespace SilkyNvg.Core.States
 {
-    public class State
+    internal class State
     {
 
         private CompositeOperationState _compositeOperationState;
