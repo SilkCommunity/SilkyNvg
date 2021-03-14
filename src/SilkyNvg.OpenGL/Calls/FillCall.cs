@@ -37,7 +37,13 @@ namespace SilkyNvg.OpenGL.Calls
 
             if (glInterface.LaunchParameters.Antialias)
             {
-                // TODO: Antialias
+                glInterface.StencilFunc(StencilFunction.Equal, 0xff, 0);
+                gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Keep);
+
+                for (int i = 0; i < _paths.Length; i++)
+                {
+                    gl.DrawArrays(PrimitiveType.TriangleStrip, _paths[i].StrokeOffset, (uint)_paths[i].StrokeCount);
+                }
             }
 
             glInterface.StencilFunc(StencilFunction.Notequal, 0xff, 0x0);

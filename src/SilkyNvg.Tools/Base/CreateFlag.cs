@@ -11,7 +11,7 @@
         /// <summary>
         /// Wheather geometry-based AA is used. Does not disable MSAA.
         /// </summary>
-        EdgeAntialias = 1 << 0,
+        Antialias = 1 << 0,
 
         /// <summary>
         /// Indicates wheather rendering is done with or without

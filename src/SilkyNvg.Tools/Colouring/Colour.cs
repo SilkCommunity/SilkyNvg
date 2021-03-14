@@ -2,6 +2,11 @@
 
 namespace SilkyNvg.Colouring
 {
+    /// <summary>
+    /// <inheritdoc cref="Common.Docs.Colours"/>
+    /// 
+    /// Represents a colour stored as floats in RGBA format.
+    /// </summary>
     public struct Colour
     {
 
@@ -18,21 +23,37 @@ namespace SilkyNvg.Colouring
             get => _rgba;
             set => _rgba = value;
         }
+
+        /// <summary>
+        /// The red component.
+        /// </summary>
         public float R
         {
             get => _rgba.X;
             set => _rgba.X = value;
         }
+
+        /// <summary>
+        /// The green component.
+        /// </summary>
         public float G
         {
             get => _rgba.Y;
             set => _rgba.Y = value;
         }
+
+        /// <summary>
+        /// The blue component.
+        /// </summary>
         public float B
         {
             get => _rgba.Z;
             set => _rgba.Z = value;
         }
+
+        /// <summary>
+        /// The alpha component.
+        /// </summary>
         public float A
         {
             get => _rgba.W;

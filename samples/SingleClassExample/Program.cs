@@ -68,7 +68,7 @@ namespace SingleClassExample
             }
 
             // Create a new NVG context.
-            var nvg = Nvg.Create((uint)CreateFlag.Debug, gl);
+            var nvg = Nvg.Create((uint)CreateFlag.Debug | (uint)CreateFlag.Antialias, gl);
 
             glfw.SwapInterval(0);
 

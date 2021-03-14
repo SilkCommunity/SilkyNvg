@@ -2,6 +2,10 @@
 
 namespace SilkyNvg.Colouring
 {
+
+    /// <summary>
+    /// A gradient colour / image.
+    /// </summary>
     public class Paint
     {
 
@@ -13,41 +17,46 @@ namespace SilkyNvg.Colouring
         private Colour _innerColour;
         private Colour _outerColour;
 
-        public Matrix3X2<float> XForm
+        internal Matrix3X2<float> XForm
         {
             get => _xform;
             set => _xform = value;
         }
 
-        public Vector2D<float> Extent
+        internal Vector2D<float> Extent
         {
             get => _extent;
             set => _extent = value;
         }
 
-        public float Radius
+        internal float Radius
         {
             get => _radius;
             set => _radius = value;
         }
-        public float Feather
+
+        internal float Feather
         {
             get => _feather;
             set => _feather = value;
         }
 
-        public Colour InnerColour
+        internal Colour InnerColour
         {
             get => _innerColour;
             set => _innerColour = value;
         }
 
-        public Colour OuterColour
+        internal Colour OuterColour
         {
             get => _outerColour;
             set => _outerColour = value;
         }
 
+        /// <summary>
+        /// Create a paint from a <see cref="Colour"/>.
+        /// </summary>
+        /// <param name="colour">The colour the paint will have.</param>
         public Paint(Colour colour)
         {
             _xform = Matrix3X2<float>.Identity;
