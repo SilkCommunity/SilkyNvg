@@ -16,8 +16,6 @@ namespace SilkyNvg.OpenGL.Shaders
         private readonly IDictionary<UniformLocations, int> _locations;
         private readonly GL _gl;
 
-        public IDictionary<UniformLocations, int> Locations => _locations;
-
         private uint _programmeID;
         private uint _vertexShaderID, _fragmentShaderID;
 
@@ -144,6 +142,12 @@ namespace SilkyNvg.OpenGL.Shaders
             {
                 _gl.UniformMatrix3x4(_locations[loc], 1, false, d);
             }
+        }
+
+        public void LoadMeta(int texture, Vector2D<float> view)
+        {
+            LoadInt(UniformLocations.Tex, texture);
+            LoadVector(UniformLocations.Viewsize, view);
         }
 
         public void LoadUniforms(FragmentDataUniforms data)

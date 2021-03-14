@@ -1,25 +1,28 @@
 ﻿using Silk.NET.OpenGL;
+using SilkyNvg.OpenGL.Shaders;
 
 namespace SilkyNvg.OpenGL.Calls
 {
     internal class ConvexFillCall : Call
     {
 
-        public ConvexFillCall(int pathOffset, int pathCount, int triangleOffset, int triangleCount, int uniformOffset, Blend blendFunc)
-            : base(pathOffset, pathCount, triangleOffset, triangleCount, uniformOffset, blendFunc) { }
+        public ConvexFillCall(int triangleOffset, int triangleCount, Blend blendFunc, FragmentDataUniforms uniforms, Path[] paths)
+            : base(triangleOffset, triangleCount, blendFunc, uniforms, paths) { }
 
 
         public override void Run(GLInterface glInterface, GL gl)
         {
-            glInterface.SetUniforms(_uniformOffset, 0);
+            glInterface.BlendFuncSeperate(_blendFunc);
+
+            glInterface.SetUniforms(_uniforms, 0);
             glInterface.CheckError("convex fill");
 
-            for (int i = 0; i < _pathCount; i++)
+            for (int i = 0; i < _paths.Length; i++)
             {
-                gl.DrawArrays(PrimitiveType.TriangleFan, glInterface.Paths[_pathOffset + i].FillOffset, (uint)glInterface.Paths[_pathOffset + i].FillCount);
-                if (glInterface.Paths[_pathOffset + i].StrokeCount > 0)
+                gl.DrawArrays(PrimitiveType.TriangleFan, _paths[i].FillOffset, (uint)_paths[i].FillCount);
+                if (_paths[i].StrokeCount > 0)
                 {
-                    gl.DrawArrays(PrimitiveType.TriangleStrip, glInterface.Paths[_pathOffset + i].StrokeOffset, (uint)glInterface.Paths[_pathOffset + i].StrokeCount);
+                    gl.DrawArrays(PrimitiveType.TriangleStrip, _paths[i].StrokeOffset, (uint)_paths[i].StrokeCount);
                 }
             }
         }

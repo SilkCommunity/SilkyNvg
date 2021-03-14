@@ -6,6 +6,7 @@ using SilkyNvg.Common;
 using SilkyNvg.OpenGL.Calls;
 using SilkyNvg.OpenGL.Instructions;
 using SilkyNvg.OpenGL.Shaders;
+using SilkyNvg.OpenGL.VertexArray;
 using System;
 using System.Collections.Generic;
 using Shader = SilkyNvg.OpenGL.Shaders.Shader;
@@ -18,12 +19,9 @@ namespace SilkyNvg.OpenGL
         private readonly Shader _shader;
         private readonly CallQueue _callQueue;
 
-        private readonly List<Path> _paths = new List<Path>();
         private readonly List<Vertex> _vertices = new List<Vertex>();
-        private readonly List<FragmentDataUniforms> _uniforms = new List<FragmentDataUniforms>();
 
-        private readonly uint _vao;
-        private readonly uint _vertexVBO, _textureVBO;
+        private readonly VAO _vao;
 
         private readonly GraphicsManager _graphicsManager;
         private readonly GL _gl;
@@ -31,40 +29,7 @@ namespace SilkyNvg.OpenGL
         private Vector2D<float> _view;
         private RenderMeta _renderMeta;
 
-        public List<Path> Paths => _paths;
         public LaunchParameters LaunchParameters => _graphicsManager.LaunchParameters;
-
-        internal void CheckError(string str)
-        {
-            if (_graphicsManager.LaunchParameters.Debug)
-                return;
-            GLEnum error = _gl.GetError();
-            if (error != GLEnum.NoError)
-            {
-                Console.Error.WriteLine("Error " + error + " after " + str);
-            }
-        }
-
-        public GLInterface(GraphicsManager graphicsManager)
-        {
-            _graphicsManager = graphicsManager;
-            _gl = _graphicsManager.GL;
-
-            _callQueue = new CallQueue();
-
-            CheckError("init");
-            _shader = new Shader("SilkyNvg-Shader", _graphicsManager.LaunchParameters.Antialias, _gl);
-            CheckError("loaded shaders");
-
-            _vao = _gl.GenVertexArray();
-            _vertexVBO = _gl.GenBuffer();
-            _textureVBO = _gl.GenBuffer();
-
-            CheckError("create done!");
-            _gl.Finish();
-
-            _renderMeta = new RenderMeta();
-        }
 
         public void StencilMask(uint mask)
         {
@@ -86,21 +51,7 @@ namespace SilkyNvg.OpenGL
             }
         }
 
-        public void Viewport(float width, float height)
-        {
-            _view = new Vector2D<float>(width, height);
-        }
-
-        public unsafe void SetUniforms(int uniformOffset, int image)
-        {
-            _shader.LoadUniforms(_uniforms[uniformOffset]);
-
-            // TODO: Images
-
-            CheckError("tex paint tex");
-        }
-
-        private void BlendFuncSeperate(Blend blend)
+        public void BlendFuncSeperate(Blend blend)
         {
             if ((_renderMeta.SrcRgb != blend.SrcRgb) ||
                 (_renderMeta.DstRgb != blend.DstRgb) ||
@@ -115,77 +66,34 @@ namespace SilkyNvg.OpenGL
             _gl.BlendFuncSeparate(blend.SrcRgb, blend.DstRgb, blend.SrcAlpha, blend.DstAlpha);
         }
 
-        public unsafe void Flush()
+        public void CheckError(string str)
         {
-            if (_callQueue.QueueLength > 0)
+            if (_graphicsManager.LaunchParameters.Debug)
+                return;
+            GLEnum error = _gl.GetError();
+            if (error != GLEnum.NoError)
             {
-                int idx = 0;
-                float[] vertices = new float[_vertices.Count * 2];
-                float[] textureCoords = new float[_vertices.Count * 2];
-                foreach (Vertex vertex in _vertices)
-                {
-                    vertices[idx] = vertex.X;
-                    textureCoords[idx++] = vertex.U;
-                    vertices[idx] = vertex.Y;
-                    textureCoords[idx++] = vertex.V;
-                }
-
-                _shader.Start();
-                _gl.Enable(EnableCap.CullFace);
-                _gl.CullFace(CullFaceMode.Back);
-                _gl.FrontFace(FrontFaceDirection.Ccw);
-                _gl.Enable(EnableCap.Blend);
-                _gl.Disable(EnableCap.DepthTest);
-                _gl.Disable(EnableCap.ScissorTest);
-                _gl.ColorMask(true, true, true, true);
-                _gl.StencilMask(0xffffffff);
-                _gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Keep);
-                _gl.StencilFunc(GLEnum.Always, 0, 0xffffffff);
-                _gl.ActiveTexture(TextureUnit.Texture0);
-                _gl.BindTexture(TextureTarget.Texture2D, 0);
-                _renderMeta.BondTexture = 0;
-                _renderMeta.StencilMask = 0xffffffff;
-                _renderMeta.StencilFunk = GLEnum.Always;
-                _renderMeta.StencilFunkRef = 0;
-                _renderMeta.StencilFunkMask = 0xffffffff;
-                _renderMeta.SrcRgb = GLEnum.InvalidEnum;
-                _renderMeta.SrcAlpha = GLEnum.InvalidEnum;
-                _renderMeta.DstRgb = GLEnum.InvalidEnum;
-                _renderMeta.DstAlpha = GLEnum.InvalidEnum;
-
-                _gl.BindVertexArray(_vao);
-
-                _gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vertexVBO);
-                fixed (void* d = vertices)
-                {
-                    _gl.BufferData(BufferTargetARB.ArrayBuffer, (uint)(vertices.Length * sizeof(float)), d, BufferUsageARB.StreamDraw);
-                }
-                _gl.VertexAttribPointer(0, 2, GLEnum.Float, false, (uint)(2 * sizeof(float)), (float*)0);
-                _gl.EnableVertexAttribArray(0);
-
-                _gl.BindBuffer(BufferTargetARB.ArrayBuffer, _textureVBO);
-                fixed (void* d = textureCoords)
-                {
-                    _gl.BufferData(BufferTargetARB.ArrayBuffer, (uint)(textureCoords.Length * sizeof(float)), d, BufferUsageARB.StreamDraw);
-                }
-                _gl.VertexAttribPointer(1, 2, GLEnum.Float, false, (uint)(2 * sizeof(float)), (float*)0);
-                _gl.EnableVertexAttribArray(1);
-
-                _gl.Uniform1(_shader.Locations[UniformLocations.Tex], 0);
-                _gl.Uniform2(_shader.Locations[UniformLocations.Viewsize], _view.X, _view.Y);
-
-                _callQueue.RunCalls(this, _gl);
-
-                _gl.DisableVertexAttribArray(0);
-                _gl.DisableVertexAttribArray(1);
-                _gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
-                _gl.BindVertexArray(0);
-                _shader.Stop();
-
-                _vertices.Clear();
-                _paths.Clear();
-                _uniforms.Clear();
+                Console.Error.WriteLine("Error " + error + " after " + str);
             }
+        }
+
+        public GLInterface(GraphicsManager graphicsManager)
+        {
+            _graphicsManager = graphicsManager;
+            _gl = _graphicsManager.GL;
+
+            _callQueue = new CallQueue();
+
+            CheckError("init");
+            _shader = new Shader("SilkyNvg-Shader", _graphicsManager.LaunchParameters.Antialias, _gl);
+            CheckError("loaded shaders");
+
+            _vao = new VAO(_gl);
+
+            CheckError("create done!");
+            _gl.Finish();
+
+            _renderMeta = new RenderMeta();
         }
 
         private FragmentDataUniforms ConvertPaint(FragmentDataUniforms frag, Paint paint, Scissor scissor, float width, float fringe, float strokeThr)
@@ -234,15 +142,92 @@ namespace SilkyNvg.OpenGL
             return frag;
         }
 
-        public void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Vector4D<float> bounds, SilkyNvg.Core.Paths.Path[] paths)
+
+        public unsafe void SetUniforms(FragmentDataUniforms uniforms, int image)
         {
+            _shader.LoadUniforms(uniforms);
+
+            // TODO: Images
+
+            CheckError("tex paint tex");
+        }
+
+        public void Viewport(float width, float height)
+        {
+            _view = new Vector2D<float>(width, height);
+        }
+
+        public unsafe void Flush()
+        {
+            if (_callQueue.QueueLength > 0)
+            {
+                int idx = 0;
+                float[] vertices = new float[_vertices.Count * 2];
+                float[] textureCoords = new float[_vertices.Count * 2];
+                foreach (Vertex vertex in _vertices)
+                {
+                    vertices[idx] = vertex.X;
+                    textureCoords[idx++] = vertex.U;
+                    vertices[idx] = vertex.Y;
+                    textureCoords[idx++] = vertex.V;
+                }
+
+                _shader.Start();
+                _gl.Enable(EnableCap.CullFace);
+                _gl.CullFace(CullFaceMode.Back);
+                _gl.FrontFace(FrontFaceDirection.Ccw);
+                _gl.Enable(EnableCap.Blend);
+                _gl.Disable(EnableCap.DepthTest);
+                _gl.Disable(EnableCap.ScissorTest);
+                _gl.ColorMask(true, true, true, true);
+                _gl.StencilMask(0xffffffff);
+                _gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Keep);
+                _gl.StencilFunc(GLEnum.Always, 0, 0xffffffff);
+                _gl.ActiveTexture(TextureUnit.Texture0);
+                _gl.BindTexture(TextureTarget.Texture2D, 0);
+                _renderMeta.BondTexture = 0;
+                _renderMeta.StencilMask = 0xffffffff;
+                _renderMeta.StencilFunk = GLEnum.Always;
+                _renderMeta.StencilFunkRef = 0;
+                _renderMeta.StencilFunkMask = 0xffffffff;
+                _renderMeta.SrcRgb = GLEnum.InvalidEnum;
+                _renderMeta.SrcAlpha = GLEnum.InvalidEnum;
+                _renderMeta.DstRgb = GLEnum.InvalidEnum;
+                _renderMeta.DstAlpha = GLEnum.InvalidEnum;
+
+                _vao.Bind();
+
+                _vao.Vertices.BufferData(vertices);
+                _vao.VertexAttribPointer(0, 2);
+
+                _vao.TextureCoords.BufferData(textureCoords);
+                _vao.VertexAttribPointer(1, 2);
+
+                _shader.LoadMeta(0, _view);
+
+                _callQueue.RunCalls(this, _gl);
+
+                _vao.Unbind();
+                _shader.Stop();
+
+                _vertices.Clear();
+            }
+        }
+
+        private void Vertex(float x, float y, float u, float v)
+        {
+            _vertices.Add(new Vertex(x, y, u, v));
+        }
+
+        public void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Vector4D<float> bounds, Core.Paths.Path[] paths)
+        {
+            Call call;
+
             CallType type = CallType.Fill;
             int triangleCount = 4;
-            int pathOffset = _paths.Count;
-            int pathCount = paths.Length;
-            Blend blendFunc = new Blend(compositeOperation);
             int triangleOffset = 0;
-            int uniformOffset;
+            Path[] paths_ = new Path[paths.Length];
+            Blend blendFunc = new Blend(compositeOperation);
 
             if (paths.Length == 1 && paths[0].Convex)
             {
@@ -270,43 +255,32 @@ namespace SilkyNvg.OpenGL
                     _vertices.AddRange(path.Stroke);
                     offset += path.Stroke.Count;
                 }
-                _paths.Add(copy);
+                paths_[i] = copy;
             }
 
             if (type == CallType.Fill)
             {
                 triangleOffset = offset;
-                _vertices.Add(new Vertex(bounds.Z, bounds.W, 0.5f, 1.0f));
-                _vertices.Add(new Vertex(bounds.Z, bounds.Y, 0.5f, 1.0f));
-                _vertices.Add(new Vertex(bounds.X, bounds.W, 0.5f, 1.0f));
-                _vertices.Add(new Vertex(bounds.X, bounds.Y, 0.5f, 1.0f));
+                Vertex(bounds.Z, bounds.W, 0.5f, 1.0f);
+                Vertex(bounds.Z, bounds.Y, 0.5f, 1.0f);
+                Vertex(bounds.X, bounds.W, 0.5f, 1.0f);
+                Vertex(bounds.X, bounds.Y, 0.5f, 1.0f);
 
-                uniformOffset = _uniforms.Count;
                 var frag = new FragmentDataUniforms
                 {
                     StrokeThr = -1.0f,
-                    Type = (int)SilkyNvg.OpenGL.Shaders.ShaderType.Simple
+                    Type = (int)Shaders.ShaderType.Simple
                 };
 
                 frag = ConvertPaint(frag, paint, scissor, fringe, fringe, -1.0f);
-                _uniforms.Add(frag);
+
+                call = new FillCall(triangleOffset, triangleCount, blendFunc, frag, paths_);
             }
             else
             {
-                uniformOffset = _uniforms.Count;
                 var frag = ConvertPaint(new FragmentDataUniforms(), paint, scissor, fringe, fringe, -1.0f);
-                _uniforms.Add(frag);
-            }
 
-            Call call = null;
-            switch (type)
-            {
-            case CallType.Convexfill:
-                call = new ConvexFillCall(pathOffset, pathCount, triangleOffset, triangleCount, uniformOffset, blendFunc);
-                break;
-            case CallType.Fill:
-                call = new FillCall(pathOffset, pathCount, triangleOffset, triangleCount, uniformOffset, blendFunc);
-                break;
+                call = new ConvexFillCall(triangleOffset, triangleCount, blendFunc, frag, paths_);
             }
 
             _callQueue.Add(call);
