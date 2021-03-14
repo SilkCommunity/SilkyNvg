@@ -91,12 +91,8 @@ namespace SingleClassExample
                 nvg.FillColour(nvg.RGBAf(0.0f, 1.0f, 0.0f, 1.0f));
                 nvg.Fill();
                 nvg.BeginPath();
-                nvg.Rect(200, 300, 200, 200);
+                nvg.Circle(640, 360, 100);
                 nvg.FillColour(new Colour(0.0f, 0.0f, 1.0f, 1.0f));
-                nvg.Fill();
-                nvg.BeginPath();
-                nvg.Rect(300, 400, 200, 200);
-                nvg.FillColour(new Colour(1.0f, 0.0f, 0.0f, 0.5f));
                 nvg.Fill();
 
                 nvg.EndFrame();

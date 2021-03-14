@@ -102,25 +102,25 @@ namespace SilkyNvg.Core.Paths
                     p1.DMy *= scale;
                 }
 
-                p1.Flags = p1.IsCorner() ? (uint)PointFlags.PointCorner : 0;
+                p1.Flags = p1.IsCorner() ? (uint)PointFlags.Corner : 0;
 
                 float cross = p1.Dx * p0.Dy - p0.Dx * p1.Dy;
                 if (cross > 0.0f)
                 {
                     nleft++;
-                    p1.Flags |= (uint)PointFlags.PointLeft;
+                    p1.Flags |= (uint)PointFlags.Left;
                 }
 
                 float limit = MathF.Max(1.01f, MathF.Min(p0.Length, p1.Length) * iw);
                 if ((dmr2 * limit * limit) < 1.0f)
-                    p1.Flag(PointFlags.PointInnerbevel);
+                    p1.Flag(PointFlags.Innerbevel);
 
                 if (p1.IsCorner())
                 {
                     if ((dmr2 * miterLimit * miterLimit) < 1.0f ||
                         lineJoin == LineCap.Bevel || lineJoin == LineCap.Round)
                     {
-                        p1.Flag(PointFlags.PointInnerbevel);
+                        p1.Flag(PointFlags.Innerbevel);
                     }
                 }
 

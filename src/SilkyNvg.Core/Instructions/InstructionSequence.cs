@@ -47,9 +47,9 @@ namespace SilkyNvg.Core.Instructions
             Add(new LineToInstruction(x, y));
         }
 
-        public void AddBezireTo()
+        public void AddBezireTo(float p0x, float p0y, float p1x, float p1y, float p2x, float p2y)
         {
-
+            Add(new BezierToInstruction(p0x, p0y, p1x, p1y, p2x, p2y));
         }
 
         public void AddClose()

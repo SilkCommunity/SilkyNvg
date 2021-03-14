@@ -85,22 +85,22 @@ namespace SilkyNvg.Core.Paths
 
         public bool IsCorner()
         {
-            return (_flags & (uint)PointFlags.PointCorner) != 0;
+            return (_flags & (uint)PointFlags.Corner) != 0;
         }
 
         public bool IsLeft()
         {
-            return (_flags & (uint)PointFlags.PointLeft) != 0;
+            return (_flags & (uint)PointFlags.Left) != 0;
         }
 
         public bool IsBevel()
         {
-            return (_flags & (uint)PointFlags.PointBevel) != 0;
+            return (_flags & (uint)PointFlags.Bevel) != 0;
         }
 
         public bool IsInnerbevel()
         {
-            return (_flags & (uint)PointFlags.PointInnerbevel) != 0;
+            return (_flags & (uint)PointFlags.Innerbevel) != 0;
         }
 
         public void Flag(PointFlags flag)

@@ -3,8 +3,10 @@ using System;
 
 namespace SilkyNvg.Common
 {
-    public sealed class Maths
+    internal sealed class Maths
     {
+
+        public static float Kappa => 0.5522847493f;
 
         public static Matrix3X4<float> XFormToMat3X4(Matrix3X2<float> t)
         {

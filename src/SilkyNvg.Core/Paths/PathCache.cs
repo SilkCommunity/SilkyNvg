@@ -82,14 +82,14 @@ namespace SilkyNvg.Core.Paths
             path.Close();
         }
 
-        public void FlattenPaths(InstructionQueue im, Style style)
+        public void FlattenPaths(InstructionQueue iq, Style style)
         {
             if (_paths.Count > 0)
                 return;
 
-            while (im.QueueLength > 0)
+            while (iq.QueueLength > 0)
             {
-                im.Next().Execute(this, style);
+                iq.Next().Execute(this, style);
             }
 
             _bounds.X = _bounds.Y = 1e6f;

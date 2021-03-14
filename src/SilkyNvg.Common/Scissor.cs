@@ -2,7 +2,7 @@
 
 namespace SilkyNvg
 {
-    public struct Scissor
+    internal struct Scissor
     {
 
         private Matrix3X2<float> _xform;

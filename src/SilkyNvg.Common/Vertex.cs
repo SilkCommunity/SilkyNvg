@@ -2,7 +2,7 @@
 
 namespace SilkyNvg.Common
 {
-    public struct Vertex
+    internal struct Vertex
     {
 
         public float X { get; private set; }

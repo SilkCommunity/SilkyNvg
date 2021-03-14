@@ -168,7 +168,7 @@ namespace SilkyNvg
         /// <summary>
         /// <inheritdoc cref="Docs.Paths"/>
         /// 
-        /// Creates a new rectangle shapes sub-path.
+        /// Creates a new rectangle shaped sub-path.
         /// </summary>
         /// <param name="x">The rectangle's X-Position</param>
         /// <param name="y">The rectangle's Y-Position</param>
@@ -183,6 +183,42 @@ namespace SilkyNvg
             sequence.AddLineTo(x + w, y);
             sequence.AddClose();
             _instructionManager.AddSequence(sequence, _stateManager.GetState());
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Paths"/>
+        /// 
+        /// Creates a new ellipse shaped sub-path-
+        /// </summary>
+        /// <param name="x">The ellipse's center x</param>
+        /// <param name="y">The ellipse's center y</param>
+        /// <param name="radiusX">The ellipse's radius on the X-Achsis</param>
+        /// <param name="radiusY">The ellipse's radius on the Y-Achsis</param>
+        public void Ellipse(float x, float y, float radiusX, float radiusY)
+        {
+            float rx = radiusX;
+            float ry = radiusY;
+            var sequence = new InstructionSequence(6);
+            sequence.AddMoveTo(x - rx, y);
+            sequence.AddBezireTo(x - rx, y + ry * Maths.Kappa, x - rx * Maths.Kappa, y + ry, x, y + ry);
+            sequence.AddBezireTo(x + rx * Maths.Kappa, y + ry, x + rx, y + ry * Maths.Kappa, x + rx, y);
+            sequence.AddBezireTo(x + rx, y - ry * Maths.Kappa, x + rx * Maths.Kappa, y - ry, x, y - ry);
+            sequence.AddBezireTo(x - rx * Maths.Kappa, y - ry, x - rx, y - ry * Maths.Kappa, x - rx, y);
+            sequence.AddClose();
+            _instructionManager.AddSequence(sequence, _stateManager.GetState());
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Paths"/>
+        /// 
+        /// Creates a new circle shaped sub-path.
+        /// </summary>
+        /// <param name="x">The circle's center x</param>
+        /// <param name="y">The circle's center y</param>
+        /// <param name="radius">The circle's radius</param>
+        public void Circle(float x, float y, float radius)
+        {
+            Ellipse(x, y, radius, radius);
         }
 
         /// <summary>

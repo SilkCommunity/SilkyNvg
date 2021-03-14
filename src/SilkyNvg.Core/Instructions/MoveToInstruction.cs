@@ -27,7 +27,7 @@ namespace SilkyNvg.Core.Instructions
         public void Execute(PathCache cache, Style style)
         {
             cache.AddPath();
-            cache.AddPoint(_position.X, _position.Y, (uint)PointFlags.PointCorner, style);
+            cache.AddPoint(_position.X, _position.Y, (uint)PointFlags.Corner, style);
         }
 
     }
