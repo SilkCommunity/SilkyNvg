@@ -87,12 +87,18 @@ namespace SingleClassExample
                 nvg.BeginFrame(winWidth, winHeight, fbWidth / winWidth);
 
                 nvg.BeginPath();
-                nvg.Rect(100, 200, 50, 50);
-                nvg.FillColour(nvg.RGBAf(0.0f, 1.0f, 0.0f, 1.0f));
+                nvg.Rect(100, 100, 300, 500);
+                nvg.FillPaint(nvg.BoxGradient(100, 200, 300, 300, 0, 100, new Colour(1.0f, 0.0f, 0.0f, 1.0f), new Colour(1.0f, 1.0f, 0.0f, 1.0f)));
                 nvg.Fill();
+
                 nvg.BeginPath();
-                nvg.Circle(640, 360, 100);
-                nvg.FillColour(new Colour(0.0f, 0.0f, 1.0f, 1.0f));
+                nvg.Rect(500, 100, 300, 500);
+                nvg.FillPaint(nvg.LinearGradient(500, 100, 500, 600, new Colour(1.0f, 0.0f, 0.0f, 1.0f), new Colour(1.0f, 1.0f, 0.0f, 1.0f)));
+                nvg.Fill();
+
+                nvg.BeginPath();
+                nvg.Rect(900, 100, 300, 500);
+                nvg.FillPaint(nvg.RadialGradient(1050, 350, 100, 200, new Colour(1.0f, 0.0f, 0.0f, 1.0f), new Colour(1.0f, 1.0f, 0.0f, 1.0f)));
                 nvg.Fill();
 
                 nvg.EndFrame();
@@ -101,7 +107,7 @@ namespace SingleClassExample
                 glfw.PollEvents();
             }
 
-            // nvg.Delete();
+            nvg.Delete();
 
             glfw.Terminate();
         }

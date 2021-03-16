@@ -13,7 +13,7 @@ using Shader = SilkyNvg.OpenGL.Shaders.Shader;
 
 namespace SilkyNvg.OpenGL
 {
-    internal sealed class GLInterface
+    internal sealed class GLInterface : IDisposable
     {
 
         private readonly Shader _shader;
@@ -284,6 +284,17 @@ namespace SilkyNvg.OpenGL
             }
 
             _callQueue.Add(call);
+        }
+
+        public void Dispose()
+        {
+            _shader.Dispose();
+            _vao.Dispose();
+
+            // TODO: Textures
+
+            _vertices.Clear();
+            _callQueue.Clear();
         }
 
     }

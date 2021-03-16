@@ -7,7 +7,7 @@ using System.IO;
 
 namespace SilkyNvg.OpenGL.Shaders
 {
-    internal class Shader
+    internal class Shader : IDisposable
     {
 
         private static readonly string SHADER_HEADER = "#version 150 core" + Environment.NewLine;
@@ -137,11 +137,7 @@ namespace SilkyNvg.OpenGL.Shaders
 
         private unsafe void LoadMatrix(UniformLocations loc, Matrix3X4<float> val)
         {
-            float[] mat = Maths.ToFloatArrayMatrix(val);
-            fixed (float* d = mat)
-            {
-                _gl.UniformMatrix3x4(_locations[loc], 1, false, d);
-            }
+            _gl.UniformMatrix3x4(_locations[loc], 1, false, (float*)&val);
         }
 
         public void LoadMeta(int texture, Vector2D<float> view)
@@ -164,6 +160,14 @@ namespace SilkyNvg.OpenGL.Shaders
             LoadFloat(UniformLocations.StrokeMult, data.StrokeMult);
             LoadFloat(UniformLocations.StrokeThr, data.StrokeThr);
             LoadInt(UniformLocations.Type, data.Type);
+        }
+
+        public void Dispose()
+        {
+            Stop();
+            _gl.DeleteShader(_vertexShaderID);
+            _gl.DeleteShader(_fragmentShaderID);
+            _gl.DeleteProgram(_programmeID);
         }
 
     }

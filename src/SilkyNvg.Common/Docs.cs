@@ -43,5 +43,11 @@
         /// </summary>
         public static void Paths() { }
 
+        /// <summary>
+        /// NanoVG supports four types of paints: linear gradient, box gradient, radial gradient and image pattern.
+        /// These can be used as paints for strokes and fills.
+        /// </summary>
+        public static void Paints() { }
+
     }
 }

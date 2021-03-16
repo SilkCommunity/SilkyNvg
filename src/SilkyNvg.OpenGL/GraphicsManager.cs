@@ -47,5 +47,10 @@ namespace SilkyNvg.OpenGL
             _interface.Fill(paint, compositeOperation, scissor, fringe, bounds, paths.ToArray());
         }
 
+        public void Delete()
+        {
+            _interface.Dispose();
+        }
+
     }
 }

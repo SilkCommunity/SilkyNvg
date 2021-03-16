@@ -13,7 +13,7 @@ namespace SilkyNvg
     public sealed class Nvg
     {
 
-        #region Initilization
+        #region Meta
         /// <summary>
         /// Creates a new instance of the NanoVG API. Each Nvg-API has its own
         /// context, so instead of needing to parse it in all the time, one creates
@@ -53,6 +53,25 @@ namespace SilkyNvg
 
             _frameMeta = new FrameMeta();
         }
+
+        /// <summary>
+        /// Frees final resources like shaders. Call this when closing
+        /// the application to prevent memory leaks.
+        /// </summary>
+        public void Delete()
+        {
+            // In case of crash, still clear lists
+            _instructionManager.Clear();
+            _pathCache.Clear();
+            _pathCache.ClearVerts();
+
+            // TODO: Font
+
+            // TODO: Images
+
+            _graphicsManager.Delete();
+        }
+
         #endregion
 
         #region Frames
@@ -150,6 +169,81 @@ namespace SilkyNvg
         {
             var state = _stateManager.GetState();
             state.Fill = new Paint(colour);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.RenderStyles"/>
+        /// 
+        /// Sets the current fill style to a paint, which can be one
+        /// of the gradients or patterns.
+        /// </summary>
+        /// <param name="paint"></param>
+        public void FillPaint(Paint paint)
+        {
+            var state = _stateManager.GetState();
+            paint.XForm = Maths.TransformMultiply(paint.XForm, state.Transform);
+            state.Fill = paint;
+        }
+        #endregion
+
+        #region Paints
+        /// <summary>
+        /// <inheritdoc cref="Paint"/>
+        /// 
+        /// Creates and returns a linear gradient.
+        /// The gradient is transformed by the current transform when it is passed to <see cref="FillPaint(Paint)"/> or <see cref="StrokePaint(Paint)"/>.
+        /// </summary>
+        /// <param name="startX">The start X coordinate</param>
+        /// <param name="startY">The start Y coordinate</param>
+        /// <param name="endX">The end X coordinate</param>
+        /// <param name="endY">The end Y coordinate</param>
+        /// <param name="innerColour">The start colour</param>
+        /// <param name="outerColour">The end colour</param>
+        /// <returns>A new linear gradient paint.</returns>
+        public Paint LinearGradient(float startX, float startY, float endX, float endY, Colour innerColour, Colour outerColour)
+        {
+            return Paint.LinearGradient(startX, startY, endX, endY, innerColour, outerColour);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Paint"/>
+        /// 
+        /// Creates and returns a box gradient. Box gradient is a feathered rounded rectangle. It is usefull for
+        /// rendering drop shadows or hilights for boxes.
+        /// 
+        /// The gradient is transformed by the current transform when it is passed to <see cref="FillPaint(Paint)"/> or <see cref="StrokePaint(Paint)"/>.
+        /// </summary>
+        /// <param name="x">The top-left X Position of the rectangle</param>
+        /// <param name="y">The top-left Y Position of the rectangle</param>
+        /// <param name="width">The width of the rectangle</param>
+        /// <param name="height">The height of the rectangle</param>
+        /// <param name="radius">The corner radius</param>
+        /// <param name="feather">Defines how blurry the border is</param>
+        /// <param name="innerColour">The gradient's inner colour</param>
+        /// <param name="outerColour">The gradient's outer colour</param>
+        /// <returns>A new box gradient paint.</returns>
+        public Paint BoxGradient(float x, float y, float width, float height, float radius, float feather, Colour innerColour, Colour outerColour)
+        {
+            return Paint.BoxGradient(x, y, width, height, radius, feather, innerColour, outerColour);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Paint"/>
+        /// 
+        /// Creates and returns a radial gradient.
+        /// 
+        /// The gradient is transformed by the current transform when passed into <see cref="FillPaint(Paint)"/> or <see cref="StrokePaint(Paint)"/>.
+        /// </summary>
+        /// <param name="x">The centre X Position</param>
+        /// <param name="y">The centre Y Position</param>
+        /// <param name="innerRadius">The gradient's inner radius</param>
+        /// <param name="outerRadius">The gradient's outer radius</param>
+        /// <param name="innerColour">The start colour</param>
+        /// <param name="outerColour">The end colour</param>
+        /// <returns>A new radial gradient paint.</returns>
+        public Paint RadialGradient(float x, float y, float innerRadius, float outerRadius, Colour innerColour, Colour outerColour)
+        {
+            return Paint.RadialGradient(x, y, innerRadius, outerRadius, innerColour, outerColour);
         }
         #endregion
 

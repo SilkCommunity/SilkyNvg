@@ -14,7 +14,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Silk.NET" Version="2.0.0" />
+		<PackageReference Include="Silk.NET" Version="2.2.0" />
 	</ItemGroup>
 
 	<ItemGroup>

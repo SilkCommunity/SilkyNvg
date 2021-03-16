@@ -54,6 +54,8 @@ namespace SilkyNvg.OpenGL.VertexArray
 
         public void Dispose()
         {
+            _indices.Clear();
+            Unbind();
             _gl.DeleteVertexArray(_vaoID);
             _vertices.Dispose();
             _textureCoords.Dispose();

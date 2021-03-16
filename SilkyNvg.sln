@@ -13,13 +13,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "source", "source", "{C5CB43
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg", "src\SilkyNvg\SilkyNvg.csproj", "{6D7981BE-AE9D-4E66-955D-D1AE2214CFB6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilkyNvg.Tools", "src\SilkyNvg.Tools\SilkyNvg.Tools.csproj", "{E78A1EA6-CA46-4AF5-8576-FBD18D3678EC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg.Tools", "src\SilkyNvg.Tools\SilkyNvg.Tools.csproj", "{E78A1EA6-CA46-4AF5-8576-FBD18D3678EC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilkyNvg.Core", "src\SilkyNvg.Core\SilkyNvg.Core.csproj", "{5EB9D3AA-C6DA-4B55-8583-FF0B13597D97}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg.Core", "src\SilkyNvg.Core\SilkyNvg.Core.csproj", "{5EB9D3AA-C6DA-4B55-8583-FF0B13597D97}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilkyNvg.OpenGL", "src\SilkyNvg.OpenGL\SilkyNvg.OpenGL.csproj", "{0C9699D1-1EE9-4A8E-B5C6-C457A6ECC6B6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg.OpenGL", "src\SilkyNvg.OpenGL\SilkyNvg.OpenGL.csproj", "{0C9699D1-1EE9-4A8E-B5C6-C457A6ECC6B6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilkyNvg.Common", "src\SilkyNvg.Common\SilkyNvg.Common.csproj", "{E447A107-BBB1-4092-9D96-C37D42561255}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg.Common", "src\SilkyNvg.Common\SilkyNvg.Common.csproj", "{E447A107-BBB1-4092-9D96-C37D42561255}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NvgExample", "samples\NvgExample\NvgExample.csproj", "{3815232E-4503-4B1D-90DD-68D6253E5C48}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{E447A107-BBB1-4092-9D96-C37D42561255}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E447A107-BBB1-4092-9D96-C37D42561255}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E447A107-BBB1-4092-9D96-C37D42561255}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3815232E-4503-4B1D-90DD-68D6253E5C48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3815232E-4503-4B1D-90DD-68D6253E5C48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3815232E-4503-4B1D-90DD-68D6253E5C48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3815232E-4503-4B1D-90DD-68D6253E5C48}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -62,6 +68,7 @@ Global
 		{5EB9D3AA-C6DA-4B55-8583-FF0B13597D97} = {C5CB43B2-2946-4FD0-A035-B5FFCF9A0F4C}
 		{0C9699D1-1EE9-4A8E-B5C6-C457A6ECC6B6} = {C5CB43B2-2946-4FD0-A035-B5FFCF9A0F4C}
 		{E447A107-BBB1-4092-9D96-C37D42561255} = {C5CB43B2-2946-4FD0-A035-B5FFCF9A0F4C}
+		{3815232E-4503-4B1D-90DD-68D6253E5C48} = {E94958C3-5109-4384-A9CB-E165EC5754CE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {08FE0BD8-4253-419D-9FBF-7F9671C9AAC2}

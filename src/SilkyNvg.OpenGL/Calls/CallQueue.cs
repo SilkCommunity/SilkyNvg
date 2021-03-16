@@ -33,5 +33,10 @@ namespace SilkyNvg.OpenGL.Instructions
             _callQueue.Enqueue(call);
         }
 
+        public void Clear()
+        {
+            _callQueue.Clear();
+        }
+
     }
 }
