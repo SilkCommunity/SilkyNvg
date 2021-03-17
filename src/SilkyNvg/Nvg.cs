@@ -39,6 +39,9 @@ namespace SilkyNvg
 
         private readonly FrameMeta _frameMeta;
 
+
+        public readonly Shapes Shapes;
+
         private Nvg(GraphicsManager graphicsManager)
         {
             _graphicsManager = graphicsManager;
@@ -50,6 +53,8 @@ namespace SilkyNvg
             _graphicsManager.Create();
             // TODO: Font
             // TODO: More images
+
+            Shapes = new Shapes(_instructionManager, _stateManager);
 
             _frameMeta = new FrameMeta();
         }
@@ -350,6 +355,10 @@ namespace SilkyNvg
                 _frameMeta.DrawCallCount += 2;
             }
         }
+        #endregion
+
+        #region Shapes
+
         #endregion
 
     }

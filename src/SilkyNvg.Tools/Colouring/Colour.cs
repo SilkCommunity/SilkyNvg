@@ -92,5 +92,59 @@ namespace SilkyNvg.Colouring
             return new Colour(colour.R * colour.A, colour.G * colour.A, colour.B * colour.A, colour.A);
         }
 
+        public static Colour Red
+        {
+            get 
+            {
+                return new Colour(1, 0, 0, 1);   
+            }
+        }
+        public static Colour Green
+        {
+            get
+            {
+                return new Colour(0, 1, 0, 1);
+            }
+        }
+
+        public static Colour Blue
+        {
+            get
+            {
+                return new Colour(0, 0, 1, 1);
+            }
+        }
+
+        public static Colour Orange
+        {
+            get
+            {
+                return new Colour(1, 0.5F, 0, 1);
+            }
+        }
+        public static Colour Yellow
+        {
+            get
+            {
+                return new Colour(1, 1, 0, 1);
+            }
+        }
+
+        public static Colour Purple
+        {
+            get
+            {
+                return new Colour(0.4F, 0.1F, 0.8F, 1);
+            }
+        }
+
+        public static Colour Magenta
+        {
+            get
+            {
+                return new Colour(1, 0, 1, 1);
+            }
+        }
+
     }
 }
