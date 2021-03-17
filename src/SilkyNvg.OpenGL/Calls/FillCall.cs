@@ -6,8 +6,15 @@ namespace SilkyNvg.OpenGL.Calls
     internal class FillCall : Call
     {
 
+        private readonly int _triangleOffset;
+        private readonly int _triangleCount;
+
         public FillCall(int triangleOffset, int triangleCount, Blend blendFunc, FragmentDataUniforms uniforms, Path[] paths)
-            : base(triangleOffset, triangleCount, blendFunc, uniforms, paths) { }
+            : base(blendFunc, uniforms, paths)
+        {
+            _triangleOffset = triangleOffset;
+            _triangleCount = triangleCount;
+        }
 
         public override void Run(GLInterface glInterface, GL gl)
         {
@@ -32,7 +39,7 @@ namespace SilkyNvg.OpenGL.Calls
 
             gl.ColorMask(true, true, true, true);
 
-            glInterface.SetUniforms(_uniforms, 0);
+            glInterface.SetUniforms(_uniforms, 0); // TODO: Image
             glInterface.CheckError("Fill fill");
 
             if (glInterface.LaunchParameters.Antialias)

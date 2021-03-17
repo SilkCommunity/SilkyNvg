@@ -47,6 +47,12 @@ namespace SilkyNvg.OpenGL
             _interface.Fill(paint, compositeOperation, scissor, fringe, bounds, paths.ToArray());
         }
 
+        public void Stroke(Paint paint, CompositeOperationState compositeOperation, Scissor scissor,
+            float fringe, float strokeWidth, List<Core.Paths.Path> path)
+        {
+            _interface.Stroke(paint, compositeOperation, scissor, fringe, strokeWidth, path.ToArray());
+        }
+
         public void Delete()
         {
             _interface.Dispose();
