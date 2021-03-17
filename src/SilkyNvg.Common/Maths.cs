@@ -6,6 +6,8 @@ namespace SilkyNvg.Common
     internal sealed class Maths
     {
 
+        public static float Pi => MathF.PI;
+
         public static float Kappa => 0.5522847493f;
 
         public static Matrix3X2<float> TransformMultiply(Matrix3X2<float> t, Matrix3X2<float> s)
@@ -20,6 +22,32 @@ namespace SilkyNvg.Common
             t.M21 = t2;
             t.M31 = t4;
             return t;
+        }
+
+        public static float Clamp(float value, float min, float max)
+        {
+            if (value < min)
+                return min;
+            else if (value > max)
+                return max;
+            else
+                return value;
+        }
+
+        public static int Clamp(int value, int min, int max)
+        {
+            if (value < min)
+                return min;
+            else if (value > max)
+                return max;
+            else
+                return value;
+        }
+
+        public static int CurveDivs(float r, float arc, float tol)
+        {
+            float da = MathF.Acos(r / (r + tol)) * 2.0f;
+            return Math.Max(2, (int)MathF.Ceiling(arc / da));
         }
 
         public static Matrix3X4<float> XFormToMat3X4(Matrix3X2<float> t)
@@ -57,6 +85,13 @@ namespace SilkyNvg.Common
             m[10] = t.M33;
             m[11] = t.M34;
             return m;
+        }
+
+        public static float GetAverageScale(Matrix3X2<float> t)
+        {
+            float sx = MathF.Sqrt(t.M11 * t.M11 + t.M21 * t.M21);
+            float sy = MathF.Sqrt(t.M12 * t.M21 + t.M22 * t.M22);
+            return (sx + sy) * 0.5f;
         }
 
         public static Matrix3X2<float> TransformInverse(Matrix3X2<float> t)

@@ -286,6 +286,38 @@ namespace SilkyNvg.OpenGL
             _callQueue.Add(call);
         }
 
+        public void Stroke(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, float strokeWidth, Core.Paths.Path[] paths)
+        {
+            Path[] paths_ = new Path[paths.Length];
+
+            int offset = _vertices.Count;
+
+            for (int i = 0; i < paths.Length; i++)
+            {
+                var copy = new Path();
+                var path = paths[i];
+                if (path.Stroke.Count > 0)
+                {
+                    copy.StrokeOffset = offset;
+                    copy.StrokeCount = path.Stroke.Count;
+                    _vertices.AddRange(path.Stroke);
+                    offset += path.Stroke.Count;
+                }
+                paths_[i] = copy;
+            }
+
+            if (LaunchParameters.StencilStrokes)
+            {
+                // TODO: Implement Stencil Strokes
+            }
+            else
+            {
+                var call = new StrokeCall(new Blend(compositeOperation), ConvertPaint(new FragmentDataUniforms(), paint, scissor, strokeWidth, fringe, -1.0f), paths_);
+                _callQueue.Add(call);
+            }
+
+        }
+
         public void Dispose()
         {
             _shader.Dispose();

@@ -97,7 +97,7 @@ namespace SilkyNvg.Core.States
             _compositeOperationState = new CompositeOperationState(Blending.CompositeOperation.SourceOver);
             _shapeAntiAlias = true;
             _strokeWidth = 1.0f;
-            _miterLimit = 1.0f;
+            _miterLimit = 10.0f;
             _lineCap = LineCap.Butt;
             _lineJoin = LineCap.Miter;
             _alpha = 1.0f;

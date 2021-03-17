@@ -2,6 +2,7 @@
 using SilkyNvg.Common;
 using SilkyNvg.Core.Instructions;
 using SilkyNvg.Paths;
+using System;
 using System.Collections.Generic;
 
 namespace SilkyNvg.Core.Paths
@@ -120,6 +121,67 @@ namespace SilkyNvg.Core.Paths
             }
         }
 
+        private List<Vertex> RoundJoin(List<Vertex> verts, Point p0, Point p1, float lw, float rw, float lu, float ru, float ncap)
+        {
+            float dlx0 = p0.Dy;
+            float dly0 = -p0.Dx;
+            float dlx1 = p1.Dy;
+            float dly1 = -p1.Dx;
+
+            if (p1.IsLeft())
+            {
+                ChooseBevel(p1.IsInnerbevel(), p0, p1, lw, out float lx0, out float ly0, out float lx1, out float ly1);
+                float a0 = MathF.Atan2(-dly0, -dlx0);
+                float a1 = MathF.Atan2(-dly1, -dlx1);
+                if (a1 > a0)
+                    a1 -= Maths.Pi * 2;
+
+                verts.Add(new Vertex(lx0, ly0, lu, 1));
+                verts.Add(new Vertex(p1.X - dlx0 * rw, p1.Y - dly0 * rw, ru, 1));
+
+                int n = Maths.Clamp((int)MathF.Ceiling((a0 - a1) / Maths.Pi * ncap), 2, (int)ncap);
+                for (int i = 0; i < n; i++)
+                {
+                    float u = i / (float)(n - 1);
+                    float a = a0 + u * (a1 - a0);
+                    float rx = p1.X + MathF.Cos(a) * rw;
+                    float ry = p1.Y + MathF.Sin(a) * rw;
+                    verts.Add(new Vertex(p1.X, p1.Y, 0.5f, 1));
+                    verts.Add(new Vertex(rx, ry, ru, 1));
+                }
+
+                verts.Add(new Vertex(lx1, ly1, lu, 1));
+                verts.Add(new Vertex(p1.X - dlx1 * rw, p1.Y - dly1 * rw, ru, 1));
+            }
+            else
+            {
+                ChooseBevel(p1.IsInnerbevel(), p0, p1, -rw, out float rx0, out float ry0, out float rx1, out float ry1);
+                float a0 = MathF.Atan2(dly0, dlx0);
+                float a1 = MathF.Atan2(dly1, dlx1);
+                if (a1 < a0)
+                    a1 += Maths.Pi * 2;
+
+                verts.Add(new Vertex(p1.X + dlx0 * rw, p1.Y + dly0 * rw, lu, 1));
+                verts.Add(new Vertex(rx0, ry0, lu, 1));
+
+                int n = Maths.Clamp((int)MathF.Ceiling((a1 - a0) / Maths.Pi * ncap), 2, (int)ncap);
+                for (int i = 0; i < n; i++)
+                {
+                    float u = i / (float)(n - 1);
+                    float a = a0 + u * (a1 - a0);
+                    float lx = p1.X + MathF.Cos(a) * lw;
+                    float ly = p1.Y + MathF.Sin(a) * lw;
+                    verts.Add(new Vertex(lx, ly, lu, 1));
+                    verts.Add(new Vertex(p1.X, p1.Y, 0.5f, 1));
+                }
+
+                verts.Add(new Vertex(p1.X + dlx1 * rw, p1.Y + dly1 * rw, lu, 1));
+                verts.Add(new Vertex(rx1, ry1, ru, 1));
+            }
+
+            return verts;
+        }
+
         private List<Vertex> BevelJoin(List<Vertex> verts, Point p0, Point p1, float lw, float rw, float lu, float ru, float fringe)
         {
             float dlx0 = p0.Dy;
@@ -204,6 +266,187 @@ namespace SilkyNvg.Core.Paths
             {
                 var path = _paths[i];
                 path.CalculateJoins(iw, miterLimit, lineJoin);
+            }
+        }
+
+        private List<Vertex> ButtCapStart(List<Vertex> dst, Point p, Vector2D<float> delta, float w, float d, float aa, float u0, float u1)
+        {
+            float px = p.X - delta.X * d;
+            float py = p.Y - delta.Y * d;
+            float dlx = delta.Y;
+            float dly = -delta.X;
+            dst.Add(new Vertex(px + dlx * w - delta.X * aa, py + dly * w - delta.Y * aa, u0, 0));
+            dst.Add(new Vertex(px - dlx * w - delta.X * aa, py - dly * w - delta.Y * aa, u1, 0));
+            dst.Add(new Vertex(px + dlx * w, py + dly * w, u0, 1));
+            dst.Add(new Vertex(px - dlx * w, py - dly * w, u1, 1));
+            return dst;
+        }
+
+        private List<Vertex> ButtCapEnd(List<Vertex> dst, Point p, Vector2D<float> delta, float w, float d, float aa, float u0, float u1)
+        {
+            float px = p.X + delta.X * d;
+            float py = p.Y + delta.Y * d;
+            float dlx = delta.Y;
+            float dly = -delta.X;
+            dst.Add(new Vertex(px + dlx * w, py + dly * w, u0, 1));
+            dst.Add(new Vertex(px - dlx * w, py - dly * w, u1, 1));
+            dst.Add(new Vertex(px + dlx * w + delta.X * aa, py + dly * w + delta.Y * aa, u0, 0));
+            dst.Add(new Vertex(px - dlx * w + delta.X * aa, py - dly * w + delta.Y * aa, u1, 0));
+            return dst;
+        }
+
+        private List<Vertex> RoundedCapStart(List<Vertex> dst, Point p, Vector2D<float> delta, float w, int ncap, float u0, float u1)
+        {
+            float px = p.X;
+            float py = p.Y;
+            float dlx = delta.Y;
+            float dly = -delta.X;
+
+            for (int i = 0; i < ncap; i++)
+            {
+                float a = i / (float)(ncap - 1) * Maths.Pi;
+                float ax = MathF.Cos(a) * w;
+                float ay = MathF.Sin(a) * w;
+                dst.Add(new Vertex(px - dlx * ax - delta.X * ay, py - dly * ax - delta.Y * ay, u0, 1));
+                dst.Add(new Vertex(px, py, 0.5f, 1));
+            }
+
+            dst.Add(new Vertex(px + dlx * w, py + dly * w, u0, 1));
+            dst.Add(new Vertex(px - dlx * w, py - dly * w, u1, 1));
+            return dst;
+        }
+
+        private List<Vertex> RoundedCapEnd(List<Vertex> dst, Point p, Vector2D<float> delta, float w, int ncap, float u0, float u1)
+        {
+            float px = p.X;
+            float py = p.Y;
+            float dlx = delta.Y;
+            float dly = -delta.X;
+
+            dst.Add(new Vertex(px + dlx * w, py + dly * w, u0, 1));
+            dst.Add(new Vertex(px - dlx * w, py - dly * w, u1, 1));
+
+            for (int i = 0; i < ncap; i++)
+            {
+                float a = i / (float)(ncap - 1) * Maths.Pi;
+                float ax = MathF.Cos(a) * w;
+                float ay = MathF.Sin(a) * w;
+                dst.Add(new Vertex(px, py, 0.5f, 1));
+                dst.Add(new Vertex(px - dlx * ax + delta.X * ay, py - dly * ax + delta.Y * ay, u0, 1));
+            }
+            return dst;
+        }
+
+        public void ExpandStroke(float w, float fringe, LineCap lineCap, LineCap lineJoin, float miterLimit, Style style)
+        {
+            float aa = fringe;
+            float u0 = 0.0f;
+            float u1 = 1.0f;
+            int capCount = Maths.CurveDivs(w, Maths.Pi, style.TesselationTollerance);
+
+            w += aa * 0.5f;
+
+            if (aa == 0.0f)
+            {
+                u0 = 0.5f;
+                u1 = 0.5f;
+            }
+
+            CalculateJoins(w, lineJoin, miterLimit);
+
+            Point p0, p1;
+            int s, e;
+
+            for (int i = 0; i < _paths.Count; i++)
+            {
+                var path = _paths[i];
+                var points = path.Points;
+
+                path.Fill.Clear();
+
+                bool loop = path.Closed;
+                var dst = new List<Vertex>();
+
+                if (loop)
+                {
+                    p0 = points[^1];
+                    p1 = points[0];
+                    s = 0;
+                    e = points.Count;
+                }
+                else
+                {
+                    p0 = points[0];
+                    p1 = points[1];
+                    s = 1;
+                    e = points.Count - 1;
+                }
+
+                if (!loop)
+                {
+                    var d = p1.Position - p0.Position;
+                    d = Vector2D.Normalize(d);
+                    if (lineCap == LineCap.Butt)
+                    {
+                        dst = ButtCapStart(dst, p0, d, w, -aa * 0.5f, aa, u0, u1);
+                    } else if (lineCap == LineCap.Butt || lineCap == LineCap.Square)
+                    {
+                        dst = ButtCapStart(dst, p0, d, w, w - aa, aa, u0, u1);
+                    } else if (lineCap == LineCap.Round)
+                    {
+                        dst = RoundedCapStart(dst, p0, d, w, capCount, u0, u1);
+                    }
+                }
+
+                for (int j = s; j < e; j++)
+                {
+                    p1 = points[j];
+
+                    if (p1.IsBevel() || p1.IsInnerbevel())
+                    {
+                        if (lineJoin == LineCap.Round)
+                        {
+                            dst = RoundJoin(dst, p0, p1, w, w, u0, u1, capCount);
+                        }
+                        else
+                        {
+                            dst = BevelJoin(dst, p0, p1, w, w, u0, u1, aa);
+                        }
+                    }
+                    else
+                    {
+                        dst.Add(new Vertex(p1.X + (p1.DMx * w), p1.Y + (p1.DMy * w), u0, 1));
+                        dst.Add(new Vertex(p1.X - (p1.DMx * w), p1.Y - (p1.DMy * w), u1, 1));
+                    }
+
+                    p0 = p1;
+                }
+
+                if (loop)
+                {
+                    dst.Add(new Vertex(dst[0].X, dst[0].Y, u0, 1));
+                    dst.Add(new Vertex(dst[1].X, dst[1].Y, u1, 1));
+                }
+                else
+                {
+                    var d = p1.Position - p0.Position;
+                    d = Vector2D.Normalize(d);
+                    if (lineCap == LineCap.Butt)
+                    {
+                        dst = ButtCapEnd(dst, p1, d, w, -aa * 0.5f, aa, u0, u1);
+                    } else if (lineCap == LineCap.Butt || lineCap == LineCap.Square)
+                    {
+                        dst = ButtCapEnd(dst, p1, d, w, w - aa, aa, u0, u1);
+                    }
+                    else
+                    {
+                        dst = RoundedCapEnd(dst, p1, d, w, capCount, u0, u1);
+                    }
+                }
+
+                _vertices.AddRange(dst);
+                path.Stroke.AddRange(dst);
+
             }
         }
 

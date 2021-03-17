@@ -159,6 +159,19 @@ namespace SilkyNvg
         #endregion
 
         #region RenderStyles
+        public void StrokeColour(Colour colour)
+        {
+            var state = _stateManager.GetState();
+            state.Stroke = new Paint(colour);
+        }
+
+        public void StrokePaint(Paint paint)
+        {
+            var state = _stateManager.GetState();
+            paint.XForm = Maths.TransformMultiply(paint.XForm, state.Transform);
+            state.Stroke = paint;
+        }
+
         /// <summary>
         /// <inheritdoc cref="Docs.RenderStyles"/>
         /// 
@@ -349,6 +362,48 @@ namespace SilkyNvg
                 _frameMeta.FillTriCount += path.Stroke.Count - 2;
                 _frameMeta.DrawCallCount += 2;
             }
+        }
+
+        public void Stroke()
+        {
+            var state = _stateManager.GetState();
+            float scale = Maths.GetAverageScale(state.Transform);
+            float strokeWidth = Maths.Clamp(state.StrokeWidth * scale, 0.0f, 200.0f);
+            var strokePaint = state.Stroke;
+            var inner = strokePaint.InnerColour;
+            var outer = strokePaint.OuterColour;
+
+            if (strokeWidth < _style.FringeWidth)
+            {
+                float alpha = Maths.Clamp(strokeWidth / _style.FringeWidth, 0.0f, 1.0f);
+                inner.A *= alpha * alpha;
+                outer.A *= alpha * alpha;
+                strokeWidth = _style.FringeWidth;
+            }
+
+            inner.A *= state.Alpha;
+            outer.A *= state.Alpha;
+
+            _pathCache.FlattenPaths(_instructionManager, _style);
+
+            if (_graphicsManager.LaunchParameters.Antialias && state.ShapeAntiAlias)
+            {
+                _pathCache.ExpandStroke(strokeWidth * 0.5f, _style.FringeWidth, state.LineCap, state.LineJoin, state.MiterLimit, _style);
+            }
+            else
+            {
+                _pathCache.ExpandStroke(strokeWidth * 0.5f, 0.0f, state.LineCap, state.LineJoin, state.MiterLimit, _style);
+            }
+
+            _graphicsManager.Stroke(strokePaint, state.CompositeOperation, state.Scissor, _style.FringeWidth, strokeWidth, _pathCache.Paths);
+
+            for (int i = 0; i < _pathCache.Paths.Count; i++)
+            {
+                var path = _pathCache.Paths[i];
+                _frameMeta.StrokeTriCount += path.Stroke.Count - 2;
+                _frameMeta.DrawCallCount++;
+            }
+
         }
         #endregion
 
