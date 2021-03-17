@@ -10,6 +10,16 @@ namespace SilkyNvg.Common
 
         public static float Kappa => 0.5522847493f;
 
+        
+        //Probably should not have done this
+        public static float Abs(float x) => MathF.Abs(x);
+        public static float Sign(float x) => MathF.Sign(x);
+        public static int Maxi(int x, int y) => (int)MathF.Max(x, y);
+        public static int Mini(int x, int y) => (int)MathF.Min(x, y);
+        public static float Min(float x, float y) => MathF.Min(x, y);
+        public static float Sin(float x) => MathF.Sin(x);
+        public static float Cos(float x) => MathF.Cos(x);
+
         public static Matrix3X2<float> TransformMultiply(Matrix3X2<float> t, Matrix3X2<float> s)
         {
             float t0 = t.M11 * s.M11 + t.M12 * s.M21;

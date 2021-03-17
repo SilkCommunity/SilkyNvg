@@ -22,13 +22,82 @@ namespace SilkyNvg.Core
         }
 
 
-        public void Arc(float xPos, float yPos, float radius, float alpha, float beta, Winding fill)
+        public void Arc(float cx, float cy, float r, float a0, float a1, Winding dir = Winding.CCW)
         {
-            //float a, da, hda, kappa, dx, dy, x, y, tanx, tany, px, py, ptanx, ptany;
-            //float[] values = new float[3 + 5*7 + 100];
+            float a, da, hda, kappa, dx, dy, x, y, tanx, tany, px = 0, py = 0, ptanx = 0, ptany = 0;
 
-            //int i, ndivs, nvals;
-            //int move = 
+            int ndivs;
+
+            InstructionSequence instructionSequence;
+
+            da = a1 - a0;
+
+            if (dir == Winding.CW)
+            {
+                if (Maths.Abs(da) >= Maths.Pi * 2)
+                {
+                    da = Maths.Pi * 2;
+                }
+                else
+                {
+                    while (da < 0.0F)
+                    {
+                        da += Maths.Pi * 2;
+                    }
+                }
+            }
+            else
+            {
+                if (Maths.Abs(da) >= Maths.Pi * 2)
+                {
+                    da = -Maths.Pi * 2;
+                }
+                else
+                {
+                    while (da > 0.0F)
+                    {
+                        da -= Maths.Pi * 2;
+                    }
+                }
+            }
+
+            // Split Arc into segments with max 90 degree
+            ndivs = Maths.Maxi(1, Maths.Mini((int)(Maths.Abs(da) / (Maths.Pi * 0.5F) + 0.5F), 5));
+            hda = (da / (float)ndivs) / 2.0F;
+            kappa = Maths.Abs(4.0F / 3.0F * (1.0F - Maths.Cos(hda)) / Maths.Sin(hda));
+
+            if (dir == Winding.CCW)
+                kappa = -kappa;
+
+            instructionSequence = new InstructionSequence(ndivs + 1);
+
+            for (int i = 0; i <= ndivs; i++)
+            {
+                a = a0 + da * (i / (float)ndivs);
+                dx = Maths.Cos(a);
+                dy = Maths.Sin(a);
+                x = cx + dx * r;
+                y = cy + dy * r;
+                tanx = -dx * r * kappa;
+                tany = dx * r * kappa;
+
+                if (i == 0)
+                {
+                    if (_instructionManager.QueueLength > 0)
+                        instructionSequence.AddLineTo(x, y);
+                    else
+                        instructionSequence.AddMoveTo(x, y);
+                }
+                else
+                {
+                    instructionSequence.AddBezireTo(px + ptanx, py + ptany, x - tanx, y - tany, x, y);
+                }
+                px = x;
+                py = y;
+                ptanx = tanx;
+                ptany = tany;
+            }
+            Add(instructionSequence);
         }
 
         public void Rect(float x, float y, float width, float heigth)
@@ -55,16 +124,16 @@ namespace SilkyNvg.Core
                 return;
             }
 
-            float halfw = MathF.Abs(w) * 0.5F;
-            float halfh = MathF.Abs(h) * 0.5F;
-            float rxBL = MathF.Min(rBL, halfw) * MathF.Sign(w);
-            float ryBL = MathF.Min(rBL, halfh) * MathF.Sign(h);
-            float rxBR = MathF.Min(rBR, halfw) * MathF.Sign(w);
-            float ryBR = MathF.Min(rBR, halfh) * MathF.Sign(h);
-            float rxTR = MathF.Min(rTR, halfw) * MathF.Sign(w);
-            float ryTR = MathF.Min(rTR, halfh) * MathF.Sign(h);
-            float rxTL = MathF.Min(rTL, halfw) * MathF.Sign(w);
-            float ryTL = MathF.Min(rTL, halfh) * MathF.Sign(h);
+            float halfw = Maths.Abs(w) * 0.5F;
+            float halfh = Maths.Abs(h) * 0.5F;
+            float rxBL = Maths.Min(rBL, halfw) * Maths.Sign(w);
+            float ryBL = Maths.Min(rBL, halfh) * Maths.Sign(h);
+            float rxBR = Maths.Min(rBR, halfw) * Maths.Sign(w);
+            float ryBR = Maths.Min(rBR, halfh) * Maths.Sign(h);
+            float rxTR = Maths.Min(rTR, halfw) * Maths.Sign(w);
+            float ryTR = Maths.Min(rTR, halfh) * Maths.Sign(h);
+            float rxTL = Maths.Min(rTL, halfw) * Maths.Sign(w);
+            float ryTL = Maths.Min(rTL, halfh) * Maths.Sign(h);
 
 
             //Needs testing :D
