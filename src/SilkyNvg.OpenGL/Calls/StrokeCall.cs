@@ -13,7 +13,37 @@ namespace SilkyNvg.OpenGL.Calls
         {
             if (glInterface.LaunchParameters.StencilStrokes)
             {
-                // TODO: Implement Stencil Strokes
+                gl.Enable(EnableCap.StencilTest);
+                glInterface.StencilMask(0xff);
+
+                glInterface.StencilFunc(StencilFunction.Equal, 0xff, 0);
+                gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Incr);
+                glInterface.SetUniforms(_uniforms, 0);
+                glInterface.CheckError("stroke fill");
+                for (int i = 0; i < _paths.Length; i++)
+                {
+                    gl.DrawArrays(PrimitiveType.TriangleStrip, _paths[i].StrokeOffset, (uint)_paths[i].StrokeCount);
+                }
+
+                glInterface.SetUniforms(_uniforms, 0); // TODO: Images
+                glInterface.StencilFunc(StencilFunction.Equal, 0xff, 0);
+                gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Keep);
+                for (int i = 0; i < _paths.Length; i++)
+                {
+                    gl.DrawArrays(PrimitiveType.TriangleStrip, _paths[i].StrokeOffset, (uint)_paths[i].StrokeCount);
+                }
+
+                gl.ColorMask(false, false, false, false);
+                glInterface.StencilFunc(StencilFunction.Always, 0xff, 0);
+                gl.StencilOp(StencilOp.Zero, StencilOp.Zero, StencilOp.Zero);
+                glInterface.CheckError("stroke fill 2");
+                for (int i = 0; i < _paths.Length; i++)
+                {
+                    gl.DrawArrays(PrimitiveType.TriangleStrip, _paths[i].StrokeOffset, (uint)_paths[i].StrokeCount);
+                }
+                gl.ColorMask(true, true, true, true);
+
+                gl.Disable(EnableCap.StencilTest);
             }
             else
             {

@@ -69,7 +69,7 @@ namespace SingleClassExample
             }
 
             // Create a new NVG context.
-            var nvg = Nvg.Create((uint)CreateFlag.Debug | (uint)CreateFlag.Antialias, gl);
+            var nvg = Nvg.Create((uint)CreateFlag.Debug | (uint)CreateFlag.Antialias | (uint)CreateFlag.StencilStrokes, gl);
 
             glfw.SwapInterval(0);
 
@@ -89,19 +89,16 @@ namespace SingleClassExample
 
                 nvg.BeginPath();
 
-                nvg.Shapes.Rect(100, 100, 300, 500);
-                nvg.StrokeColour(Colour.Blue);
-                nvg.Stroke();
-                nvg.BeginPath();
-                nvg.Shapes.Rect(600, 100, 300, 500);
+                nvg.RoundedRect(100, 100, 300, 500, 15);
+                nvg.FillColour(new Colour(1.0f, 0.0f, 0.0f, 1.0f));
+                nvg.Fill();
+                nvg.StrokeColour(new Colour(0.0f, 0.0f, 1.0f, 1.0f));
                 nvg.Stroke();
 
                 nvg.BeginPath();
-                nvg.Shapes.Arc(400, 400, 100, 1, 2);
-                nvg.RadialGradient(200, 400, 0, 200, Colour.Purple, Colour.White);
-                nvg.StrokeColour(Colour.Black);
+                nvg.Arc(700, 400, 100, 1, 2, SilkyNvg.Paths.Winding.CCW);
+                nvg.FillColour(nvg.Hsla(1.0f, 1.0f, 0.5f, 255));
                 nvg.Fill();
-                nvg.Stroke();
 
                 nvg.EndFrame();
 

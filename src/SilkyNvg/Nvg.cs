@@ -21,7 +21,7 @@ namespace SilkyNvg
         /// in the following documentation, when it is more applicable.
         /// </summary>
         /// <param name="flags">The flags to be used when this context is running <see cref="CreateFlag"/>.</param>
-        /// <param name="gl">The GL Api object needed for rendering.</param>
+        /// <param name="gl">The GL Api object used for rendering.</param>
         public static Nvg Create(uint flags, Silk.NET.OpenGL.GL gl)
         {
             var launchParams = new LaunchParameters((flags & (uint)CreateFlag.Antialias) != 0,
@@ -39,8 +39,7 @@ namespace SilkyNvg
 
         private readonly FrameMeta _frameMeta;
 
-
-        public readonly Shapes Shapes;
+        public readonly Draw _draw;
 
         private Nvg(GraphicsManager graphicsManager)
         {
@@ -54,7 +53,7 @@ namespace SilkyNvg
             // TODO: Font
             // TODO: More images
 
-            Shapes = new Shapes(_instructionManager, _stateManager);
+            _draw = new Draw(_instructionManager, _stateManager);
 
             _frameMeta = new FrameMeta();
         }
@@ -115,18 +114,99 @@ namespace SilkyNvg
 
         #region Colours
         /// <summary>
-        /// <inheritdoc cref="Docs.Colours"/>
-        ///
-        /// <seealso cref="Colour(float, float, float, float)"/>
+        /// <inheritdoc cref="Colour(byte, byte, byte)"/>
         /// </summary>
-        /// <param name="r">The red component.</param>
-        /// <param name="g">The green component.</param>
-        /// <param name="b">The blue component.</param>
-        /// <param name="a">The alpha component.</param>
-        /// <returns>A colour value from red, green, blue and alpha values.</returns>
-        public Colour RGBAf(float r, float g, float b, float a)
+        public Colour Rgb(byte r, byte g, byte b)
+        {
+            return new Colour(r, g, b);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref=".Colour(float, float, float)"/>
+        /// </summary>
+        public Colour RgbF(float r, float g, float b)
+        {
+            return new Colour(r, g, b);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Colour(byte, byte, byte, byte)"/>
+        /// </summary>
+        public Colour Rgba(byte r, byte g, byte b, byte a)
         {
             return new Colour(r, g, b, a);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref=".Colour(float, float, float, float)"/>
+        /// </summary>
+        public Colour RgbaF(float r, float g, float b, float a)
+        {
+            return new Colour(r, g, b, a);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Colour(Colour, Colour, float)"/>
+        /// </summary>
+        public Colour LerpRgba(Colour colour1, Colour colour2, float u)
+        {
+            return new Colour(colour1, colour2, u);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Colour(Colour, byte)"/>
+        /// </summary>
+        public Colour TransRgba(Colour colour, byte alpha)
+        {
+            return new Colour(colour, alpha);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Colour(Colour, float)"/>
+        /// </summary>
+        public Colour TransRgba(Colour colour, float alpha)
+        {
+            return new Colour(colour, alpha);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Colours"/>
+        /// 
+        /// HSL values are all in range [0..1], alpha will be set to 255
+        /// </summary>
+        /// <param name="h">the hue</param>
+        /// <param name="s">the saturation</param>
+        /// <param name="l">the lightness</param>
+        /// <returns>A new colour value specified by hue, saturation and lightness</returns>
+        public Colour Hsl(float h, float s, float l)
+        {
+            return Hsla(h, s, l, 255);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Colours"/>
+        /// 
+        /// HSL values are all in range [0..1]. Alpha in range [0..255]
+        /// </summary>
+        /// <param name="h">the hue</param>
+        /// <param name="s">the saturation</param>
+        /// <param name="l">the lightness</param>
+        /// <param name="a">the alpha component</param>
+        /// <returns>A new colour value specified by hue, saturation, lightness and alpha</returns>
+        public Colour Hsla(float h, float s, float l, byte a)
+        {
+            h %= 1.0f;
+            if (h < 0.0f)
+                h += 1.0f;
+            s = Maths.Clamp(s, 0.0f, 1.0f);
+            l = Maths.Clamp(l, 0.0f, 1.0f);
+            float m2 = 1 <= 0.5f ? (l * (l + s)) : (l + s - l * s);
+            float m1 = 2 * l - m2;
+            float r = Maths.Clamp(Colour.Hue(h + 1.0f / 3.0f, m1, m2), 0.0f, 1.0f);
+            float g = Maths.Clamp(Colour.Hue(h, m1, m2), 0.0f, 1.0f);
+            float b = Maths.Clamp(Colour.Hue(h - 1.0f / 3.0f, m1, m2), 0.0f, 1.0f);
+            float alpha = (float)a / 255.0f;
+            return new Colour(r, g, b, alpha);
         }
         #endregion
 
@@ -164,12 +244,23 @@ namespace SilkyNvg
         #endregion
 
         #region RenderStyles
+        /// <summary>
+        /// <inheritdoc cref="Docs.RenderStyles"/>
+        /// 
+        /// Sets the current stroke style to a solid colour.
+        /// </summary>
+        /// <param name="colour">The colour to stroke the path with.</param>
         public void StrokeColour(Colour colour)
         {
             var state = _stateManager.GetState();
             state.Stroke = new Paint(colour);
         }
 
+        /// <summary>
+        /// Sets the current stroke style to a paint, which can be one
+        /// of the gradients or patterns.
+        /// </summary>
+        /// <param name="paint">The stroke to use when stroking the path.</param>
         public void StrokePaint(Paint paint)
         {
             var state = _stateManager.GetState();
@@ -195,7 +286,7 @@ namespace SilkyNvg
         /// Sets the current fill style to a paint, which can be one
         /// of the gradients or patterns.
         /// </summary>
-        /// <param name="paint"></param>
+        /// <param name="paint">The paint to use when filling the path.</param>
         public void FillPaint(Paint paint)
         {
             var state = _stateManager.GetState();
@@ -278,59 +369,57 @@ namespace SilkyNvg
         }
 
         /// <summary>
-        /// <inheritdoc cref="Docs.Paths"/>
-        /// 
-        /// Creates a new rectangle shaped sub-path.
+        /// Get the Draw object of this context. That is where all render path methods
+        /// are stored and implemented and can be called from. They are also implemented in here, which is the preffered option.
         /// </summary>
-        /// <param name="x">The rectangle's X-Position</param>
-        /// <param name="y">The rectangle's Y-Position</param>
-        /// <param name="w">The rectangle's width</param>
-        /// <param name="h">The rectangle's height</param>
-        public void Rect(float x, float y, float w, float h)
+        public Draw Draw => _draw;
+
+        /// <summary>
+        /// <inheritdoc cref="Draw.Arc(float, float, float, float, float, Winding)"/>
+        /// </summary>
+        public void Arc(float x, float y, float r, float a0, float a1, Winding dir = Winding.CCW)
         {
-            var sequence = new InstructionSequence(5);
-            sequence.AddMoveTo(x, y);
-            sequence.AddLineTo(x, y + h);
-            sequence.AddLineTo(x + w, y + h);
-            sequence.AddLineTo(x + w, y);
-            sequence.AddClose();
-            _instructionManager.AddSequence(sequence, _stateManager.GetState());
+            _draw.Arc(x, y, r, a0, a1, dir);
         }
 
         /// <summary>
-        /// <inheritdoc cref="Docs.Paths"/>
-        /// 
-        /// Creates a new ellipse shaped sub-path-
+        /// <inheritdoc cref="Draw.Rect(float, float, float, float)"/>
         /// </summary>
-        /// <param name="x">The ellipse's center x</param>
-        /// <param name="y">The ellipse's center y</param>
-        /// <param name="radiusX">The ellipse's radius on the X-Achsis</param>
-        /// <param name="radiusY">The ellipse's radius on the Y-Achsis</param>
+        public void Rect(float x, float y, float width, float height)
+        {
+            _draw.Rect(x, y, width, height);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Draw.RoundedRect(float, float, float, float, float)"/>
+        /// </summary>
+        public void RoundedRect(float x, float y, float width, float height, float radius)
+        {
+            _draw.RoundedRect(x, y, width, height, radius);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Draw.RoundedRectVarying(float, float, float, float, float, float, float, float)"/>
+        /// </summary>
+        public void RoundedRectVarying(float x, float y, float width, float height, float radTopLeft, float radTopRight, float radBottomRight, float radBottomLeft)
+        {
+            _draw.RoundedRectVarying(x, y, width, height, radTopLeft, radTopRight, radBottomRight, radBottomLeft);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Draw.Ellipse(float, float, float, float)"/>
+        /// </summary>
         public void Ellipse(float x, float y, float radiusX, float radiusY)
         {
-            float rx = radiusX;
-            float ry = radiusY;
-            var sequence = new InstructionSequence(6);
-            sequence.AddMoveTo(x - rx, y);
-            sequence.AddBezireTo(x - rx, y + ry * Maths.Kappa, x - rx * Maths.Kappa, y + ry, x, y + ry);
-            sequence.AddBezireTo(x + rx * Maths.Kappa, y + ry, x + rx, y + ry * Maths.Kappa, x + rx, y);
-            sequence.AddBezireTo(x + rx, y - ry * Maths.Kappa, x + rx * Maths.Kappa, y - ry, x, y - ry);
-            sequence.AddBezireTo(x - rx * Maths.Kappa, y - ry, x - rx, y - ry * Maths.Kappa, x - rx, y);
-            sequence.AddClose();
-            _instructionManager.AddSequence(sequence, _stateManager.GetState());
+            _draw.Ellipse(x, y, radiusX, radiusY);
         }
 
         /// <summary>
-        /// <inheritdoc cref="Docs.Paths"/>
-        /// 
-        /// Creates a new circle shaped sub-path.
+        /// <inheritdoc cref="Draw.Circle(float, float, float)"/>
         /// </summary>
-        /// <param name="x">The circle's center x</param>
-        /// <param name="y">The circle's center y</param>
-        /// <param name="radius">The circle's radius</param>
         public void Circle(float x, float y, float radius)
         {
-            Ellipse(x, y, radius, radius);
+            _draw.Circle(x, y, radius);
         }
 
         /// <summary>
@@ -369,6 +458,11 @@ namespace SilkyNvg
             }
         }
 
+        /// <summary>
+        /// <inheritdoc cref="Docs.Paths"/>
+        /// 
+        /// Surrounds the current path with the current stroke style.
+        /// </summary>
         public void Stroke()
         {
             var state = _stateManager.GetState();
@@ -410,10 +504,6 @@ namespace SilkyNvg
             }
 
         }
-        #endregion
-
-        #region Shapes
-
         #endregion
 
     }
