@@ -3,6 +3,7 @@ using SilkyNvg.Blending;
 
 namespace SilkyNvg.OpenGL
 {
+
     internal struct Blend
     {
 

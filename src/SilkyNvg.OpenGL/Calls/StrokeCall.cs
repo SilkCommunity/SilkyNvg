@@ -6,8 +6,13 @@ namespace SilkyNvg.OpenGL.Calls
     internal class StrokeCall : Call
     {
 
-        public StrokeCall(Blend blendFunc, FragmentDataUniforms uniforms, Path[] paths)
-            : base(blendFunc, uniforms, paths) { }
+        private readonly FragmentDataUniforms _secondUniforms;
+
+        public StrokeCall(Blend blendFunc, FragmentDataUniforms uniforms, Path[] paths, FragmentDataUniforms secondUniforms)
+            : base(blendFunc, uniforms, paths)
+        {
+            _secondUniforms = secondUniforms;
+        }
 
         public override void Run(GLInterface glInterface, GL gl)
         {
@@ -18,7 +23,7 @@ namespace SilkyNvg.OpenGL.Calls
 
                 glInterface.StencilFunc(StencilFunction.Equal, 0xff, 0);
                 gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Incr);
-                glInterface.SetUniforms(_uniforms, 0);
+                glInterface.SetUniforms(_secondUniforms, 0);
                 glInterface.CheckError("stroke fill");
                 for (int i = 0; i < _paths.Length; i++)
                 {

@@ -308,11 +308,15 @@ namespace SilkyNvg.OpenGL
 
             if (LaunchParameters.StencilStrokes)
             {
-                // TODO: Implement Stencil Strokes
+                var frag0 = ConvertPaint(new FragmentDataUniforms(), paint, scissor, strokeWidth, fringe, -1.0f);
+                var frag1 = ConvertPaint(new FragmentDataUniforms(), paint, scissor, strokeWidth, fringe, 1.0f - 0.5f / 255.0f);
+                var call = new StrokeCall(new Blend(compositeOperation), frag0, paths_, frag1);
+                _callQueue.Add(call);
             }
             else
             {
-                var call = new StrokeCall(new Blend(compositeOperation), ConvertPaint(new FragmentDataUniforms(), paint, scissor, strokeWidth, fringe, -1.0f), paths_);
+                var call = new StrokeCall(new Blend(compositeOperation), ConvertPaint(new FragmentDataUniforms(), paint, scissor, strokeWidth, fringe, -1.0f),
+                    paths_, new FragmentDataUniforms());
                 _callQueue.Add(call);
             }
 
