@@ -29,6 +29,18 @@ namespace NvgExample
             Console.Error.WriteLine("GLFW Error: ", error, " " + message);
         }
 
+        private void Key(WindowHandle* window, Keys key, int scancode, InputAction action, KeyModifiers mods)
+        {
+            if (key == Keys.Escape && action == InputAction.Press)
+                _glfw.SetWindowShouldClose(window, true);
+            if (key == Keys.Space && action == InputAction.Press)
+                _blowup = !_blowup;
+            if (key == Keys.S && action == InputAction.Press)
+                _screenshot = true;
+            if (key == Keys.P && action == InputAction.Press)
+                _premult = !_premult;
+        }
+
         private void Run((int, int) size)
         {
             _glfw = Glfw.GetApi();
@@ -58,6 +70,8 @@ namespace NvgExample
                 _glfw.Terminate();
                 Environment.Exit(-1);
             }
+
+            _glfw.SetKeyCallback(_window, Key);
 
             _glfw.MakeContextCurrent(_window);
 
@@ -100,11 +114,11 @@ namespace NvgExample
 
                 _nvg.BeginFrame((float)winWidth, (float)winHeight, pxRatio);
 
-                _demo.Render();
+                _demo.Render((float)mx, (float)my, winWidth, winHeight, (float)t, _blowup);
 
                 _nvg.EndFrame();
 
-                cpuTime = _glfw.GetTime() - 1;
+                cpuTime = _glfw.GetTime() - t;
 
                 _glfw.SwapBuffers(_window);
                 _glfw.PollEvents();

@@ -9,8 +9,6 @@ namespace SilkyNvg.Core.Paths
     internal class Path
     {
 
-        private readonly Winding _winding;
-
         private readonly IList<Vertex> _fill = new List<Vertex>();
         private readonly IList<Vertex> _stroke = new List<Vertex>();
         private readonly IList<Point> _points = new List<Point>();
@@ -19,11 +17,17 @@ namespace SilkyNvg.Core.Paths
         private bool _convex;
         private bool _closed;
 
+        private Winding _winding;
+
         public List<Vertex> Fill => (List<Vertex>)_fill;
         public List<Vertex> Stroke => (List<Vertex>)_stroke;
         public List<Point> Points => (List<Point>)_points;
 
-        public Winding Winding => _winding;
+        public Winding Winding
+        {
+            get => _winding;
+            set => _winding = value;
+        }
 
         public int BevelCount
         {

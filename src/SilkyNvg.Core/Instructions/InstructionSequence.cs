@@ -1,4 +1,5 @@
 ﻿using Silk.NET.Maths;
+using SilkyNvg.Paths;
 using System;
 
 namespace SilkyNvg.Core.Instructions
@@ -31,7 +32,8 @@ namespace SilkyNvg.Core.Instructions
         public Vector2D<float> GetXY()
         {
             var list = new System.Collections.Generic.List<float>();
-            list.AddRange(_instructions[_instructionCount - 2].Data);
+            if (_instructionCount > 1)
+                list.AddRange(_instructions[_instructionCount - 2].Data);
             list.AddRange(_instructions[_instructionCount - 1].Data);
             return new Vector2D<float>(list[^2], list[^1]);
         }
@@ -57,9 +59,9 @@ namespace SilkyNvg.Core.Instructions
             Add(new CloseInstruction());
         }
 
-        public void AddWinding()
+        public void AddWinding(Winding direction)
         {
-
+            Add(new WindingInstruction(direction));
         }
 
         public void Dispose()

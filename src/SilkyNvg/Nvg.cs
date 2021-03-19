@@ -247,6 +247,19 @@ namespace SilkyNvg
         /// <summary>
         /// <inheritdoc cref="Docs.RenderStyles"/>
         /// 
+        /// Sets whether to draw <see cref="Stroke"/> and <see cref="Fill"/> antialised.
+        /// It is enabled by default.
+        /// </summary>
+        /// <param name="enabled">Wheather or not antialiasing will be enabled.</param>
+        public void ShapeAntialias(bool enabled)
+        {
+            var state = _stateManager.GetState();
+            state.ShapeAntiAlias = enabled;
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.RenderStyles"/>
+        /// 
         /// Sets the current stroke style to a solid colour.
         /// </summary>
         /// <param name="colour">The colour to stroke the path with.</param>
@@ -292,6 +305,70 @@ namespace SilkyNvg
             var state = _stateManager.GetState();
             paint.XForm = Maths.TransformMultiply(paint.XForm, state.Transform);
             state.Fill = paint;
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.RenderStyles"/>
+        /// 
+        /// Sets the miter limit of the stroke style.
+        /// The miter limit controls when a shape corner is beveled.
+        /// </summary>
+        /// <param name="limit">The new miter limit</param>
+        public void MiterLimit(float limit)
+        {
+            var state = _stateManager.GetState();
+            state.MiterLimit = limit;
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.RenderStyles"/>
+        /// 
+        /// Stes the stroke width of the stroke style.
+        /// </summary>
+        /// <param name="size">The new size of the stroke width</param>
+        public void StrokeWidth(float size)
+        {
+            var state = _stateManager.GetState();
+            state.StrokeWidth = size;
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.RenderStyles"/>
+        /// 
+        /// Sets how the end of the line is drawn.
+        /// Can be one of <see cref="LineCap.Butt"/> (default), <see cref="LineCap.Round"/> and <see cref="LineCap.Square"/>
+        /// </summary>
+        /// <param name="cap">The new line cap</param>
+        public void SetLineCap(LineCap cap)
+        {
+            var state = _stateManager.GetState();
+            state.LineCap = cap;
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.RenderStyles"/>
+        /// 
+        /// Sets how sharp path corners are drawn.
+        /// Can be one of <see cref="LineCap.Miter"/> (default), <see cref="LineCap.Round"/> and <see cref="LineCap.Bevel"/>
+        /// </summary>
+        /// <param name="join"></param>
+        public void SetLineJoin(LineCap join)
+        {
+            var state = _stateManager.GetState();
+            state.LineJoin = join;
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.RenderStyles"/>
+        /// 
+        /// Sets the transparency applied to all rendered shapes.
+        /// Already transparent paths will get proporionally more transparent as well.
+        /// </summary>
+        /// <param name="alpha">The new global alpha value</param>
+        public void GlobalAlpha(float alpha)
+        {
+            var state = _stateManager.GetState();
+            state.Alpha = alpha;
         }
         #endregion
 
@@ -375,11 +452,69 @@ namespace SilkyNvg
         public Draw Draw => _draw;
 
         /// <summary>
+        /// <inheritdoc cref="Draw.MoveTo(float, float)"/>
+        /// </summary>
+        public void MoveTo(float x, float y)
+        {
+            _draw.MoveTo(x, y);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Draw.LineTo(float, float)"/>
+        /// </summary>
+        public void LineTo(float x, float y)
+        {
+            _draw.LineTo(x, y);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Draw.BezierTo(float, float, float, float, float, float)"/>
+        /// </summary>
+        public void BezierTo(float cx1, float cy1, float cx2, float cy2, float x, float y)
+        {
+            _draw.BezierTo(cx1, cy1, cx2, cy2, x, y);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Draw.QuadTo(float, float, float, float)"/>
+        /// </summary>
+        public void QuadTo(float cx, float cy, float x, float y)
+        {
+            _draw.QuadTo(cx, cy, x, y);
+        }
+
+        /// <summary>
         /// <inheritdoc cref="Draw.Arc(float, float, float, float, float, Winding)"/>
         /// </summary>
         public void Arc(float x, float y, float r, float a0, float a1, Winding dir = Winding.CCW)
         {
             _draw.Arc(x, y, r, a0, a1, dir);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Paths"/>
+        /// 
+        /// Close the current sub-path with a line segment.
+        /// </summary>
+        public void ClosePath()
+        {
+            var sequence = new InstructionSequence(1);
+            sequence.AddClose();
+            _instructionManager.AddSequence(sequence, _stateManager.GetState());
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Paths"/>
+        /// 
+        /// Sets the current sub path winding.
+        /// <see cref="Winding"/> and <seealso cref="Solidity"/>
+        /// </summary>
+        /// <param name="direction">The new direction to be winding in.</param>
+        public void PathWinding(Winding direction)
+        {
+            var sequence = new InstructionSequence(1);
+            sequence.AddWinding(direction);
+            _instructionManager.AddSequence(sequence, _stateManager.GetState());
         }
 
         /// <summary>

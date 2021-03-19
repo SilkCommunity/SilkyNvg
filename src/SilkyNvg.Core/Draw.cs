@@ -30,6 +30,77 @@ namespace SilkyNvg.Core
         /// <summary>
         /// <inheritdoc cref="Docs.Paths"/>
         /// 
+        /// Start s an new sub path.
+        /// </summary>
+        /// <param name="x">The X Position of the new sub path</param>
+        /// <param name="y">The Y Position of the new sub path</param>
+        public void MoveTo(float x, float y)
+        {
+            var sequence = new InstructionSequence(1);
+            sequence.AddMoveTo(x, y);
+            Add(sequence);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Paths"/>
+        /// 
+        /// Adds a line segment from the last point in the path
+        /// to the specified point.
+        /// </summary>
+        /// <param name="x">The X Position of the line's end</param>
+        /// <param name="y">The Y Position of the line's end</param>
+        public void LineTo(float x, float y)
+        {
+            var sequence = new InstructionSequence(1);
+            sequence.AddLineTo(x, y);
+            Add(sequence);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Paths"/>
+        /// 
+        /// Adds a cubic bezier segemnt to the current path using 2 controll points.
+        /// </summary>
+        /// <param name="cx1">The 1st controll point's X Position</param>
+        /// <param name="cy1">The 1st controll point's Y Position</param>
+        /// <param name="cx2">The 2nd controll point's X Position</param>
+        /// <param name="cy2">The 2nd controll point's Y Position</param>
+        /// <param name="x">The X Position of the bezier's end</param>
+        /// <param name="y">The Y Position of the bezier's end</param>
+        public void BezierTo(float cx1, float cy1, float cx2, float cy2, float x, float y)
+        {
+            var sequence = new InstructionSequence(1);
+            sequence.AddBezireTo(cx1, cy1, cx2, cy2, x, y);
+            Add(sequence);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Paths"/>
+        /// 
+        /// Adds a quadratic bezier segemnt to the current path using 2 controll points.
+        /// </summary>
+        /// <param name="cx">The controll point's X Position</param>
+        /// <param name="cy">The controll point's Y Position</param>
+        /// <param name="x">The X Position of the bezier's end</param>
+        /// <param name="y">The Y Position of the bezier's end</param>
+        public void QuadTo(float cx, float cy, float x, float y)
+        {
+            var position = _instructionManager.InstructionPosition;
+            var sequence = new InstructionSequence(1);
+            sequence.AddBezireTo(
+                position.X + 2.0f / 3.0f * (cx - position.X),
+                position.Y + 2.0f / 3.0f * (cy - position.Y),
+                x + 2.0f / 3.0f * (cx - x),
+                y + 2.0f / 3.0f * (cy - y),
+                x,
+                y
+            );
+            Add(sequence);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Paths"/>
+        /// 
         /// Creates a new arc circle shaped sub-path.
         /// </summary>
         /// <param name="x">The arc's centre X Position</param>
