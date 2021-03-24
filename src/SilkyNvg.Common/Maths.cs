@@ -112,6 +112,42 @@ namespace SilkyNvg.Common
             return inv;
         }
 
+        public static Matrix3X2<float> TransformTranslate(Matrix3X2<float> t, float x, float y)
+        {
+            t.M11 = 1.0f;
+            t.M12 = 0.0f;
+            t.M21 = 0.0f;
+            t.M22 = 1.0f;
+            t.M31 = x;
+            t.M32 = y;
+            return t;
+        }
+
+        public static Matrix3X2<float> TransformScale(Matrix3X2<float> t, float x, float y)
+        {
+            t.M11 = x;
+            t.M12 = 0.0f;
+            t.M21 = 0.0f;
+            t.M22 = y;
+            t.M31 = 0.0f;
+            t.M32 = 0.0f;
+            return t;
+        }
+
+        public static Matrix3X2<float> TransformRotate(Matrix3X2<float> t, float angle)
+        {
+            float rads = angle * MathF.PI / 180;
+            float cs = MathF.Cos(rads);
+            float sn = MathF.Sin(rads);
+            t.M11 = cs;
+            t.M12 = sn;
+            t.M21 = -sn;
+            t.M22 = -cs;
+            t.M31 = 0.0f;
+            t.M32 = 0.0f;
+            return t;
+        }
+
         public static float Normalize(Vector2D<float> v)
         {
             float d = MathF.Sqrt(v.X * v.X + v.Y * v.Y);

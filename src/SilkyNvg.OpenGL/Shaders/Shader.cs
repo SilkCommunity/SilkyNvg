@@ -99,7 +99,7 @@ namespace SilkyNvg.OpenGL.Shaders
         private void GetUniforms()
         {
             _locations.Add(UniformLocations.Viewsize, _gl.GetUniformLocation(_programmeID, "viewSize"));
-            _locations.Add(UniformLocations.Tex, _gl.GetUniformLocation(_programmeID, "texture"));
+            _locations.Add(UniformLocations.Tex, _gl.GetUniformLocation(_programmeID, "tex"));
 
             _locations.Add(UniformLocations.ScissorMat, _gl.GetUniformLocation(_programmeID, "scissorMat"));
             _locations.Add(UniformLocations.PaintMat, _gl.GetUniformLocation(_programmeID, "paintMat"));
@@ -112,6 +112,7 @@ namespace SilkyNvg.OpenGL.Shaders
             _locations.Add(UniformLocations.Feather, _gl.GetUniformLocation(_programmeID, "feather"));
             _locations.Add(UniformLocations.StrokeMult, _gl.GetUniformLocation(_programmeID, "strokeMult"));
             _locations.Add(UniformLocations.StrokeThr, _gl.GetUniformLocation(_programmeID, "strokeThr"));
+            _locations.Add(UniformLocations.TexType, _gl.GetUniformLocation(_programmeID, "texType"));
             _locations.Add(UniformLocations.Type, _gl.GetUniformLocation(_programmeID, "type"));
         }
 
@@ -159,6 +160,7 @@ namespace SilkyNvg.OpenGL.Shaders
             LoadFloat(UniformLocations.Feather, data.Feather);
             LoadFloat(UniformLocations.StrokeMult, data.StrokeMult);
             LoadFloat(UniformLocations.StrokeThr, data.StrokeThr);
+            LoadInt(UniformLocations.TexType, data.TextureType);
             LoadInt(UniformLocations.Type, data.Type);
         }
 

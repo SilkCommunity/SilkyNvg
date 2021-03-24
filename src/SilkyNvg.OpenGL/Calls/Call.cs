@@ -7,14 +7,15 @@ namespace SilkyNvg.OpenGL.Calls
     internal abstract class Call
     {
 
-        // TODO: Image
+        protected readonly int _image;
         protected readonly Blend _blendFunc;
 
         protected readonly FragmentDataUniforms _uniforms;
         protected readonly Path[] _paths;
 
-        public Call(Blend blendFunc, FragmentDataUniforms uniforms, Path[] paths)
+        public Call(int image, Blend blendFunc, FragmentDataUniforms uniforms, Path[] paths)
         {
+            _image = image;
             _blendFunc = blendFunc;
 
             _uniforms = uniforms;

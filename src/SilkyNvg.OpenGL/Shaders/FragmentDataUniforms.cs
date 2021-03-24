@@ -19,7 +19,7 @@ namespace SilkyNvg.OpenGL.Shaders
         private float _feather;
         private float _strokeMult;
         private float _strokeThr;
-        // TODO: Texture
+        private int _textureType;
         private int _type;
 
         public Matrix3X4<float> ScissorMatrix
@@ -86,6 +86,12 @@ namespace SilkyNvg.OpenGL.Shaders
         {
             get => _strokeThr;
             set => _strokeThr = value;
+        }
+
+        public int TextureType
+        {
+            get => _textureType;
+            set => _textureType = value;
         }
 
         public int Type

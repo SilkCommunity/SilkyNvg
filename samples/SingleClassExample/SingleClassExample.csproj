@@ -21,4 +21,10 @@
 	  <ProjectReference Include="..\..\src\SilkyNvg\SilkyNvg.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <None Update="download.jpg">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
 </Project>

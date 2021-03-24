@@ -9,8 +9,8 @@ namespace SilkyNvg.OpenGL.Calls
         private readonly int _triangleOffset;
         private readonly int _triangleCount;
 
-        public FillCall(int triangleOffset, int triangleCount, Blend blendFunc, FragmentDataUniforms uniforms, Path[] paths)
-            : base(blendFunc, uniforms, paths)
+        public FillCall(int triangleOffset, int triangleCount, int image, Blend blendFunc, FragmentDataUniforms uniforms, Path[] paths)
+            : base(image, blendFunc, uniforms, paths)
         {
             _triangleOffset = triangleOffset;
             _triangleCount = triangleCount;

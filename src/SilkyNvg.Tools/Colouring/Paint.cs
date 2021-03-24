@@ -18,6 +18,8 @@ namespace SilkyNvg.Colouring
         private Colour _innerColour;
         private Colour _outerColour;
 
+        private int _image;
+
         internal Matrix3X2<float> XForm
         {
             get => _xform;
@@ -52,6 +54,12 @@ namespace SilkyNvg.Colouring
         {
             get => _outerColour;
             set => _outerColour = value;
+        }
+
+        internal int Image
+        {
+            get => _image;
+            set => _image = value;
         }
 
         private Paint() { }
@@ -199,6 +207,29 @@ namespace SilkyNvg.Colouring
 
             paint.InnerColour = innerColour;
             paint.OuterColour = outerColour;
+
+            return paint;
+        }
+
+        public static Paint ImagePattern(float x, float y, float width, float height, float angle, int image, float alpha)
+        {
+            var paint = new Paint();
+
+            float cs = MathF.Cos(angle * MathF.PI / 180);
+            float sn = MathF.Sin(angle * MathF.PI / 180);
+            paint.XForm = new Matrix3X2<float>();
+            paint._xform.M11 = cs;
+            paint._xform.M12 = sn;
+            paint._xform.M21 = -sn;
+            paint._xform.M22 = cs;
+            paint._xform.M31 = x;
+            paint._xform.M32 = y;
+
+            paint.Extent = new Vector2D<float>(width, height);
+
+            paint.Image = image;
+
+            paint.InnerColour = paint.OuterColour = new Colour(1.0f, 1.0f, 1.0f, alpha);
 
             return paint;
         }

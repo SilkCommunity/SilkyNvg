@@ -3,6 +3,7 @@ using Silk.NET.OpenGL;
 using SilkyNvg.Blending;
 using SilkyNvg.Colouring;
 using SilkyNvg.Common;
+using SilkyNvg.OpenGL.Textures;
 using System.Collections.Generic;
 
 namespace SilkyNvg.OpenGL
@@ -29,6 +30,11 @@ namespace SilkyNvg.OpenGL
         public void Create()
         {
             _interface = new GLInterface(this);
+        }
+
+        public int CreateTexture(TextureType type, int w, int h, uint imageFlags, float[] data)
+        {
+            return _interface.CreateTexture(type, w, h, imageFlags, data);
         }
 
         public void Viewport(float width, float height)

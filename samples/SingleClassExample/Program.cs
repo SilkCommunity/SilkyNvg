@@ -4,7 +4,7 @@ using SilkyNvg;
 using SilkyNvg.Base;
 using SilkyNvg.Colouring;
 using System;
-using SilkyNvg.Core;
+using SilkyNvg.Image;
 
 namespace SingleClassExample
 {
@@ -73,6 +73,11 @@ namespace SingleClassExample
 
             glfw.SwapInterval(0);
 
+            int texture = nvg.CreateImage("download.jpg", (uint)ImageFlags.RepeatX | (uint)ImageFlags.RepeatY);
+
+            double time = glfw.GetTime();
+            float angle = 0;
+
             while (!glfw.WindowShouldClose(window))
             {
                 glfw.GetCursorPos(window, out double mx, out double my);
@@ -85,22 +90,27 @@ namespace SingleClassExample
                 gl.ClearColor(0.3f, 0.3f, 0.32f, 1.0f);
                 gl.Clear((uint)ClearBufferMask.ColorBufferBit | (uint)ClearBufferMask.DepthBufferBit | (uint)ClearBufferMask.StencilBufferBit);
 
-                nvg.BeginFrame(winWidth, winHeight, fbWidth / winWidth);
+                if (winWidth > 0)
+                {
+                    nvg.BeginFrame(winWidth, winHeight, pxRatio);
 
-                nvg.BeginPath();
+                    double now = glfw.GetTime();
+                    double delta = now - time;
+                    time = now;
 
-                nvg.RoundedRect(100, 100, 300, 500, 15);
-                nvg.FillColour(new Colour(1.0f, 0.0f, 0.0f, 1.0f));
-                nvg.Fill();
-                nvg.StrokeColour(new Colour(0.0f, 0.0f, 1.0f, 1.0f));
-                nvg.Stroke();
+                    angle += 10.0f * (float)delta;
 
-                nvg.BeginPath();
-                nvg.Arc(700, 400, 100, 1, 2, SilkyNvg.Paths.Winding.CCW);
-                nvg.FillColour(nvg.Hsla(1.0f, 1.0f, 0.5f, 255));
-                nvg.Fill();
+                    if (angle == 360)
+                        angle = 0;
 
-                nvg.EndFrame();
+                    nvg.BeginPath();
+                    float size = winHeight * 0.5f;
+                    nvg.Rect(winWidth / 2 - size / 2, winHeight / 2 - size / 2, size, size);
+                    nvg.FillPaint(Paint.ImagePattern(winWidth / 2 - size / 2, winHeight / 2 - size / 2, size, size, angle, texture, 1.0f));
+                    nvg.Fill();
+
+                    nvg.EndFrame();
+                }
 
                 glfw.SwapBuffers(window);
                 glfw.PollEvents();

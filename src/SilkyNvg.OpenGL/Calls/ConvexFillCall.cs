@@ -9,8 +9,8 @@ namespace SilkyNvg.OpenGL.Calls
         private readonly int _triangleOffset;
         private readonly int _triangleCount;
 
-        public ConvexFillCall(int triangleOffset, int triangleCount, Blend blendFunc, FragmentDataUniforms uniforms, Path[] paths)
-            : base(blendFunc, uniforms, paths)
+        public ConvexFillCall(int triangleOffset, int triangleCount, int image, Blend blendFunc, FragmentDataUniforms uniforms, Path[] paths)
+            : base(image, blendFunc, uniforms, paths)
         {
             _triangleOffset = triangleOffset;
             _triangleCount = triangleCount;
@@ -21,7 +21,7 @@ namespace SilkyNvg.OpenGL.Calls
         {
             glInterface.BlendFuncSeperate(_blendFunc);
 
-            glInterface.SetUniforms(_uniforms, 0); // TODO: Image
+            glInterface.SetUniforms(_uniforms, _image);
             glInterface.CheckError("convex fill");
 
             for (int i = 0; i < _paths.Length; i++)

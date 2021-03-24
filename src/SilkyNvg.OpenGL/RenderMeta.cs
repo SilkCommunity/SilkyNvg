@@ -5,7 +5,7 @@ namespace SilkyNvg.OpenGL
     internal struct RenderMeta
     {
 
-        private int _bondTexture;
+        private uint _bondTexture;
         private uint _stencilMask;
         private GLEnum _stencilFunk;
         private int _stencilFunkRef;
@@ -15,7 +15,7 @@ namespace SilkyNvg.OpenGL
         private GLEnum _dstRgb;
         private GLEnum _dstAlpha;
 
-        public int BondTexture
+        public uint BondTexture
         {
             get => _bondTexture;
             set => _bondTexture = value;

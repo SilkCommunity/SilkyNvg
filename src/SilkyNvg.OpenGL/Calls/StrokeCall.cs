@@ -8,8 +8,8 @@ namespace SilkyNvg.OpenGL.Calls
 
         private readonly FragmentDataUniforms _secondUniforms;
 
-        public StrokeCall(Blend blendFunc, FragmentDataUniforms uniforms, Path[] paths, FragmentDataUniforms secondUniforms)
-            : base(blendFunc, uniforms, paths)
+        public StrokeCall(int image, Blend blendFunc, FragmentDataUniforms uniforms, Path[] paths, FragmentDataUniforms secondUniforms)
+            : base(image, blendFunc, uniforms, paths)
         {
             _secondUniforms = secondUniforms;
         }

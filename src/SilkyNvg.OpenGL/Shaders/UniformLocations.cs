@@ -18,6 +18,7 @@ namespace SilkyNvg.OpenGL.Shaders
         Feather,
         StrokeMult,
         StrokeThr,
+        TexType,
         Type,
 
         MaxLocations

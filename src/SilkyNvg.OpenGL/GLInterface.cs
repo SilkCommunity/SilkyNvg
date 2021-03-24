@@ -6,10 +6,12 @@ using SilkyNvg.Common;
 using SilkyNvg.OpenGL.Calls;
 using SilkyNvg.OpenGL.Instructions;
 using SilkyNvg.OpenGL.Shaders;
+using SilkyNvg.OpenGL.Textures;
 using SilkyNvg.OpenGL.VertexArray;
 using System;
 using System.Collections.Generic;
 using Shader = SilkyNvg.OpenGL.Shaders.Shader;
+using Texture = SilkyNvg.OpenGL.Textures.Texture;
 
 namespace SilkyNvg.OpenGL
 {
@@ -20,6 +22,7 @@ namespace SilkyNvg.OpenGL
         private readonly CallQueue _callQueue;
 
         private readonly List<Vertex> _vertices = new List<Vertex>();
+        private readonly List<Textures.Texture> _textures = new List<Textures.Texture>();
 
         private readonly VAO _vao;
 
@@ -30,6 +33,15 @@ namespace SilkyNvg.OpenGL
         private RenderMeta _renderMeta;
 
         public LaunchParameters LaunchParameters => _graphicsManager.LaunchParameters;
+
+        private void BindTexture(uint id)
+        {
+            if (_renderMeta.BondTexture != id)
+            {
+                _renderMeta.BondTexture = id;
+                _gl.BindTexture(TextureTarget.Texture2D, id);
+            }
+        }
 
         public void StencilMask(uint mask)
         {
@@ -96,6 +108,99 @@ namespace SilkyNvg.OpenGL
             _renderMeta = new RenderMeta();
         }
 
+        public unsafe int CreateTexture(TextureType type, int w, int h, uint imageFlags, float[] data)
+        {
+            var flags = new TextureFlags(imageFlags);
+            var tex = new Texture(_textures.Count + 1, _gl.GenTexture(), w, h, type, flags, _gl);
+            _textures.Add(tex);
+            BindTexture(tex.TextureId);
+
+            _gl.PixelStore(PixelStoreParameter.UnpackAlignment, 1);
+            _gl.PixelStore(PixelStoreParameter.UnpackRowLength, tex.Width);
+            _gl.PixelStore(PixelStoreParameter.UnpackSkipPixels, 0);
+            _gl.PixelStore(PixelStoreParameter.UnpackSkipRows, 0);
+
+            if (type == TextureType.Rgba)
+            {
+                fixed (float* pixels = data)
+                {
+                    _gl.TexImage2D(TextureTarget.Texture2D, 0, (int)InternalFormat.Rgba, (uint)w, (uint)h, 0, GLEnum.Rgba, GLEnum.Float, pixels);
+                }
+            }
+            else
+            {
+                fixed (float* pixels = data)
+                {
+                    _gl.TexImage2D(TextureTarget.Texture2D, 0, (int)InternalFormat.Red, (uint)w, (uint)h, 0, GLEnum.Red, GLEnum.Float, pixels);
+                }
+            }
+
+            if (tex.ImageFlags.Mipmaps)
+            {
+                if (tex.ImageFlags.Nearest)
+                {
+                    _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.NearestMipmapNearest);
+                }
+                else
+                {
+                    _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
+                }
+            }
+            else
+            {
+                if (tex.ImageFlags.Nearest)
+                {
+                    _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+                }
+                else
+                {
+                    _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+                }
+            }
+
+            if (tex.ImageFlags.Nearest)
+            {
+                _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+            }
+            else
+            {
+                _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            }
+
+            if (tex.ImageFlags.RepeatX)
+            {
+                _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            }
+            else
+            {
+                _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+            }
+
+            if (tex.ImageFlags.RepeatY)
+            {
+                _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+            }
+            else
+            {
+                _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+            }
+
+            _gl.PixelStore(PixelStoreParameter.UnpackAlignment, 4);
+            _gl.PixelStore(PixelStoreParameter.UnpackRowLength, 0);
+            _gl.PixelStore(PixelStoreParameter.UnpackSkipPixels, 0);
+            _gl.PixelStore(PixelStoreParameter.UnpackSkipRows, 0);
+
+            if (tex.ImageFlags.Mipmaps)
+            {
+                _gl.GenerateMipmap(TextureTarget.Texture2D);
+            }
+
+            CheckError("create tex!");
+            BindTexture(0);
+
+            return tex.Id;
+        }
+
         private FragmentDataUniforms ConvertPaint(FragmentDataUniforms frag, Paint paint, Scissor scissor, float width, float fringe, float strokeThr)
         {
             frag.InnerColour = Colour.Premult(paint.InnerColour).Rgba;
@@ -125,9 +230,34 @@ namespace SilkyNvg.OpenGL
 
             Matrix3X2<float> invxform;
 
-            if (false) // Does it have images?
+            if (paint.Image != 0)
             {
-                // TODO: Image stuff goes here!
+                var tex = _textures[paint.Image - 1];
+
+                if (tex.ImageFlags.FlipY)
+                {
+                    var m1 = Maths.TransformTranslate(new Matrix3X2<float>(), 0.0f, frag.Extent.Y * 0.5f);
+                    m1 = Maths.TransformMultiply(m1, paint.XForm);
+                    var m2 = Maths.TransformScale(new Matrix3X2<float>(), 1.0f, -1.0f);
+                    m2 = Maths.TransformMultiply(m2, m1);
+                    m1 = Maths.TransformTranslate(m1, 0.0f, -frag.Extent.Y * 0.5f);
+                    m1 = Maths.TransformMultiply(m1, m2);
+                    invxform = Maths.TransformInverse(m1);
+                }
+                else
+                {
+                    invxform = Maths.TransformInverse(paint.XForm);
+                }
+                frag.Type = (int)Shaders.ShaderType.Fillimg;
+
+                if (tex.Type == TextureType.Rgba)
+                {
+                    frag.TextureType = tex.ImageFlags.Premult ? 0 : 1;
+                }
+                else
+                {
+                    frag.TextureType = 2;
+                }
             }
             else
             {
@@ -147,7 +277,11 @@ namespace SilkyNvg.OpenGL
         {
             _shader.LoadUniforms(uniforms);
 
-            // TODO: Images
+            if (image != 0)
+            {
+                var tex = _textures[image - 1];
+                BindTexture(tex.TextureId);
+            }
 
             CheckError("tex paint tex");
         }
@@ -274,13 +408,13 @@ namespace SilkyNvg.OpenGL
 
                 frag = ConvertPaint(frag, paint, scissor, fringe, fringe, -1.0f);
 
-                call = new FillCall(triangleOffset, triangleCount, blendFunc, frag, paths_);
+                call = new FillCall(triangleOffset, triangleCount, paint.Image, blendFunc, frag, paths_);
             }
             else
             {
                 var frag = ConvertPaint(new FragmentDataUniforms(), paint, scissor, fringe, fringe, -1.0f);
 
-                call = new ConvexFillCall(triangleOffset, triangleCount, blendFunc, frag, paths_);
+                call = new ConvexFillCall(triangleOffset, triangleCount, paint.Image, blendFunc, frag, paths_);
             }
 
             _callQueue.Add(call);
@@ -306,20 +440,22 @@ namespace SilkyNvg.OpenGL
                 paths_[i] = copy;
             }
 
+            Call call;
+
             if (LaunchParameters.StencilStrokes)
             {
                 var frag0 = ConvertPaint(new FragmentDataUniforms(), paint, scissor, strokeWidth, fringe, -1.0f);
                 var frag1 = ConvertPaint(new FragmentDataUniforms(), paint, scissor, strokeWidth, fringe, 1.0f - 0.5f / 255.0f);
-                var call = new StrokeCall(new Blend(compositeOperation), frag0, paths_, frag1);
-                _callQueue.Add(call);
+                call = new StrokeCall(paint.Image, new Blend(compositeOperation), frag0, paths_, frag1);
             }
             else
             {
-                var call = new StrokeCall(new Blend(compositeOperation), ConvertPaint(new FragmentDataUniforms(), paint, scissor, strokeWidth, fringe, -1.0f),
-                    paths_, new FragmentDataUniforms());
-                _callQueue.Add(call);
+                var frag0 = ConvertPaint(new FragmentDataUniforms(), paint, scissor, strokeWidth, fringe, -1.0f);
+
+                call = new StrokeCall(paint.Image, new Blend(compositeOperation), frag0, paths_, new FragmentDataUniforms());
             }
 
+            _callQueue.Add(call);
         }
 
         public void Dispose()

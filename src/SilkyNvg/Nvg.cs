@@ -1,10 +1,12 @@
-﻿using SilkyNvg.Base;
+﻿using Silk.NET.Maths;
+using SilkyNvg.Base;
 using SilkyNvg.Colouring;
 using SilkyNvg.Common;
 using SilkyNvg.Core;
 using SilkyNvg.Core.Instructions;
 using SilkyNvg.Core.Paths;
 using SilkyNvg.Core.States;
+using SilkyNvg.Image;
 using SilkyNvg.OpenGL;
 using SilkyNvg.Paths;
 
@@ -372,6 +374,22 @@ namespace SilkyNvg
         }
         #endregion
 
+        #region Transforms
+
+        public Matrix3X2<float> TransformRotate(Matrix3X2<float> t, float angle)
+        {
+            return Maths.TransformRotate(t, angle);
+        }
+
+        #endregion
+
+        #region Images
+        public int CreateImage(string fileName, uint imageFlags)
+        {
+            return ImageLoader.LoadImage(fileName, imageFlags, _graphicsManager);
+        }
+        #endregion
+
         #region Paints
         /// <summary>
         /// <inheritdoc cref="Paint"/>
@@ -431,6 +449,12 @@ namespace SilkyNvg
         {
             return Paint.RadialGradient(x, y, innerRadius, outerRadius, innerColour, outerColour);
         }
+
+        public Paint ImagePattern(float x, float y, float w, float h, float angle, int image, float alpha)
+        {
+            return Paint.ImagePattern(x, y, w, h, angle, image, alpha);
+        }
+
         #endregion
 
         #region Paths

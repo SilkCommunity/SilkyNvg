@@ -18,10 +18,10 @@ uniform float radius;
 uniform float feather;
 uniform float strokeMult;
 uniform float strokeThr;
-// texture goes here!
+uniform int texType;
 uniform int type;
 
-// texture
+uniform sampler2D tex;
 
 float sdroundrect(vec2 pt, vec2 ext, float rad) {
     vec2 ext2 = ext - vec2(rad, rad);
@@ -58,7 +58,20 @@ void main(void) {
         colour *= strokeAlpha * scissor;
         result = colour;
     } else if (type == 1) { // image
-        // TODO
+        vec2 pt = (paintMat * vec3(pass_position, 1.0)).xy / extent;
+
+        vec4 colour = texture(tex, pt);
+
+        if (texType == 1) {
+            colour = vec4(colour.xyz * colour.w, colour.w);
+        }
+        if (texType == 2) {
+            colour = vec4(colour.x);
+        }
+
+        colour *= innerCol;
+        colour *= strokeAlpha * scissor;
+        result = colour;
     } else if (type == 2) { // stencil fill
         result = vec4(1, 1, 1, 1);
     } else if (type == 3) { // textured tris
