@@ -55,7 +55,7 @@ namespace SilkyNvg
             // TODO: Font
             // TODO: More images
 
-            _draw = new Draw(_instructionManager, _stateManager);
+            _draw = new Draw(_instructionManager, _stateManager, _style);
 
             _frameMeta = new FrameMeta();
         }
@@ -505,6 +505,14 @@ namespace SilkyNvg
         public void QuadTo(float cx, float cy, float x, float y)
         {
             _draw.QuadTo(cx, cy, x, y);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Draw.ArcTo(float, float, float, float, float)"/>
+        /// </summary>
+        public void ArcTo(float x1, float y1, float x2, float y2, float radius)
+        {
+            _draw.ArcTo(x1, y1, x2, y2, radius);
         }
 
         /// <summary>

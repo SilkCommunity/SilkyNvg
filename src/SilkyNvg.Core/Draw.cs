@@ -3,6 +3,7 @@ using SilkyNvg.Common;
 using SilkyNvg.Paths;
 using SilkyNvg.Core.Instructions;
 using SilkyNvg.Core.States;
+using Silk.NET.Maths;
 
 namespace SilkyNvg.Core
 {
@@ -15,11 +16,13 @@ namespace SilkyNvg.Core
 
         private readonly InstructionQueue _instructionManager;
         private readonly StateManager _stateManager;
+        private readonly Style _style;
 
-        internal Draw(InstructionQueue instructionQueue, StateManager stateManager)
+        internal Draw(InstructionQueue instructionQueue, StateManager stateManager, Style style)
         {
             _instructionManager = instructionQueue;
             _stateManager = stateManager;
+            _style = style;
         }
 
         private void Add(InstructionSequence iseq)
@@ -96,6 +99,83 @@ namespace SilkyNvg.Core
                 y
             );
             Add(sequence);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Paths"/>
+        /// 
+        /// Adds an arc segment at the corner defined by the last path point, and two specified points.
+        /// </summary>
+        /// <param name="x1">First specified point's X value</param>
+        /// <param name="y1">First specified point's Y value</param>
+        /// <param name="x2">Second specified point's X value</param>
+        /// <param name="y2">Second specified point's Y value</param>
+        /// <param name="r">The arc radius</param>
+        public void ArcTo(float x1, float y1, float x2, float y2, float radius)
+        {
+            Vector2D<float> p0 = _instructionManager.InstructionPosition;
+            Vector2D<float> p1 = new Vector2D<float>(x1, y1);
+            Vector2D<float> p2 = new Vector2D<float>(x2, y2);
+            Vector2D<float> d0 = new Vector2D<float>();
+            Vector2D<float> d1 = new Vector2D<float>();
+            Vector2D<float> c = new Vector2D<float>();
+
+            float a, d, a0, a1;
+
+            Winding dir;
+
+            if (_instructionManager.QueueLength == 0)
+            {
+                return;
+            }
+
+            // Handle degenerate cases. (wondering how they look O_o)
+            if (Maths.PtEquals(p0.X, p0.Y, p1.X, p1.Y, _style.DistributionTollerance) ||
+                Maths.PtEquals(p1.X, p1.Y, p2.X, p2.Y, _style.DistributionTollerance) ||
+                Maths.distancePtSegment(p1.X, p1.Y, p0.X, p0.Y, p2.X, p2.Y) < _style.DistributionTollerance * _style.DistributionTollerance ||
+                radius < _style.DistributionTollerance)
+            {
+                InstructionSequence sequence = new InstructionSequence(1);
+                sequence.AddLineTo(p1.X, p1.Y);
+                Add(sequence);
+                return;
+            }
+
+            //Calculate tangential circle to lines (x0, y0)-(x1, y1) and (x1, y1) - (x2, y2).
+            d0.X = p0.X - p1.X;
+            d0.Y = p0.Y - p1.Y;
+            d1.X = p2.X - p1.X;
+            d1.Y = p2.Y - p1.Y;
+
+            d0 = d0 / Maths.Normalize(d0);
+            d1 = d1 / Maths.Normalize(d1);
+            a = MathF.Acos(d0.X * d1.X + d0.Y * d1.Y);
+            d = radius / MathF.Tan(a / 2F);
+
+            if (d > 10000F)
+            {
+                InstructionSequence sequence = new InstructionSequence(1);
+                sequence.AddLineTo(p1.X, p1.Y);
+                Add(sequence);
+                return;
+            }
+
+            if (Maths.Cross(d0.X, d0.Y, d1.X, d1.Y) > 0F)
+            {
+                c = p1 + d0 * d + (new Vector2D<float>(d0.Y, -d0.X) * radius);
+                a0 = MathF.Atan2(d0.X, -d0.Y);
+                a1 = MathF.Atan2(-d1.X, d1.Y);
+                dir = Winding.CW;
+            }
+            else
+            {
+                c = p1 + d0 * d + (new Vector2D<float>(-d0.Y, d0.X) * radius);
+                a0 = MathF.Atan2(-d0.X, d0.Y);
+                a1 = MathF.Atan2(d1.X, -d1.Y);
+                dir = Winding.CCW;
+            }
+
+            Arc(c.X, c.Y, radius, a0, a1, dir);
         }
 
         /// <summary>
