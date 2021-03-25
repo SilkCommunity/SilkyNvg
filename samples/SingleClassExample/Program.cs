@@ -106,7 +106,7 @@ namespace SingleClassExample
                     nvg.BeginPath();
                     float size = winHeight * 0.5f;
                     nvg.Rect(winWidth / 2 - size / 2, winHeight / 2 - size / 2, size, size);
-                    nvg.FillPaint(Paint.ImagePattern(winWidth / 2 - size / 2, winHeight / 2 - size / 2, size, size, angle, texture, 1.0f));
+                    nvg.FillPaint(Paint.ImagePattern(winWidth / 2 - size / 2, winHeight / 2 - size / 2, size, size, angle, texture, 0.5f));
                     nvg.Fill();
 
                     nvg.EndFrame();

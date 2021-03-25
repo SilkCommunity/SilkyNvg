@@ -211,6 +211,20 @@ namespace SilkyNvg.Colouring
             return paint;
         }
 
+        /// <summary>
+        /// <inheritdoc cref="Paint"/>
+        /// 
+        /// Creates and returns an image pattern.<br/>
+        /// The gradient is transformed by the current transformation when it is passed to FillPaint() or StrokePaint().
+        /// </summary>
+        /// <param name="x">The left location of the image pattern.</param>
+        /// <param name="y">The top location of the image pattern.</param>
+        /// <param name="width">The width of one image.</param>
+        /// <param name="height">The height of one image.</param>
+        /// <param name="angle">The angle rotation arount the top-left corner (in degrees).</param>
+        /// <param name="image">The handle to the image.</param>
+        /// <param name="alpha">The alpha value of the image.</param>
+        /// <returns></returns>
         public static Paint ImagePattern(float x, float y, float width, float height, float angle, int image, float alpha)
         {
             var paint = new Paint();

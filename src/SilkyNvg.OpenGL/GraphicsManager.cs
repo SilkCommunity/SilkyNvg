@@ -32,9 +32,24 @@ namespace SilkyNvg.OpenGL
             _interface = new GLInterface(this);
         }
 
-        public int CreateTexture(TextureType type, int w, int h, uint imageFlags, float[] data)
+        public int CreateTexture(TextureType type, int w, int h, uint imageFlags, byte[] data)
         {
             return _interface.CreateTexture(type, w, h, imageFlags, data);
+        }
+
+        public void DeleteTexture(int image)
+        {
+            _interface.DeleteTexture(image);
+        }
+
+        public void UpdateTexture(int image, int x, int y, int w, int h, byte[] data)
+        {
+            _interface.UpdateTexture(image, x, y, w, h, data);
+        }
+
+        public Vector2D<int> GetTextureSize(int image)
+        {
+            return _interface.GetTextureSize(image);
         }
 
         public void Viewport(float width, float height)

@@ -384,10 +384,81 @@ namespace SilkyNvg
         #endregion
 
         #region Images
+        /// <summary>
+        /// <inheritdoc cref="Docs.Images"/>
+        /// 
+        /// Creates an image by loading it from the disk from the specified file name.<br/>
+        /// </summary>
+        /// <param name="fileName">The file location of the image</param>
+        /// <param name="imageFlags">The image flags</param>
+        /// <returns>A handle to the image.</returns>
         public int CreateImage(string fileName, uint imageFlags)
         {
             return ImageLoader.LoadImage(fileName, imageFlags, _graphicsManager);
         }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Images"/>
+        /// 
+        /// Creates an image by loading it from the specified byte array.<br/>
+        /// </summary>
+        /// <param name="fileName">The file location of the image</param>
+        /// <param name="imageFlags">The image flags</param>
+        /// <returns>A handle to the image.</returns>
+        public int CreateImageMem(uint imageFlags, byte[] data)
+        {
+            return ImageLoader.LoadImageMem(imageFlags, data, _graphicsManager);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Images"/>
+        /// 
+        /// Creates an image from the specified image data.<br/>
+        /// </summary>
+        /// <param name="fileName">The file location of the image</param>
+        /// <param name="imageFlags">The image flags</param>
+        /// <returns>A handle to the image.</returns>
+        public int CreateImageRgba(int width, int height, uint imageFlags, byte[] data)
+        {
+            return ImageLoader.CreateImageRgba(width, height, imageFlags, data, _graphicsManager);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Images"/>
+        /// 
+        /// Updates the images data to the specified data.<br/>
+        /// </summary>
+        /// <param name="image">The handle to the image</param>
+        /// <param name="data">The new image data.</param>
+        public void UpdateImage(int image, byte[] data)
+        {
+            var size = _graphicsManager.GetTextureSize(image);
+            _graphicsManager.UpdateTexture(image, 0, 0, size.X, size.Y, data);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Images"/>
+        /// 
+        /// Gets the image's size.
+        /// </summary>
+        /// <param name="image">The handle to the image.</param>
+        /// <returns>The dimensions of the image.</returns>
+        public Vector2D<int> ImageSize(int image)
+        {
+            return _graphicsManager.GetTextureSize(image);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Images"/>
+        /// 
+        /// Deletes the created image.
+        /// </summary>
+        /// <param name="image">The handle to the image.</param>
+        public void DeleteImage(int image)
+        {
+            _graphicsManager.DeleteTexture(image);
+        }
+
         #endregion
 
         #region Paints

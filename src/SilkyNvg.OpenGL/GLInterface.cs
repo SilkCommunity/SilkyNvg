@@ -22,7 +22,7 @@ namespace SilkyNvg.OpenGL
         private readonly CallQueue _callQueue;
 
         private readonly List<Vertex> _vertices = new List<Vertex>();
-        private readonly List<Textures.Texture> _textures = new List<Textures.Texture>();
+        private readonly IDictionary<int, Texture> _textures = new Dictionary<int, Texture>();
 
         private readonly VAO _vao;
 
@@ -41,6 +41,13 @@ namespace SilkyNvg.OpenGL
                 _renderMeta.BondTexture = id;
                 _gl.BindTexture(TextureTarget.Texture2D, id);
             }
+        }
+
+        private void DelTexture(int image)
+        {
+            var tex = _textures[image];
+            _gl.DeleteTexture(tex.TextureId);
+            _textures.Remove(image);
         }
 
         public void StencilMask(uint mask)
@@ -108,11 +115,11 @@ namespace SilkyNvg.OpenGL
             _renderMeta = new RenderMeta();
         }
 
-        public unsafe int CreateTexture(TextureType type, int w, int h, uint imageFlags, float[] data)
+        public unsafe int CreateTexture(TextureType type, int w, int h, uint imageFlags, byte[] data)
         {
             var flags = new TextureFlags(imageFlags);
             var tex = new Texture(_textures.Count + 1, _gl.GenTexture(), w, h, type, flags, _gl);
-            _textures.Add(tex);
+            _textures.Add(tex.Id, tex);
             BindTexture(tex.TextureId);
 
             _gl.PixelStore(PixelStoreParameter.UnpackAlignment, 1);
@@ -122,16 +129,16 @@ namespace SilkyNvg.OpenGL
 
             if (type == TextureType.Rgba)
             {
-                fixed (float* pixels = data)
+                fixed (byte* pixels = data)
                 {
-                    _gl.TexImage2D(TextureTarget.Texture2D, 0, (int)InternalFormat.Rgba, (uint)w, (uint)h, 0, GLEnum.Rgba, GLEnum.Float, pixels);
+                    _gl.TexImage2D(TextureTarget.Texture2D, 0, (int)InternalFormat.Rgba, (uint)w, (uint)h, 0, GLEnum.Rgba, GLEnum.UnsignedByte, pixels);
                 }
             }
             else
             {
-                fixed (float* pixels = data)
+                fixed (byte* pixels = data)
                 {
-                    _gl.TexImage2D(TextureTarget.Texture2D, 0, (int)InternalFormat.Red, (uint)w, (uint)h, 0, GLEnum.Red, GLEnum.Float, pixels);
+                    _gl.TexImage2D(TextureTarget.Texture2D, 0, (int)InternalFormat.Red, (uint)w, (uint)h, 0, GLEnum.Red, GLEnum.UnsignedByte, pixels);
                 }
             }
 
@@ -201,6 +208,56 @@ namespace SilkyNvg.OpenGL
             return tex.Id;
         }
 
+        public void DeleteTexture(int image)
+        {
+            if (!_textures.ContainsKey(image))
+                throw new InvalidOperationException("Image with handle " + image + " does not exist!");
+
+            DelTexture(image);
+        }
+
+        public unsafe void UpdateTexture(int image, int x, int y, int w, int h, byte[] data)
+        {
+            var tex = _textures[image - 1];
+
+            BindTexture(tex.TextureId);
+
+            _gl.PixelStore(PixelStoreParameter.UnpackAlignment, 1);
+
+            _gl.PixelStore(PixelStoreParameter.UnpackRowLength, tex.Width);
+            _gl.PixelStore(PixelStoreParameter.UnpackSkipPixels, x);
+            _gl.PixelStore(PixelStoreParameter.UnpackSkipRows, y);
+
+            if (tex.Type == TextureType.Rgba)
+            {
+                fixed (byte* d = data)
+                {
+                    _gl.TexSubImage2D(TextureTarget.Texture2D, 0, x, y, (uint)w, (uint)h, GLEnum.Rgba, PixelType.UnsignedByte, d);
+                }
+            }
+            else
+            {
+                fixed (byte* d = data)
+                {
+                    _gl.TexSubImage2D(TextureTarget.Texture2D, 0, x, y, (uint)w, (uint)h, GLEnum.Red, PixelType.UnsignedByte, d);
+                }
+            }
+
+            _gl.PixelStore(PixelStoreParameter.UnpackAlignment, 4);
+
+            _gl.PixelStore(PixelStoreParameter.UnpackRowLength, 0);
+            _gl.PixelStore(PixelStoreParameter.UnpackSkipPixels, 0);
+            _gl.PixelStore(PixelStoreParameter.UnpackSkipRows, 0);
+
+            BindTexture(0);
+        }
+
+        public Vector2D<int> GetTextureSize(int image)
+        {
+            var tex = _textures[image - 1];
+            return new Vector2D<int>(tex.Width, tex.Height);
+        }
+
         private FragmentDataUniforms ConvertPaint(FragmentDataUniforms frag, Paint paint, Scissor scissor, float width, float fringe, float strokeThr)
         {
             frag.InnerColour = Colour.Premult(paint.InnerColour).Rgba;
@@ -232,7 +289,7 @@ namespace SilkyNvg.OpenGL
 
             if (paint.Image != 0)
             {
-                var tex = _textures[paint.Image - 1];
+                var tex = _textures[paint.Image];
 
                 if (tex.ImageFlags.FlipY)
                 {
@@ -279,7 +336,7 @@ namespace SilkyNvg.OpenGL
 
             if (image != 0)
             {
-                var tex = _textures[image - 1];
+                var tex = _textures[image];
                 BindTexture(tex.TextureId);
             }
 
