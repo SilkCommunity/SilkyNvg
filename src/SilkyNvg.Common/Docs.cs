@@ -72,5 +72,18 @@
         /// </summary>
         public static void Images() { }
 
+        /// <summary>
+        /// The composite operations in NanoVG are modeled after the HTML Canvas API and<br/>
+        /// the blend func is based on OpenGL (see corresponding manuals for more info).<br/>
+        /// The colours in the blending state have premultiplied alpha.<br/>
+        /// </summary>
+        public static void CompositeOperation() { }
+
+        /// <summary>
+        /// Scissoring allows you to clip the rendering into a rectangle. This is usefull for various<br/>
+        /// user interface cases like rendering a text edit or a timeline.<br/>
+        /// </summary>
+        public static void Scissoring() { }
+
     }
 }

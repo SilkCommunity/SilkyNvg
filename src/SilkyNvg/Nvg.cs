@@ -1,5 +1,6 @@
 ﻿using Silk.NET.Maths;
 using SilkyNvg.Base;
+using SilkyNvg.Blending;
 using SilkyNvg.Colouring;
 using SilkyNvg.Common;
 using SilkyNvg.Core;
@@ -9,6 +10,7 @@ using SilkyNvg.Core.States;
 using SilkyNvg.Image;
 using SilkyNvg.OpenGL;
 using SilkyNvg.Paths;
+using System;
 
 namespace SilkyNvg
 {
@@ -111,6 +113,43 @@ namespace SilkyNvg
         {
             _graphicsManager.Flush();
             _pathCache.ClearVerts();
+        }
+        #endregion
+
+        #region CompositeOperations
+        /// <summary>
+        /// <inheritdoc cref="Docs.CompositeOperation"/>
+        /// Sets the composite operation.
+        /// </summary>
+        /// <param name="op">The composite operation to be used.</param>
+        public void GlobalCompositeOperation(CompositeOperation op)
+        {
+            var state = _stateManager.GetState();
+            state.CompositeOperation = new CompositeOperationState(op);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.CompositeOperation"/>
+        /// 
+        /// Sets the composite operation with custom pixel arithmetic.<br/>
+        /// </summary>
+        /// <param name="sfactor">The srcRgb and srcAlpha.</param>
+        /// <param name="dfactor">The dstRgb</param>
+        public void GlobalCompositeBlendFunc(BlendFactor sfactor, BlendFactor dfactor)
+        {
+            GlobalCompositeBlendFuncSeperate(sfactor, dfactor, sfactor, dfactor);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.CompositeOperation"/>
+        /// 
+        /// Sets the composite operation with custom pixel arithmetic for RGB and alpha components seperately.<br/>
+        /// </summary>
+        public void GlobalCompositeBlendFuncSeperate(BlendFactor srcRgb, BlendFactor dstRgb, BlendFactor srcAlpha, BlendFactor dstAlpha)
+        {
+            var op = new CompositeOperationState(srcRgb, dstRgb, srcAlpha, dstAlpha);
+            var state = _stateManager.GetState();
+            state.CompositeOperation = op;
         }
         #endregion
 
@@ -381,7 +420,7 @@ namespace SilkyNvg
             return Maths.TransformRotate(t, angle);
         }
 
-        #endregion
+        #endregion// TODO: Transforms
 
         #region Images
         /// <summary>
@@ -526,6 +565,90 @@ namespace SilkyNvg
             return Paint.ImagePattern(x, y, w, h, angle, image, alpha);
         }
 
+        #endregion
+
+        #region Scissoring
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Scissoring"/>
+        /// 
+        /// Sets the current scissor rectangle.
+        /// The scissor rectangle is transformed by the current transform.
+        /// </summary>
+        /// <param name="x">The rectangle's X Position</param>
+        /// <param name="y">The rectangle's Y Position</param>
+        /// <param name="width">The rectangle's Width</param>
+        /// <param name="height">The rectangle's Height</param>
+        public void Scissor(float x, float y, float width, float height)
+        {
+            var state = _stateManager.GetState();
+
+            width = MathF.Max(0.0f, width);
+            height = MathF.Max(0.0f, height);
+
+            var scissor = state.Scissor;
+            var transform = Matrix3X2<float>.Identity;
+            transform.M31 = x + width * 0.5f;
+            transform.M32 = y + height * 0.5f;
+            scissor.XForm = Maths.TransformMultiply(transform, state.Transform);
+
+            scissor.Extent = new Vector2D<float>(width * 0.5f, height * 0.5f);
+
+            state.Scissor = scissor;
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Scissoring"/>
+        /// 
+        /// Intersects the current scissor rectangle with the specified rectnagle.<br/>
+        /// The scissor rectangle is transformed by the current transform.<br/>
+        /// Note:<br/>
+        /// In this case the rotation of the previous scissor rect differs from
+        /// the rectangle and the previous scissor rectangle is transformed in the current<br/>
+        /// transform space. The resulting shape is always a rectangle.<br/>
+        /// </summary>
+        /// <param name="x">The rectangle's X Position</param>
+        /// <param name="y">The rectangle's Y Position</param>
+        /// <param name="width">The rectangle's Width</param>
+        /// <param name="height">The rectangle's Height</param>
+        public void IntersectScissor(float x, float y, float width, float height)
+        {
+            var state = _stateManager.GetState();
+
+            if (state.Scissor.Extent.X < 0)
+            {
+                Scissor(x, y, width, height);
+                return;
+            }
+
+            var scissor = state.Scissor;
+            var pxform = state.Scissor.XForm;
+            float ex = scissor.Extent.X;
+            float ey = scissor.Extent.Y;
+            var invxform = Maths.TransformInverse(state.Transform);
+            pxform = Maths.TransformMultiply(pxform, invxform);
+
+            float tex = ex * MathF.Abs(pxform.M11) + ey * MathF.Abs(pxform.M21);
+            float tey = ex * MathF.Abs(pxform.M12) + ey * MathF.Abs(pxform.M22);
+
+            var rect = Maths.IsectRects(pxform.M31 - tex, pxform.M32 - tey, tex * 2, tey * 2, x, y, width, height);
+
+            Scissor(rect.X, rect.Y, rect.Z, rect.W);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Scissoring"/>
+        /// 
+        /// Resets and disables scissoring.
+        /// </summary>
+        public void ResetScissor()
+        {
+            var state = _stateManager.GetState();
+            var scissor = state.Scissor;
+            scissor.XForm = new Matrix3X2<float>();
+            scissor.Extent = new Vector2D<float>(-1.0f);
+            state.Scissor = scissor;
+        }
         #endregion
 
         #region Paths
@@ -743,6 +866,9 @@ namespace SilkyNvg
 
         }
         #endregion
+
+        #region Text
+        #endregion // TODO: Text
 
     }
 }

@@ -82,7 +82,8 @@ namespace SilkyNvg.Core.States
 
         public Scissor Scissor
         {
-            get => _scissor;
+            get { return _scissor; }
+            set { _scissor = value; }
         }
 
         public State()

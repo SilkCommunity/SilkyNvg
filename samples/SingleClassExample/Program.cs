@@ -16,6 +16,11 @@ namespace SingleClassExample
             Console.Error.WriteLine("GLFW Error: " + code + ": " + message + ".");
         }
 
+        struct D
+        {
+            public int a;
+        }
+
         static unsafe void Main(string[] args)
         {
             var glfw = Glfw.GetApi();

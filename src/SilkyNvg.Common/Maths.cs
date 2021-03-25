@@ -10,6 +10,15 @@ namespace SilkyNvg.Common
 
         public static float Kappa => 0.5522847493f;
 
+        public static Vector4D<float> IsectRects(float ax, float ay, float aw, float ah, float bx, float by, float bw, float bh)
+        {
+            float minx = MathF.Min(ax, bx);
+            float miny = MathF.Min(ay, by);
+            float maxx = MathF.Max(ax, bx);
+            float maxy = MathF.Max(ay, by);
+            return new Vector4D<float>(minx, miny, MathF.Max(0.0f, maxx - minx), MathF.Max(0.0f, maxy - miny));
+        }
+
         public static Matrix3X2<float> TransformMultiply(Matrix3X2<float> t, Matrix3X2<float> s)
         {
             float t0 = t.M11 * s.M11 + t.M12 * s.M21;
@@ -67,24 +76,6 @@ namespace SilkyNvg.Common
                 M33 = 1.0f,
                 M34 = 0.0f
             };
-        }
-
-        public static float[] ToFloatArrayMatrix(Matrix3X4<float> t)
-        {
-            float[] m = new float[3 * 4];
-            m[0] = t.M11;
-            m[1] = t.M12;
-            m[2] = t.M13;
-            m[3] = t.M14;
-            m[4] = t.M21;
-            m[5] = t.M22;
-            m[6] = t.M23;
-            m[7] = t.M24;
-            m[8] = t.M31;
-            m[9] = t.M32;
-            m[10] = t.M33;
-            m[11] = t.M34;
-            return m;
         }
 
         public static float GetAverageScale(Matrix3X2<float> t)
