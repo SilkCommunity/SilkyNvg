@@ -76,8 +76,13 @@ namespace SilkyNvg.Core.Paths
 
         public void CalculateJoins(float iw, float miterLimit, LineCap lineJoin)
         {
-            var p0 = _points[^1];
-            var p1 = _points[0];
+            Point p0 = default, p1 = default;
+
+            if (_points.Count > 0)
+            {
+                p0 = _points[^1];
+                p1 = _points[0];
+            }
             int nleft = 0;
 
             _bevelCount = 0;
@@ -112,7 +117,7 @@ namespace SilkyNvg.Core.Paths
                 if (cross > 0.0f)
                 {
                     nleft++;
-                    p1.Flags |= (uint)PointFlags.Left;
+                    p1.Flag(PointFlags.Left);
                 }
 
                 float limit = MathF.Max(1.01f, MathF.Min(p0.Length, p1.Length) * iw);
@@ -124,7 +129,7 @@ namespace SilkyNvg.Core.Paths
                     if ((dmr2 * miterLimit * miterLimit) < 1.0f ||
                         lineJoin == LineCap.Bevel || lineJoin == LineCap.Round)
                     {
-                        p1.Flag(PointFlags.Innerbevel);
+                        p1.Flag(PointFlags.Bevel);
                     }
                 }
 
@@ -146,7 +151,8 @@ namespace SilkyNvg.Core.Paths
             if (Point.PtEquals(p0, p1, style.DistributionTollerance))
             {
                 _points.RemoveAt(_points.Count - 1);
-                p0 = _points[^1];
+                if (_points.Count > 0)
+                    p0 = _points[^1];
                 Close();
             }
 
@@ -156,10 +162,14 @@ namespace SilkyNvg.Core.Paths
                 if (_winding == Winding.CCW && area < 0.0f)
                 {
                     PolyReverse();
+                    p0 = _points[^1];
+                    p1 = _points[0];
                 }
                 if (_winding == Winding.CW && area > 0.0f)
                 {
                     PolyReverse();
+                    p0 = _points[^1];
+                    p1 = _points[0];
                 }
             }
 

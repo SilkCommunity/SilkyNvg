@@ -293,11 +293,11 @@ namespace SilkyNvg.OpenGL
 
                 if (tex.ImageFlags.FlipY)
                 {
-                    var m1 = Maths.TransformTranslate(new Matrix3X2<float>(), 0.0f, frag.Extent.Y * 0.5f);
+                    var m1 = Maths.TransformTranslate(0.0f, frag.Extent.Y * 0.5f);
                     m1 = Maths.TransformMultiply(m1, paint.XForm);
-                    var m2 = Maths.TransformScale(new Matrix3X2<float>(), 1.0f, -1.0f);
+                    var m2 = Maths.TransformScale(1.0f, -1.0f);
                     m2 = Maths.TransformMultiply(m2, m1);
-                    m1 = Maths.TransformTranslate(m1, 0.0f, -frag.Extent.Y * 0.5f);
+                    m1 = Maths.TransformTranslate(0.0f, -frag.Extent.Y * 0.5f);
                     m1 = Maths.TransformMultiply(m1, m2);
                     invxform = Maths.TransformInverse(m1);
                 }
@@ -355,7 +355,7 @@ namespace SilkyNvg.OpenGL
                 int idx = 0;
                 float[] vertices = new float[_vertices.Count * 2];
                 float[] textureCoords = new float[_vertices.Count * 2];
-                foreach (Vertex vertex in _vertices)
+                foreach (Vertex vertex in _vertices) // 26, 80, 82
                 {
                     vertices[idx] = vertex.X;
                     textureCoords[idx++] = vertex.U;
@@ -492,6 +492,7 @@ namespace SilkyNvg.OpenGL
                     copy.StrokeOffset = offset;
                     copy.StrokeCount = path.Stroke.Count;
                     _vertices.AddRange(path.Stroke);
+
                     offset += path.Stroke.Count;
                 }
                 paths_[i] = copy;
@@ -519,9 +520,10 @@ namespace SilkyNvg.OpenGL
         {
             _shader.Dispose();
             _vao.Dispose();
-
-            // TODO: Textures
-
+            foreach (int id in _textures.Keys)
+            {
+                DelTexture(id);
+            }
             _vertices.Clear();
             _callQueue.Clear();
         }

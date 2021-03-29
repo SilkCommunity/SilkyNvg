@@ -2,10 +2,11 @@
 using SilkyNvg.Blending;
 using SilkyNvg.Colouring;
 using SilkyNvg.Paths;
+using System;
 
 namespace SilkyNvg.Core.States
 {
-    internal class State
+    internal class State : ICloneable
     {
 
         private CompositeOperationState _compositeOperationState;
@@ -105,6 +106,11 @@ namespace SilkyNvg.Core.States
             _xform = Matrix3X2<float>.Identity;
 
             _scissor = new Scissor(new Vector2D<float>(-1.0f));
+        }
+
+        public object Clone()
+        {
+            return MemberwiseClone();
         }
 
     }

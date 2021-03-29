@@ -12,10 +12,10 @@ namespace SilkyNvg.Common
 
         public static Vector4D<float> IsectRects(float ax, float ay, float aw, float ah, float bx, float by, float bw, float bh)
         {
-            float minx = MathF.Min(ax, bx);
-            float miny = MathF.Min(ay, by);
-            float maxx = MathF.Max(ax, bx);
-            float maxy = MathF.Max(ay, by);
+            float minx = MathF.Max(ax, bx);
+            float miny = MathF.Max(ay, by);
+            float maxx = MathF.Min(ax + aw, bx + bw);
+            float maxy = MathF.Min(ay + ah, by + bh);
             return new Vector4D<float>(minx, miny, MathF.Max(0.0f, maxx - minx), MathF.Max(0.0f, maxy - miny));
         }
 
@@ -31,6 +31,11 @@ namespace SilkyNvg.Common
             t.M21 = t2;
             t.M31 = t4;
             return t;
+        }
+
+        public static Matrix3X2<float> TransformPremultiply(Matrix3X2<float> t, Matrix3X2<float> s)
+        {
+            return TransformMultiply(s, t);
         }
 
         public static float Clamp(float value, float min, float max)
@@ -81,7 +86,7 @@ namespace SilkyNvg.Common
         public static float GetAverageScale(Matrix3X2<float> t)
         {
             float sx = MathF.Sqrt(t.M11 * t.M11 + t.M21 * t.M21);
-            float sy = MathF.Sqrt(t.M12 * t.M21 + t.M22 * t.M22);
+            float sy = MathF.Sqrt(t.M12 * t.M12 + t.M22 * t.M22);
             return (sx + sy) * 0.5f;
         }
 
@@ -103,40 +108,71 @@ namespace SilkyNvg.Common
             return inv;
         }
 
-        public static Matrix3X2<float> TransformTranslate(Matrix3X2<float> t, float x, float y)
+        public static Matrix3X2<float> TransformSkewX(float angle)
         {
-            t.M11 = 1.0f;
-            t.M12 = 0.0f;
-            t.M21 = 0.0f;
-            t.M22 = 1.0f;
-            t.M31 = x;
-            t.M32 = y;
-            return t;
+            return new Matrix3X2<float>
+            {
+                M11 = 1.0f,
+                M12 = 0.0f,
+                M21 = MathF.Tan(angle),
+                M22 = 1.0f,
+                M31 = 0.0f,
+                M32 = 0.0f,
+            };
         }
 
-        public static Matrix3X2<float> TransformScale(Matrix3X2<float> t, float x, float y)
+        public static Matrix3X2<float> TransformSkewY(float angle)
         {
-            t.M11 = x;
-            t.M12 = 0.0f;
-            t.M21 = 0.0f;
-            t.M22 = y;
-            t.M31 = 0.0f;
-            t.M32 = 0.0f;
-            return t;
+            return new Matrix3X2<float>
+            {
+                M11 = 1.0f,
+                M12 = MathF.Tan(angle),
+                M21 = 0.0f,
+                M22 = 1.0f,
+                M31 = 0.0f,
+                M32 = 0.0f
+            };
         }
 
-        public static Matrix3X2<float> TransformRotate(Matrix3X2<float> t, float angle)
+        public static Matrix3X2<float> TransformTranslate(float x, float y)
         {
-            float rads = angle * MathF.PI / 180;
-            float cs = MathF.Cos(rads);
-            float sn = MathF.Sin(rads);
-            t.M11 = cs;
-            t.M12 = sn;
-            t.M21 = -sn;
-            t.M22 = -cs;
-            t.M31 = 0.0f;
-            t.M32 = 0.0f;
-            return t;
+            return new Matrix3X2<float>()
+            {
+                M11 = 1.0f,
+                M12 = 0.0f,
+                M21 = 0.0f,
+                M22 = 1.0f,
+                M31 = x,
+                M32 = y
+            };
+        }
+
+        public static Matrix3X2<float> TransformScale(float x, float y)
+        {
+            return new Matrix3X2<float>()
+            {
+                M11 = x,
+                M12 = 0.0f,
+                M21 = 0.0f,
+                M22 = y,
+                M31 = 0.0f,
+                M32 = 0.0f
+            };
+        }
+
+        public static Matrix3X2<float> TransformRotate(float angle)
+        {
+            float cs = MathF.Cos(angle);
+            float sn = MathF.Sin(angle);
+            return new Matrix3X2<float>()
+            {
+                M11 = cs,
+                M12 = sn,
+                M21 = -sn,
+                M22 = cs,
+                M31 = 0.0f,
+                M32 = 0.0f
+            };
         }
 
         public static float Normalize(Vector2D<float> v)
@@ -162,7 +198,10 @@ namespace SilkyNvg.Common
 
         public static Vector2D<float> TransformPoint(Vector2D<float> s, Matrix3X2<float> t)
         {
-            return Vector2D.Transform(s, t);
+            var transformed = new Vector2D<float>();
+            transformed.X = s.X * t.M11 + s.Y * t.M21 + t.M31;
+            transformed.Y = s.X * t.M12 + s.Y * t.M22 + t.M32;
+            return transformed;
         }
 
         public static bool PtEquals(float x1, float y1, float x2, float y2, float tol)

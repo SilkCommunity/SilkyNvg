@@ -14,6 +14,7 @@ namespace SilkyNvg.Core.Paths
         private readonly List<Vertex> _vertices;
 
         private Vector4D<float> _bounds;
+        private int _pointCount;
 
         public Vector4D<float> Bounds
         {
@@ -32,6 +33,7 @@ namespace SilkyNvg.Core.Paths
 
         public void Clear()
         {
+            _pointCount = 0;
             _paths.Clear();
         }
 
@@ -62,7 +64,7 @@ namespace SilkyNvg.Core.Paths
             if (path == null)
                 return;
 
-            if (path.Points.Count > 0)
+            if (path.Points.Count > 0 && _pointCount > 0)
             {
                 var pt = LastPoint();
                 if (pt.Equals(x, y, style.DistributionTollerance))
@@ -72,6 +74,7 @@ namespace SilkyNvg.Core.Paths
                 }
             }
 
+            _pointCount++;
             path.Points.Add(new Point(x, y, flags));
         }
 
@@ -110,14 +113,14 @@ namespace SilkyNvg.Core.Paths
                 x0 = p1.X + p0.Dy * w;
                 y0 = p1.Y - p0.Dx * w;
                 x1 = p1.X + p1.Dy * w;
-                y1 = p1.Y - p1.Dy * w;
+                y1 = p1.Y - p1.Dx * w;
             }
             else
             {
                 x0 = p1.X + p1.DMx * w;
                 y0 = p1.Y + p1.DMy * w;
                 x1 = p1.X + p1.DMx * w;
-                y1 = p1.Dy + p1.DMy * w;
+                y1 = p1.Y + p1.DMy * w;
             }
         }
 
@@ -185,7 +188,7 @@ namespace SilkyNvg.Core.Paths
         private List<Vertex> BevelJoin(List<Vertex> verts, Point p0, Point p1, float lw, float rw, float lu, float ru, float fringe)
         {
             float dlx0 = p0.Dy;
-            float dly0 = -p1.Dx;
+            float dly0 = -p0.Dx;
             float dlx1 = p1.Dy;
             float dly1 = -p1.Dx;
 
@@ -207,7 +210,7 @@ namespace SilkyNvg.Core.Paths
                 else
                 {
                     float rx0 = p1.X - p1.DMx * rw;
-                    float ry0 = p1.X - p1.DMy * rw;
+                    float ry0 = p1.Y - p1.DMy * rw;
 
                     verts.Add(new Vertex(p1.X, p1.Y, 0.5f, 1));
                     verts.Add(new Vertex(p1.X - dlx0 * rw, p1.Y - dly0 * rw, ru, 1));
@@ -218,6 +221,10 @@ namespace SilkyNvg.Core.Paths
                     verts.Add(new Vertex(p1.X, p1.Y, 0.5f, 1));
                     verts.Add(new Vertex(p1.X - dlx1 * rw, p1.Y - dly1 * rw, ru, 1));
                 }
+
+                verts.Add(new Vertex(lx1, ly1, lu, 1));
+                verts.Add(new Vertex(p1.X - dlx1 * rw, p1.Y - dly1 * rw, ru, 1));
+
             }
             else
             {
@@ -354,7 +361,7 @@ namespace SilkyNvg.Core.Paths
 
             CalculateJoins(w, lineJoin, miterLimit);
 
-            Point p0, p1;
+            Point p0 = default, p1 = default;
             int s, e;
 
             for (int i = 0; i < _paths.Count; i++)
@@ -369,8 +376,11 @@ namespace SilkyNvg.Core.Paths
 
                 if (loop)
                 {
-                    p0 = points[^1];
-                    p1 = points[0];
+                    if (points.Count > 0)
+                    {
+                        p0 = points[^1];
+                        p1 = points[0];
+                    }
                     s = 0;
                     e = points.Count;
                 }
@@ -420,12 +430,22 @@ namespace SilkyNvg.Core.Paths
                     }
 
                     p0 = p1;
+                    if (j < points.Count - 1)
+                        p1 = points[j + 1];
                 }
 
                 if (loop)
                 {
-                    dst.Add(new Vertex(dst[0].X, dst[0].Y, u0, 1));
-                    dst.Add(new Vertex(dst[1].X, dst[1].Y, u1, 1));
+                    if (dst.Count > 0)
+                    {
+                        dst.Add(new Vertex(dst[0].X, dst[0].Y, u0, 1));
+                        dst.Add(new Vertex(dst[1].X, dst[1].Y, u1, 1));
+                    }
+                    else
+                    {
+                        dst.Add(new Vertex(-1, -1, u0, 1));
+                        dst.Add(new Vertex(-1, -1, u1, 1));
+                    }
                 }
                 else
                 {
@@ -438,7 +458,7 @@ namespace SilkyNvg.Core.Paths
                     {
                         dst = ButtCapEnd(dst, p1, d, w, w - aa, aa, u0, u1);
                     }
-                    else
+                    else if (lineCap == LineCap.Round)
                     {
                         dst = RoundedCapEnd(dst, p1, d, w, capCount, u0, u1);
                     }
@@ -546,14 +566,15 @@ namespace SilkyNvg.Core.Paths
                         else
                         {
                             dst.Add(new Vertex(p1.X + (p1.DMx * lw), p1.Y + (p1.DMy * lw), lu, 1));
-                            dst.Add(new Vertex(p1.X - (p1.DMx * rw), p1.Y - (p1.DMy * rw), lu, 1));
+                            dst.Add(new Vertex(p1.X - (p1.DMx * rw), p1.Y - (p1.DMy * rw), ru, 1));
                         }
                         p0 = p1;
                     }
 
-                    dst.Add(new Vertex(_vertices[0].X, _vertices[0].Y, lu, 1));
-                    dst.Add(new Vertex(_vertices[1].X, _vertices[1].Y, ru, 1));
+                    dst.Add(new Vertex(dst[0].X, dst[0].Y, lu, 1));
+                    dst.Add(new Vertex(dst[1].X, dst[1].Y, ru, 1));
 
+                    path.Stroke.AddRange(dst);
                     _vertices.AddRange(dst);
                 }
                 else

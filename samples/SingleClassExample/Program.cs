@@ -16,11 +16,6 @@ namespace SingleClassExample
             Console.Error.WriteLine("GLFW Error: " + code + ": " + message + ".");
         }
 
-        struct D
-        {
-            public int a;
-        }
-
         static unsafe void Main(string[] args)
         {
             var glfw = Glfw.GetApi();
@@ -78,7 +73,8 @@ namespace SingleClassExample
 
             glfw.SwapInterval(0);
 
-            int texture = nvg.CreateImage("download.jpg", (uint)ImageFlags.RepeatX | (uint)ImageFlags.RepeatY);
+            int texture = nvg.CreateImage("a-very-potter-musical-a-very-potter-sequel-avpm-avps-starkid-Favim.com-173280.jpg",
+                (uint)ImageFlags.RepeatX | (uint)ImageFlags.RepeatY | (uint)ImageFlags.Premultiplied | (uint)ImageFlags.Nearest);
 
             double time = glfw.GetTime();
             float angle = 0;
@@ -110,8 +106,8 @@ namespace SingleClassExample
 
                     nvg.BeginPath();
                     float size = winHeight * 0.5f;
-                    nvg.Rect(winWidth / 2 - size / 2, winHeight / 2 - size / 2, size, size);
-                    nvg.FillPaint(Paint.ImagePattern(winWidth / 2 - size / 2, winHeight / 2 - size / 2, size, size, angle, texture, 0.5f));
+                    nvg.Rect(200, 200, 450, 548);
+                    nvg.FillPaint(Paint.ImagePattern(200, 200, 450, 548, angle, texture, 0.5f));
                     nvg.Fill();
 
                     nvg.EndFrame();

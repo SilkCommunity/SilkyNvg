@@ -63,7 +63,7 @@ namespace NvgExample
 
             _glfw.WindowHint(WindowHintInt.Samples, 4);
 
-            _window = _glfw.CreateWindow(1280, 720, "Single class example", null, null);
+            _window = _glfw.CreateWindow(1000, 600, "Single class example", null, null);
 
             if (_window == null)
             {

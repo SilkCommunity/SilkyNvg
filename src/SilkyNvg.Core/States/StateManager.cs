@@ -28,7 +28,8 @@ namespace SilkyNvg.Core.States
 
             if (_stateStack.Count > 0 && _stateStack.Count < MAX_STATES)
             {
-                _stateStack.AddBefore(_stateStack.Last, _stateStack.Last.Value);
+                State last = _stateStack.Last.Value;
+                _stateStack.AddBefore(_stateStack.Last, (State)last.Clone());
             }
         }
 

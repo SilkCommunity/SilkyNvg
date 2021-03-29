@@ -16,6 +16,8 @@ namespace SilkyNvg.OpenGL.Calls
 
         public override void Run(GLInterface glInterface, GL gl)
         {
+            glInterface.BlendFuncSeperate(_blendFunc);
+
             if (glInterface.LaunchParameters.StencilStrokes)
             {
                 gl.Enable(EnableCap.StencilTest);

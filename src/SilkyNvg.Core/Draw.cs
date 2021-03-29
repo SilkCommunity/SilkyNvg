@@ -366,11 +366,11 @@ namespace SilkyNvg.Core
             float rx = radiusX;
             float ry = radiusY;
             InstructionSequence sequence = new InstructionSequence(6);
-            sequence.AddMoveTo(cx - ry, cy);
-            sequence.AddBezireTo(cx - ry, cy + rx * Maths.Kappa, cx - ry * Maths.Kappa, cy + rx, cx, cy + rx);
-            sequence.AddBezireTo(cx + ry * Maths.Kappa, cy + rx, cx + ry, cy + rx * Maths.Kappa, cx + ry, cy);
-            sequence.AddBezireTo(cx + ry, cy - rx * Maths.Kappa, cx + ry * Maths.Kappa, cy - rx, cx, cy - rx);
-            sequence.AddBezireTo(cx - ry * Maths.Kappa, cy - rx, cx - ry, cy - rx * Maths.Kappa, cx - ry, cy);
+            sequence.AddMoveTo(cx - rx, cy);
+            sequence.AddBezireTo(cx - rx, cy + ry * Maths.Kappa, cx - rx * Maths.Kappa, cy + ry, cx, cy + ry);
+            sequence.AddBezireTo(cx + rx * Maths.Kappa, cy + ry, cx + rx, cy + ry * Maths.Kappa, cx + rx, cy);
+            sequence.AddBezireTo(cx + rx, cy - ry * Maths.Kappa, cx + rx * Maths.Kappa, cy - ry, cx, cy - ry);
+            sequence.AddBezireTo(cx - rx * Maths.Kappa, cy - ry, cx - rx, cy - ry * Maths.Kappa, cx - rx, cy);
             sequence.AddClose();
             Add(sequence);
         }

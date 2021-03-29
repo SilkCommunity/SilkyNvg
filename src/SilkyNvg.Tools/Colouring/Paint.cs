@@ -7,7 +7,7 @@ namespace SilkyNvg.Colouring
     /// <summary>
     /// <inheritdoc cref="Common.Docs.Paints"/>
     /// </summary>
-    public class Paint
+    public class Paint : ICloneable
     {
 
         private Matrix3X2<float> _xform;
@@ -246,6 +246,11 @@ namespace SilkyNvg.Colouring
             paint.InnerColour = paint.OuterColour = new Colour(1.0f, 1.0f, 1.0f, alpha);
 
             return paint;
+        }
+
+        public object Clone()
+        {
+            return MemberwiseClone();
         }
 
     }

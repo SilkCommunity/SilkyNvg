@@ -7,7 +7,7 @@ in vec2 pass_position;
 
 out vec4 outColour;
 
-uniform mat3 scissorMat;
+uniform mat3x4 scissorMat;
 uniform mat3x4 paintMat;
 uniform vec4 innerCol;
 uniform vec4 outerCol;

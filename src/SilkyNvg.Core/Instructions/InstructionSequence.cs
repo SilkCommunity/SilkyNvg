@@ -31,11 +31,19 @@ namespace SilkyNvg.Core.Instructions
 
         public Vector2D<float> GetXY()
         {
-            var list = new System.Collections.Generic.List<float>();
-            if (_instructionCount > 1)
-                list.AddRange(_instructions[_instructionCount - 2].Data);
-            list.AddRange(_instructions[_instructionCount - 1].Data);
-            return new Vector2D<float>(list[^2], list[^1]);
+            float x, y;
+            var instruction = _instructions[^1];
+            y = instruction.Data[^1];
+            if (instruction.Data.Length > 1)
+            {
+                x = instruction.Data[^2];
+            }
+            else
+            {
+                instruction = _instructions[^2];
+                x = instruction.Data[^1];
+            }
+            return new Vector2D<float>(x, y);
         }
 
         // TODO: Implement the following methods:

@@ -74,9 +74,6 @@ namespace SilkyNvg
             _pathCache.ClearVerts();
 
             // TODO: Font
-
-            // TODO: Images
-
             _graphicsManager.Delete();
         }
 
@@ -414,13 +411,238 @@ namespace SilkyNvg
         #endregion
 
         #region Transforms
-
-        public Matrix3X2<float> TransformRotate(Matrix3X2<float> t, float angle)
+        /// <summary>
+        /// <inheritdoc cref="Docs.Transforms"/>
+        /// 
+        /// Resets the current transform to an identity matrix.
+        /// </summary>
+        public void ResetTransform()
         {
-            return Maths.TransformRotate(t, angle);
+            var state = _stateManager.GetState();
+            state.Transform = Matrix3X2<float>.Identity;
         }
 
-        #endregion// TODO: Transforms
+        /// <summary>
+        /// <inheritdoc cref="Docs.Transforms"/>
+        /// 
+        /// Premultiplies the current coordinate system by specified matrix.
+        /// </summary>
+        /// <param name="a">M11</param>
+        /// <param name="b">M12</param>
+        /// <param name="c">M13</param>
+        /// <param name="d">M21</param>
+        /// <param name="e">M22</param>
+        /// <param name="f">M23</param>
+        public void Transform(float a, float b, float c, float d, float e, float f)
+        {
+            var state = _stateManager.GetState();
+            state.Transform = TransformPremultiply(state.Transform, new Matrix3X2<float>(a, b, c, d, e, f));
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Transforms"/>
+        /// 
+        /// Translates the current coordinate system.
+        /// </summary>
+        /// <param name="x">The new centre-X</param>
+        /// <param name="y">The new centre-Y</param>
+        public void Translate(float x, float y)
+        {
+            var state = _stateManager.GetState();
+            var t = TransformTranslate(x, y);
+            state.Transform = TransformPremultiply(state.Transform, t);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Transforms"/>
+        /// 
+        /// Rotates the current coordiante system. The angle is specified in radians.
+        /// </summary>
+        /// <param name="angle">The angle to rotate by.</param>
+        public void Rotate(float angle)
+        {
+            var state = _stateManager.GetState();
+            var t = TransformRotate(angle);
+            state.Transform = TransformPremultiply(state.Transform, t);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Transforms"/>
+        /// 
+        /// Skews the current coordinate system along the X-Axis. The angle is specified in radians.
+        /// </summary>
+        /// <param name="angle">The angle to skew around the X-Axis</param>
+        public void SkewX(float angle)
+        {
+            var state = _stateManager.GetState();
+            var t = TransformSkewX(angle);
+            state.Transform = TransformPremultiply(state.Transform, t);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Transforms"/>
+        /// 
+        /// Skews the current coordinate system along the Y-Axis. The angle is specified in radians.
+        /// </summary>
+        /// <param name="angle">The angle to skew around the X-Axis</param>
+        public void SkewY(float angle)
+        {
+            var state = _stateManager.GetState();
+            var t = TransformSkewY(angle);
+            state.Transform = TransformPremultiply(state.Transform, t);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Transforms"/>
+        /// 
+        /// Scales the current coordinate system.
+        /// </summary>
+        /// <param name="x">Scale of the X-Axis</param>
+        /// <param name="y">Scale of the Y-Axis</param>
+        public void Scale(float x, float y)
+        {
+            var state = _stateManager.GetState();
+            var t = TransformScale(x, y);
+            state.Transform = TransformPremultiply(state.Transform, t);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Transforms"/>
+        /// 
+        /// [a c e]<br/>
+        /// [b d f]<br/>
+        /// [0 0 1]<br/>
+        /// </summary>
+        /// <returns>The top part of the current transformation matrix.</returns>
+        public Matrix3X2<float> CurrentTransform()
+        {
+            var state = _stateManager.GetState();
+            return state.Transform;
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Transforms2"/>
+        /// </summary>
+        /// <returns>A new identity matrix.</returns>
+        public Matrix3X2<float> TransformIdentity()
+        {
+            return Matrix3X2<float>.Identity;
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Transforms2"/>
+        /// <br/>
+        /// </summary>
+        /// <returns>A new matrix translated to X and Y</returns>
+        public Matrix3X2<float> TransformTranslate(float x, float y)
+        {
+            return Maths.TransformTranslate(x, y);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Transforms2"/>
+        /// </summary>
+        /// <param name="x">The x scale</param>
+        /// <param name="y">The y scale</param>
+        /// <returns>A new matrix scaled by X and Y</returns>
+        public Matrix3X2<float> TransformScale(float x, float y)
+        {
+            return Maths.TransformScale(x, y);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Transforms2"/>
+        /// </summary>
+        /// <param name="angle">To be specified in radians.</param>
+        /// <returns>A new matrix rotated by the angle</returns>
+        public Matrix3X2<float> TransformRotate(float angle)
+        {
+            return Maths.TransformRotate(angle);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Transforms2"/>
+        /// </summary>
+        /// <param name="angle">To be specified in radians.</param>
+        /// <returns>A new matrix skewed on the X-Axis by angle</returns>
+        public Matrix3X2<float> TransformSkewX(float angle)
+        {
+            return Maths.TransformSkewX(angle);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Transforms2"/>
+        /// </summary>
+        /// <param name="angle">To be specified in radians.</param>
+        /// <returns>A new matrix skewed on the Y-Axis by angle</returns>
+        public Matrix3X2<float> TransformSkewY(float angle)
+        {
+            return Maths.TransformSkewY(angle);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Transforms2"/>
+        /// Calculated as follows: A = A * B
+        /// </summary>
+        /// <param name="t">see: A</param>
+        /// <param name="s">see: B</param>
+        /// <returns>The resulting matrix of multiplying A with B</returns>
+        public Matrix3X2<float> TransformMultiply(Matrix3X2<float> t, Matrix3X2<float> s)
+        {
+            return Maths.TransformMultiply(t, s);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Transforms2"/>
+        /// Calculated as follows: A = B * A
+        /// </summary>
+        /// <param name="t">see: A</param>
+        /// <param name="s">see: B</param>
+        /// <returns>The resulting matrix of multiplying B with A</returns>
+        public Matrix3X2<float> TransformPremultiply(Matrix3X2<float> t, Matrix3X2<float> s)
+        {
+            return Maths.TransformPremultiply(t, s);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Transforms2"/>
+        /// </summary>
+        /// <param name="t">The matrix to be inversed.</param>
+        /// <returns>A new matrix containing the inversed t</returns>
+        public Matrix3X2<float> TransformInverse(Matrix3X2<float> t)
+        {
+            return Maths.TransformInverse(t);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Transforms2"/>
+        /// Transforms a point by the given transform.
+        /// </summary>
+        /// <param name="transform">The transform to be used on the point</param>
+        /// <param name="pos">The point to be transformed</param>
+        /// <returns>The transformed pos</returns>
+        public Vector2D<float> TransformPoint(Matrix3X2<float> transform, Vector2D<float> pos)
+        {
+            return Maths.TransformPoint(pos, transform);
+        }
+
+        /// <summary>
+        /// Convert degrees to radians.
+        /// </summary>
+        public float DegToRad(float deg)
+        {
+            return deg * MathF.PI / 180.0f;
+        }
+
+        /// <summary>
+        /// Convert radians to degrees.
+        /// </summary>
+        public float RadToDeg(float rad)
+        {
+            return rad * 180.0f / MathF.PI;
+        }
+
+        #endregion
 
         #region Images
         /// <summary>
@@ -736,10 +958,10 @@ namespace SilkyNvg
         /// <see cref="Winding"/> and <seealso cref="Solidity"/>
         /// </summary>
         /// <param name="direction">The new direction to be winding in.</param>
-        public void PathWinding(Winding direction)
+        public void PathWinding(int direction)
         {
             var sequence = new InstructionSequence(1);
-            sequence.AddWinding(direction);
+            sequence.AddWinding((Winding)direction);
             _instructionManager.AddSequence(sequence, _stateManager.GetState());
         }
 
@@ -808,6 +1030,8 @@ namespace SilkyNvg
             inner.A *= state.Alpha;
             outer.A *= state.Alpha;
 
+            var pth = _pathCache.Paths[^1];
+
             _graphicsManager.Fill(fillPaint, state.CompositeOperation, state.Scissor, _style.FringeWidth, _pathCache.Bounds, _pathCache.Paths);
 
             for (int i = 0; i < _pathCache.Paths.Count; i++)
@@ -829,7 +1053,7 @@ namespace SilkyNvg
             var state = _stateManager.GetState();
             float scale = Maths.GetAverageScale(state.Transform);
             float strokeWidth = Maths.Clamp(state.StrokeWidth * scale, 0.0f, 200.0f);
-            var strokePaint = state.Stroke;
+            var strokePaint = (Paint)state.Stroke.Clone();
             var inner = strokePaint.InnerColour;
             var outer = strokePaint.OuterColour;
 
@@ -843,6 +1067,8 @@ namespace SilkyNvg
 
             inner.A *= state.Alpha;
             outer.A *= state.Alpha;
+            strokePaint.InnerColour = inner;
+            strokePaint.OuterColour = outer;
 
             _pathCache.FlattenPaths(_instructionManager, _style);
 
