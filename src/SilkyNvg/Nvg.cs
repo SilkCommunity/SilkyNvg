@@ -782,6 +782,7 @@ namespace SilkyNvg
             return Paint.RadialGradient(x, y, innerRadius, outerRadius, innerColour, outerColour);
         }
 
+        /// <inheritdoc cref="Paint.ImagePattern(float, float, float, float, float, int, float)"/>
         public Paint ImagePattern(float x, float y, float w, float h, float angle, int image, float alpha)
         {
             return Paint.ImagePattern(x, y, w, h, angle, image, alpha);
