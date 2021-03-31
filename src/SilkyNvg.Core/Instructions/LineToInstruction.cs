@@ -19,6 +19,11 @@ namespace SilkyNvg.Core.Instructions
             _position = new Vector2D<float>(x, y);
         }
 
+        public LineToInstruction(Vector2D<float> position)
+        {
+            _position = position;
+        }
+
         public void Setup(State state)
         {
             _position = Maths.TransformPoint(_position, state.Transform);

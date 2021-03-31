@@ -26,6 +26,13 @@ namespace SilkyNvg.Core.Instructions
             _position2 = new Vector2D<float>(p2x, p2y);
         }
 
+        public BezierToInstruction(Vector2D<float> p0, Vector2D<float> p1, Vector2D<float> p2)
+        {
+            _position0 = p0;
+            _position1 = p1;
+            _position2 = p2;
+        }
+
         public void Setup(State state)
         {
             _position0 = Maths.TransformPoint(_position0, state.Transform);

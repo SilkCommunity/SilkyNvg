@@ -52,14 +52,29 @@ namespace SilkyNvg.Core.Instructions
             Add(new MoveToInstruction(x, y));
         }
 
+        public void AddMoveTo(Vector2D<float> position)
+        {
+            Add(new MoveToInstruction(position.X, position.Y));
+        }
+
         public void AddLineTo(float x, float y)
         {
             Add(new LineToInstruction(x, y));
         }
 
-        public void AddBezireTo(float p0x, float p0y, float p1x, float p1y, float p2x, float p2y)
+        public void AddLineTo(Vector2D<float> position)
+        {
+            Add(new LineToInstruction(position.X, position.Y));
+        }
+
+        public void AddBezierTo(float p0x, float p0y, float p1x, float p1y, float p2x, float p2y)
         {
             Add(new BezierToInstruction(p0x, p0y, p1x, p1y, p2x, p2y));
+        }
+
+        public void AddBezierTo(Vector2D<float> p0, Vector2D<float> p1, Vector2D<float> p2)
+        { 
+            Add(new BezierToInstruction(p0.X, p0.Y, p1.X, p1.Y, p2.X, p2.Y));
         }
 
         public void AddClose()

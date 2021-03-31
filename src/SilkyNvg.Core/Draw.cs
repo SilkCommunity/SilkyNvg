@@ -45,6 +45,18 @@ namespace SilkyNvg.Core
         }
 
         /// <summary>
+        /// <inheritdoc cref="MoveTo(float, float)"/>
+        /// 
+        /// </summary>
+        /// <param name="position">The Position of the new sub path</param>
+        public void MoveTo(Vector2D<float> position)
+        {
+            var sequence = new InstructionSequence(1);
+            sequence.AddMoveTo(position);
+            Add(sequence);
+        }
+
+        /// <summary>
         /// <inheritdoc cref="Docs.Paths"/>
         /// 
         /// Adds a line segment from the last point in the path
@@ -56,6 +68,17 @@ namespace SilkyNvg.Core
         {
             var sequence = new InstructionSequence(1);
             sequence.AddLineTo(x, y);
+            Add(sequence);
+        }
+        
+        /// <summary>
+        /// <inheritdoc cref="LineTo(float, float)"/>
+        /// </summary>
+        /// <param name="position">The Position of the line's end</param>
+        public void LineTo(Vector2D<float> position)
+        {
+            var sequence = new InstructionSequence(1);
+            sequence.AddLineTo(position);
             Add(sequence);
         }
 
@@ -73,7 +96,20 @@ namespace SilkyNvg.Core
         public void BezierTo(float cx1, float cy1, float cx2, float cy2, float x, float y)
         {
             var sequence = new InstructionSequence(1);
-            sequence.AddBezireTo(cx1, cy1, cx2, cy2, x, y);
+            sequence.AddBezierTo(cx1, cy1, cx2, cy2, x, y);
+            Add(sequence);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="BezierTo(float, float, float, float, float, float)"/>
+        /// </summary>
+        /// <param name="cp1">The 1st controll point's position</param>
+        /// <param name="cp2">The 2nd controll point's position</param>
+        /// <param name="ep">The position of the bezier's end</param>
+        public void BezierTo(Vector2D<float> cp1, Vector2D<float> cp2, Vector2D<float> ep)
+        {
+            var sequence = new InstructionSequence(1);
+            sequence.AddBezierTo(cp1, cp2, ep);
             Add(sequence);
         }
 
@@ -90,7 +126,7 @@ namespace SilkyNvg.Core
         {
             var position = _instructionManager.InstructionPosition;
             var sequence = new InstructionSequence(1);
-            sequence.AddBezireTo(
+            sequence.AddBezierTo(
                 position.X + 2.0f / 3.0f * (cx - position.X),
                 position.Y + 2.0f / 3.0f * (cy - position.Y),
                 x + 2.0f / 3.0f * (cx - x),
@@ -99,6 +135,16 @@ namespace SilkyNvg.Core
                 y
             );
             Add(sequence);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="QuadTo(float, float, float, float)"/>
+        /// </summary>
+        /// <param name="cp">The controll point's position</param>
+        /// <param name="ep">The position of the bezier's end</param>
+        public void QuadTo(Vector2D<float> cp, Vector2D<float> ep)
+        {
+            QuadTo(cp.X, cp.Y, ep.X, ep.Y);
         }
 
         /// <summary>
@@ -179,6 +225,18 @@ namespace SilkyNvg.Core
         }
 
         /// <summary>
+        /// <inheritdoc cref="ArcTo(float, float, float, float, float)"/>
+        /// </summary>
+        /// <param name="p1">First point's position</param>
+        /// <param name="p2">Second point's position</param>
+        /// <param name="radius">The arc radius</param>
+        public void ArcTo(Vector2D<float> p1, Vector2D<float> p2, float radius)
+        {
+            ArcTo(p1.X, p1.Y, p2.X, p2.Y, radius);
+        }
+
+
+        /// <summary>
         /// <inheritdoc cref="Docs.Paths"/>
         /// 
         /// Creates a new arc circle shaped sub-path.
@@ -257,7 +315,7 @@ namespace SilkyNvg.Core
                 }
                 else
                 {
-                    instructionSequence.AddBezireTo(px + ptanx, py + ptany, x_ - tanx, y_ - tany, x_, y_);
+                    instructionSequence.AddBezierTo(px + ptanx, py + ptany, x_ - tanx, y_ - tany, x_, y_);
                 }
                 px = x_;
                 py = y_;
@@ -265,6 +323,19 @@ namespace SilkyNvg.Core
                 ptany = tany;
             }
             Add(instructionSequence);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Arc(float, float, float, float, float, Winding)"/>
+        /// </summary>
+        /// <param name="p">The arc's centre position</param>
+        /// <param name="r">The arc radius</param>
+        /// <param name="a0">The first angle to draw from</param>
+        /// <param name="a1">The second angle to draw to</param>
+        /// <param name="dir">The direction the arc is swept in (clockwise CW or counter clockwise CCW)</param>
+        public void Arc(Vector2D<float> p, float r, float a0, float a1, Winding dir = Winding.CCW)
+        {
+            Arc(p.X, p.Y, r, a0, a1, dir);
         }
 
         /// <summary>
@@ -288,6 +359,17 @@ namespace SilkyNvg.Core
         }
 
         /// <summary>
+        /// <inheritdoc cref="Rect(float, float, float, float)"/>
+        /// </summary>
+        /// <param name="position">The rectangle's position</param>
+        /// <param name="width">The rectangle's width</param>
+        /// <param name="heigth">The rectangle's height</param>
+        public void Rect(Vector2D<float> position, float width, float heigth)
+        {
+            Rect(position.X, position.Y, width, heigth);
+        }
+
+        /// <summary>
         /// <inheritdoc cref="Docs.Paths"/>
         /// 
         /// Creates a new rounded rectangle shaped sub-path.
@@ -300,6 +382,18 @@ namespace SilkyNvg.Core
         public void RoundedRect(float x, float y, float width, float height, float radius)
         {
             RoundedRectVarying(x, y, width, height, radius, radius, radius, radius);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="RoundedRect(float, float, float, float, float)"/>
+        /// </summary>
+        /// <param name="position">The rectangle's position</param>
+        /// <param name="width">The rectangle's width</param>
+        /// <param name="height">The rectangle's height</param>
+        /// <param name="radius">The radius of the corner rounding</param>
+        public void RoundedRect(Vector2D<float> position, float width, float height, float radius)
+        {
+            RoundedRect(position.X, position.Y, width, height, radius);
         }
 
         /// <summary>
@@ -340,16 +434,31 @@ namespace SilkyNvg.Core
             InstructionSequence sequence = new InstructionSequence(10);
             sequence.AddMoveTo(x, y + ryTL);
             sequence.AddLineTo(x, y + h - ryBL);
-            sequence.AddBezireTo(x, y + h - ryBL * (1F - Maths.Kappa), x + rxBL * (1F - Maths.Kappa), y + h, x + rxBL, y + h);
+            sequence.AddBezierTo(x, y + h - ryBL * (1F - Maths.Kappa), x + rxBL * (1F - Maths.Kappa), y + h, x + rxBL, y + h);
             sequence.AddLineTo(x + w - rxBR, y + h);
-            sequence.AddBezireTo(x + w - rxBR * (1F - Maths.Kappa), y + h, x + w, y + h - ryBR * (1F - Maths.Kappa), x + w, y + h - ryBR);
+            sequence.AddBezierTo(x + w - rxBR * (1F - Maths.Kappa), y + h, x + w, y + h - ryBR * (1F - Maths.Kappa), x + w, y + h - ryBR);
             sequence.AddLineTo(x + w, y + ryTR);
-            sequence.AddBezireTo(x + w, y + ryTR * (1F - Maths.Kappa), x + w - rxTR * (1F - Maths.Kappa), y, x + w - rxTR, y);
+            sequence.AddBezierTo(x + w, y + ryTR * (1F - Maths.Kappa), x + w - rxTR * (1F - Maths.Kappa), y, x + w - rxTR, y);
             sequence.AddLineTo(x + rxTL, y);
-            sequence.AddBezireTo(x + rxTL * (1F - Maths.Kappa), y, x , y + ryTL * (1F - Maths.Kappa), x, y + ryTL);
+            sequence.AddBezierTo(x + rxTL * (1F - Maths.Kappa), y, x , y + ryTL * (1F - Maths.Kappa), x, y + ryTL);
             sequence.AddClose();
 
             Add(sequence);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="RoundedRect(float, float, float, float, float)"/>
+        /// </summary>
+        /// <param name="position">The rectangle's position</param>
+        /// <param name="width">The rectangle's width</param>
+        /// <param name="height">The rectangle's height</param>
+        /// <param name="radTopLeft">The radius of the top left corner rounding</param>
+        /// <param name="radTopRight">The radius of the top right corner rounding</param>
+        /// <param name="radBottomRight">The radius of the bottom right corner rounding</param>
+        /// <param name="radBottomLeft">The radius of the bottom left corner rounding</param>
+        public void RoundedRectVarying(Vector2D<float> position, float width, float height, float radTopLeft, float radTopRight, float radBottomRight, float radBottomLeft)
+        {
+            RoundedRectVarying(position.X, position.Y, width, height, radTopLeft, radTopRight, radBottomRight, radBottomLeft);
         }
 
         /// <summary>
@@ -367,12 +476,23 @@ namespace SilkyNvg.Core
             float ry = radiusY;
             InstructionSequence sequence = new InstructionSequence(6);
             sequence.AddMoveTo(cx - rx, cy);
-            sequence.AddBezireTo(cx - rx, cy + ry * Maths.Kappa, cx - rx * Maths.Kappa, cy + ry, cx, cy + ry);
-            sequence.AddBezireTo(cx + rx * Maths.Kappa, cy + ry, cx + rx, cy + ry * Maths.Kappa, cx + rx, cy);
-            sequence.AddBezireTo(cx + rx, cy - ry * Maths.Kappa, cx + rx * Maths.Kappa, cy - ry, cx, cy - ry);
-            sequence.AddBezireTo(cx - rx * Maths.Kappa, cy - ry, cx - rx, cy - ry * Maths.Kappa, cx - rx, cy);
+            sequence.AddBezierTo(cx - rx, cy + ry * Maths.Kappa, cx - rx * Maths.Kappa, cy + ry, cx, cy + ry);
+            sequence.AddBezierTo(cx + rx * Maths.Kappa, cy + ry, cx + rx, cy + ry * Maths.Kappa, cx + rx, cy);
+            sequence.AddBezierTo(cx + rx, cy - ry * Maths.Kappa, cx + rx * Maths.Kappa, cy - ry, cx, cy - ry);
+            sequence.AddBezierTo(cx - rx * Maths.Kappa, cy - ry, cx - rx, cy - ry * Maths.Kappa, cx - rx, cy);
             sequence.AddClose();
             Add(sequence);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Ellipse(float, float, float, float)"/>
+        /// </summary>
+        /// <param name="cposition">The ellipse's center position</param>
+        /// <param name="radiusX">The ellipse's radius on the X-Achsis</param>
+        /// <param name="radiusY">The ellipse's radius on the Y-Achsis</param>
+        public void Ellipse(Vector2D<float> cposition, float radiusX, float radiusY)
+        {
+            Ellipse(cposition.X, cposition.Y, radiusX, radiusY);
         }
 
 
@@ -387,6 +507,16 @@ namespace SilkyNvg.Core
         public void Circle(float x, float y, float radius)
         {
             Ellipse(x, y, radius, radius);
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Circle(float, float, float)"/>
+        /// </summary>
+        /// <param name="position">The circle's center position</param>
+        /// <param name="radius">The circle's radius</param>
+        public void Circle(Vector2D<float> position, float radius)
+        {
+            Circle(position.X, position.Y, radius);
         }
 
     }
