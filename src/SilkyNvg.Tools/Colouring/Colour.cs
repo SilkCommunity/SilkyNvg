@@ -179,5 +179,20 @@ namespace SilkyNvg.Colouring
             return m1;
         }
 
+        public static Colour Get(string name)
+        {
+            Type colorType = typeof(System.Drawing.Color);
+            foreach (var p in colorType.GetProperties())
+            {
+                if (p.Name.ToLower().Equals(name.ToLower()))
+                {
+                    System.Drawing.Color cssColor = (System.Drawing.Color)p.GetValue(null, null);
+
+                    return new Colour(cssColor.R, cssColor.G, cssColor.B, cssColor.A);
+                }
+            }
+
+            return new Colour();
+        }
     }
 }
