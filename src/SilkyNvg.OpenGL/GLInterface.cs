@@ -22,6 +22,7 @@ namespace SilkyNvg.OpenGL
         private readonly CallQueue _callQueue;
 
         private readonly List<Vertex> _vertices = new List<Vertex>();
+        private readonly VertexManager _vertexManager;
         private readonly IDictionary<int, Texture> _textures = new Dictionary<int, Texture>();
 
         private readonly VAO _vao;
@@ -113,6 +114,7 @@ namespace SilkyNvg.OpenGL
             _gl.Finish();
 
             _renderMeta = new RenderMeta();
+            _vertexManager = new VertexManager();
         }
 
         public unsafe int CreateTexture(TextureType type, int w, int h, uint imageFlags, byte[] data)
@@ -352,16 +354,8 @@ namespace SilkyNvg.OpenGL
         {
             if (_callQueue.QueueLength > 0)
             {
-                int idx = 0;
-                float[] vertices = new float[_vertices.Count * 2];
-                float[] textureCoords = new float[_vertices.Count * 2];
-                foreach (Vertex vertex in _vertices) // 26, 80, 82
-                {
-                    vertices[idx] = vertex.X;
-                    textureCoords[idx++] = vertex.U;
-                    vertices[idx] = vertex.Y;
-                    textureCoords[idx++] = vertex.V;
-                }
+                float[] vertices = _vertexManager.Positions;
+                float[] textureCoords = _vertexManager.TextureCoords;
 
                 _shader.Start();
                 _gl.Enable(EnableCap.CullFace);
@@ -401,13 +395,13 @@ namespace SilkyNvg.OpenGL
                 _vao.Unbind();
                 _shader.Stop();
 
-                _vertices.Clear();
+                _vertexManager.Clear();
             }
         }
 
         private void Vertex(float x, float y, float u, float v)
         {
-            _vertices.Add(new Vertex(x, y, u, v));
+            _vertexManager.AddVertex(new Vertex(x, y, u, v));
         }
 
         public void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Vector4D<float> bounds, Core.Paths.Path[] paths)
@@ -426,7 +420,7 @@ namespace SilkyNvg.OpenGL
                 triangleCount = 0;
             }
 
-            int offset = _vertices.Count;
+            int offset = _vertexManager.Offset;
 
             for (int i = 0; i < paths.Length; i++)
             {
@@ -436,14 +430,14 @@ namespace SilkyNvg.OpenGL
                 {
                     copy.FillOffset = offset;
                     copy.FillCount = path.Fill.Count;
-                    _vertices.AddRange(path.Fill);
+                    _vertexManager.AddVertices(path.Fill);
                     offset += path.Fill.Count;
                 }
                 if (path.Stroke.Count > 0)
                 {
                     copy.StrokeOffset = offset;
                     copy.StrokeCount = path.Stroke.Count;
-                    _vertices.AddRange(path.Stroke);
+                    _vertexManager.AddVertices(path.Stroke);
                     offset += path.Stroke.Count;
                 }
                 paths_[i] = copy;
@@ -481,7 +475,7 @@ namespace SilkyNvg.OpenGL
         {
             Path[] paths_ = new Path[paths.Length];
 
-            int offset = _vertices.Count;
+            int offset = _vertexManager.Offset;
 
             for (int i = 0; i < paths.Length; i++)
             {
@@ -491,8 +485,7 @@ namespace SilkyNvg.OpenGL
                 {
                     copy.StrokeOffset = offset;
                     copy.StrokeCount = path.Stroke.Count;
-                    _vertices.AddRange(path.Stroke);
-
+                    _vertexManager.AddVertices(path.Stroke);
                     offset += path.Stroke.Count;
                 }
                 paths_[i] = copy;
@@ -524,7 +517,7 @@ namespace SilkyNvg.OpenGL
             {
                 DelTexture(id);
             }
-            _vertices.Clear();
+            _vertexManager.Dispose();
             _callQueue.Clear();
         }
 

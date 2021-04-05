@@ -25,7 +25,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NvgExample", "samples\NvgEx
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg.Image", "src\SilkyNvg.Image\SilkyNvg.Image.csproj", "{2FBFDD63-B906-43E2-9DE3-A329046D26ED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Space Game", "samples\Space Game\Space Game.csproj", "{0F4DCA6B-E998-4FE7-ADF7-F4A9290586C3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Space Game", "samples\Space Game\Space Game.csproj", "{0F4DCA6B-E998-4FE7-ADF7-F4A9290586C3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

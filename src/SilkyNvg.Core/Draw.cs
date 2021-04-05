@@ -490,9 +490,9 @@ namespace SilkyNvg.Core
         /// <param name="cposition">The ellipse's center position</param>
         /// <param name="radiusX">The ellipse's radius on the X-Achsis</param>
         /// <param name="radiusY">The ellipse's radius on the Y-Achsis</param>
-        public void Ellipse(Vector2D<float> cposition, float radiusX, float radiusY)
+        public void Ellipse(Vector2D<float> cposition, Vector2D<float> radii)
         {
-            Ellipse(cposition.X, cposition.Y, radiusX, radiusY);
+            Ellipse(cposition.X, cposition.Y, radii.X, radii.Y);
         }
 
 
