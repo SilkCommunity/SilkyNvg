@@ -22,17 +22,17 @@ namespace SilkyNvg.OpenGL.VertexArray
         public void AddVertex(Vertex vertex)
         {
             _vertices.Add(vertex);
+            _positions.Add(vertex.X);
+            _positions.Add(vertex.Y);
+            _textureCoords.Add(vertex.U);
+            _textureCoords.Add(vertex.V);
         }
 
         public void AddVertices(List<Vertex> vertices)
         {
             foreach (Vertex vert in vertices)
             {
-                _vertices.Add(vert);
-                _positions.Add(vert.X);
-                _positions.Add(vert.Y);
-                _textureCoords.Add(vert.U);
-                _textureCoords.Add(vert.V);
+                AddVertex(vert);
             }
         }
 
