@@ -1,4 +1,5 @@
 ﻿using Silk.NET.OpenGL;
+using SilkyNvg.Common;
 using System;
 
 namespace SilkyNvg.OpenGL.VertexArray
@@ -23,12 +24,12 @@ namespace SilkyNvg.OpenGL.VertexArray
             _gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vboID);
         }
 
-        public unsafe void BufferData(float[] data)
+        public unsafe void BufferData(Vertex[] data)
         {
             Bind();
-            fixed (void* d = data)
+            fixed (Vertex* d = data)
             {
-                _gl.BufferData(BufferTargetARB.ArrayBuffer, (uint)(data.Length * sizeof(float)), d, BufferUsageARB.StreamDraw);
+                _gl.BufferData(BufferTargetARB.ArrayBuffer, (uint)(data.Length * sizeof(Vertex)), d, BufferUsageARB.StreamDraw);
             }
         }
 

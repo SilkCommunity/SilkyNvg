@@ -1,14 +1,21 @@
 ﻿using Silk.NET.Maths;
+using System.Runtime.InteropServices;
 
 namespace SilkyNvg.Common
 {
+    [StructLayout(LayoutKind.Sequential)]
     internal struct Vertex
     {
 
-        public float X { get; private set; }
-        public float Y { get; private set; }
-        public float U { get; private set; }
-        public float V { get; private set; }
+        private readonly float _x;
+        private readonly float _y;
+        private readonly float _u;
+        private readonly float _v;
+
+        public float X => _x;
+        public float Y => _y;
+        public float U => _u;
+        public float V => _v;
 
         public Vector2D<float> Coordinates => new Vector2D<float>(X, Y);
         public Vector2D<float> TextureCoordinates => new Vector2D<float>(U, V);
@@ -20,10 +27,10 @@ namespace SilkyNvg.Common
         public Vertex(float x, float y) : this(x, y, 0, 0) { }
         public Vertex(float x, float y, float u, float v)
         {
-            X = x;
-            Y = y;
-            U = u;
-            V = v;
+            _x = x;
+            _y = y;
+            _u = u;
+            _v = v;
         }
 
     }

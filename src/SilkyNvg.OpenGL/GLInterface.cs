@@ -354,8 +354,7 @@ namespace SilkyNvg.OpenGL
         {
             if (_callQueue.QueueLength > 0)
             {
-                float[] vertices = _vertexManager.Positions;
-                float[] textureCoords = _vertexManager.TextureCoords;
+                Vertex[] verts = _vertexManager.Vertices;
 
                 _shader.Start();
                 _gl.Enable(EnableCap.CullFace);
@@ -382,11 +381,8 @@ namespace SilkyNvg.OpenGL
 
                 _vao.Bind();
 
-                _vao.Vertices.BufferData(vertices);
-                _vao.VertexAttribPointer(0, 2);
-
-                _vao.TextureCoords.BufferData(textureCoords);
-                _vao.VertexAttribPointer(1, 2);
+                _vao.Buffer.BufferData(verts);
+                _vao.VertexAttribPointer(0, 4);
 
                 _shader.LoadMeta(0, _view);
 

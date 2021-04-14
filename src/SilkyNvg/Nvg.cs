@@ -791,7 +791,6 @@ namespace SilkyNvg
         #endregion
 
         #region Scissoring
-
         /// <summary>
         /// <inheritdoc cref="Docs.Scissoring"/>
         /// 

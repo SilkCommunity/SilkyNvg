@@ -1,4 +1,5 @@
 ﻿using Silk.NET.OpenGL;
+using SilkyNvg.Common;
 using System;
 using System.Collections.Generic;
 
@@ -10,13 +11,11 @@ namespace SilkyNvg.OpenGL.VertexArray
         private readonly uint _vaoID;
         private readonly GL _gl;
 
-        private readonly VBO _vertices;
-        private readonly VBO _textureCoords;
+        private readonly VBO _dataBuffer;
 
         private readonly IList<uint> _indices = new List<uint>();
 
-        public VBO Vertices => _vertices;
-        public VBO TextureCoords => _textureCoords;
+        public VBO Buffer => _dataBuffer;
 
         public uint ID => _vaoID;
 
@@ -25,8 +24,7 @@ namespace SilkyNvg.OpenGL.VertexArray
             _gl = gl;
 
             _vaoID = _gl.GenVertexArray();
-            _vertices = new VBO(_gl);
-            _textureCoords = new VBO(_gl);
+            _dataBuffer = new VBO(_gl);
         }
 
         public void Bind()
@@ -37,7 +35,7 @@ namespace SilkyNvg.OpenGL.VertexArray
         public unsafe void VertexAttribPointer(uint index, int dimensions)
         {
             _indices.Add(index);
-            _gl.VertexAttribPointer(index, dimensions, VertexAttribPointerType.Float, false, (uint)(2 * sizeof(float)), (float*)0);
+            _gl.VertexAttribPointer(index, dimensions, VertexAttribPointerType.Float, false, (uint)sizeof(Vertex), (float*)0);
             _gl.EnableVertexAttribArray(index);
         }
 
@@ -57,8 +55,7 @@ namespace SilkyNvg.OpenGL.VertexArray
             _indices.Clear();
             Unbind();
             _gl.DeleteVertexArray(_vaoID);
-            _vertices.Dispose();
-            _textureCoords.Dispose();
+            _dataBuffer.Dispose();
         }
 
     }

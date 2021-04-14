@@ -61,8 +61,7 @@ namespace SilkyNvg.OpenGL.Shaders
             _gl.AttachShader(_programmeID, _vertexShaderID);
             _gl.AttachShader(_programmeID, _fragmentShaderID);
 
-            _gl.BindAttribLocation(_programmeID, 0, "vertexPosition");
-            _gl.BindAttribLocation(_programmeID, 1, "textureCoord");
+            _gl.BindAttribLocation(_programmeID, 0, "vertexData");
 
             _gl.LinkProgram(_programmeID);
             _gl.GetProgram(_programmeID, GLEnum.CompileStatus, out stat);
