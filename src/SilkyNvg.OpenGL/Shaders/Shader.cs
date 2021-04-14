@@ -1,6 +1,5 @@
 ﻿using Silk.NET.Maths;
 using Silk.NET.OpenGL;
-using SilkyNvg.Common;
 using System;
 using System.Collections.Generic;
 using System.IO;
