@@ -1,7 +1,6 @@
 ﻿using Silk.NET.OpenGL;
 using Silk.NET.GLFW;
 using SilkyNvg;
-using SilkyNvg.Base;
 using System;
 
 namespace NvgExample
