@@ -1,4 +1,4 @@
-﻿namespace SilkyNvg.Paths
+﻿namespace SilkyNvg
 {
 
     public enum LineCap

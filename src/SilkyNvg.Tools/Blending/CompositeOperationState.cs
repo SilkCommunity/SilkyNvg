@@ -1,4 +1,4 @@
-﻿namespace SilkyNvg.Blending
+﻿namespace SilkyNvg
 {
     public struct CompositeOperationState
     {

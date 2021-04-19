@@ -1,5 +1,4 @@
 ﻿using Silk.NET.Maths;
-using SilkyNvg.Paths;
 using System;
 
 namespace SilkyNvg.Core.Instructions

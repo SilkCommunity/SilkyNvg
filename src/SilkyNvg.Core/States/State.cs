@@ -1,8 +1,6 @@
 ﻿using Silk.NET.Maths;
-using SilkyNvg.Blending;
-using SilkyNvg.Colouring;
-using SilkyNvg.Paths;
 using System;
+using FontStash.NET;
 
 namespace SilkyNvg.Core.States
 {
@@ -20,6 +18,14 @@ namespace SilkyNvg.Core.States
         private float _alpha;
         private Matrix3X2<float> _xform;
         private Scissor _scissor;
+
+        // Text
+        private float _fontSize;
+        private float _letterSpacing;
+        private float _lineHeight;
+        private float _fontBlur;
+        private int _textAlign;
+        private int _fontId;
 
         public CompositeOperationState CompositeOperation
         {
@@ -83,8 +89,44 @@ namespace SilkyNvg.Core.States
 
         public Scissor Scissor
         {
-            get { return _scissor; }
-            set { _scissor = value; }
+            get => _scissor;
+            set => _scissor = value;
+        } 
+
+        public float FontSize
+        {
+            get => _fontSize;
+            set => _fontSize = value;
+        }
+
+        public float LetterSpacing
+        {
+            get => _letterSpacing;
+            set => _letterSpacing = value;
+        }
+
+        public float LineHeight
+        {
+            get => _lineHeight;
+            set => _lineHeight = value;
+        }
+
+        public float FontBlur
+        {
+            get => _fontBlur;
+            set => _fontBlur = value;
+        }
+
+        public int TextAlign
+        {
+            get => _textAlign;
+            set => _textAlign = value;
+        }
+
+        public int FontId
+        {
+            get => _fontId;
+            set => _fontId = value;
         }
 
         public State()
@@ -96,7 +138,7 @@ namespace SilkyNvg.Core.States
         {
             _fill = new Paint(new Colour(255, 255, 255, 255));
             _stroke = new Paint(new Colour(0, 0, 0, 255));
-            _compositeOperationState = new CompositeOperationState(Blending.CompositeOperation.SourceOver);
+            _compositeOperationState = new CompositeOperationState(SilkyNvg.CompositeOperation.SourceOver);
             _shapeAntiAlias = true;
             _strokeWidth = 1.0f;
             _miterLimit = 10.0f;
@@ -106,6 +148,13 @@ namespace SilkyNvg.Core.States
             _xform = Matrix3X2<float>.Identity;
 
             _scissor = new Scissor(new Vector2D<float>(-1.0f));
+
+            _fontSize = 16.0f;
+            _letterSpacing = 0.0f;
+            _lineHeight = 1.0f;
+            _fontBlur = 0.0f;
+            _textAlign = (int)FonsAlign.Left | (int)FonsAlign.Baseline;
+            _fontId = 0;
         }
 
         public object Clone()

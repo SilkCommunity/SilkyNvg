@@ -13,7 +13,7 @@ namespace SilkyNvg.OpenGL.VertexArray
 
         public Vertex[] Vertices { get => _vertices.ToArray(); }
 
-        public void AddVertices(List<Vertex> vertices)
+        public void AddVertices(IEnumerable<Vertex> vertices)
         {
             _vertices.AddRange(vertices);
         }

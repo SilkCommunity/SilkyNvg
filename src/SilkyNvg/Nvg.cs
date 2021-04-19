@@ -1,7 +1,4 @@
 ﻿using Silk.NET.Maths;
-using SilkyNvg.Base;
-using SilkyNvg.Blending;
-using SilkyNvg.Colouring;
 using SilkyNvg.Common;
 using SilkyNvg.Core;
 using SilkyNvg.Core.Instructions;
@@ -9,7 +6,7 @@ using SilkyNvg.Core.Paths;
 using SilkyNvg.Core.States;
 using SilkyNvg.Image;
 using SilkyNvg.OpenGL;
-using SilkyNvg.Paths;
+using SilkyNvg.Text;
 using System;
 
 namespace SilkyNvg
@@ -40,6 +37,7 @@ namespace SilkyNvg
         private readonly StateManager _stateManager;
         private readonly PathCache _pathCache;
         private readonly Style _style;
+        private readonly FontManager _fontManager;
 
         private readonly FrameMeta _frameMeta;
 
@@ -48,14 +46,13 @@ namespace SilkyNvg
         private Nvg(GraphicsManager graphicsManager)
         {
             _graphicsManager = graphicsManager;
-            // TODO: Images
             _instructionManager = new InstructionQueue();
             _pathCache = new PathCache();
             _stateManager = new StateManager();
             _style = new Style(1.0f);
             _graphicsManager.Create();
-            // TODO: Font
-            // TODO: More images
+
+            _fontManager = new FontManager(_graphicsManager);
 
             _draw = new Draw(_instructionManager, _stateManager, _style);
 
@@ -712,6 +709,20 @@ namespace SilkyNvg
         /// <summary>
         /// <inheritdoc cref="Docs.Images"/>
         /// 
+        /// Gets the image's size.
+        /// </summary>
+        /// <param name="image">The handle to the image.</param>
+        /// <returns>The dimensions of the image.</returns>
+        public void ImageSize(int image, out int width, out int height)
+        {
+            Vector2D<int> dimensions = ImageSize(image);
+            width = dimensions.X;
+            height = dimensions.Y;
+        }
+
+        /// <summary>
+        /// <inheritdoc cref="Docs.Images"/>
+        /// 
         /// Deletes the created image.
         /// </summary>
         /// <param name="image">The handle to the image.</param>
@@ -1094,7 +1105,112 @@ namespace SilkyNvg
         #endregion
 
         #region Text
-        #endregion // TODO: Text
+        public FontStash.NET.Fontstash Fons => _fontManager.Fons;
+
+        public int CreateFont(string name, string fileName)
+        {
+            return _fontManager.Fons.AddFont(name, fileName);
+        }
+
+        public int CreateFontAtIndex(string name, string fileName, int fontIndex)
+        {
+            return _fontManager.Fons.AddFont(name, fileName, fontIndex);
+        }
+
+        public int CreateFontMem(string name, byte[] data, int freeData)
+        {
+            return _fontManager.Fons.AddFontMem(name, data, freeData);
+        }
+
+        public int CreateFontMemAtIndex(string name, byte[] data, int freeData, int fontIndex)
+        {
+            return _fontManager.Fons.AddFontMem(name, data, freeData, fontIndex);
+        }
+
+        public int FindFont(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return FontManager.INVALID_FONT;
+            return _fontManager.Fons.GetFontByName(name);
+        }
+
+        public void AddFallbackFontId(int baseFont, int fallbackFont)
+        {
+            if (baseFont == FontManager.INVALID_FONT || fallbackFont == FontManager.INVALID_FONT)
+                return;
+            if (!_fontManager.Fons.AddFallbackFont(baseFont, fallbackFont))
+                return;
+        }
+
+        public void AddFallbackFont(string baseFont, string fallbackFont)
+        {
+            AddFallbackFontId(FindFont(baseFont), FindFont(fallbackFont));
+        }
+
+        public void ResetFallbackFontId(int baseFont)
+        {
+            _fontManager.Fons.ResetFallbackFont(baseFont);
+        }
+
+        public void ResetFallbackFont(string baseFont)
+        {
+            _fontManager.Fons.ResetFallbackFont(FindFont(baseFont));
+        }
+
+        public void FontSize(float size)
+        {
+            var state = _stateManager.GetState();
+            state.FontSize = size;
+        }
+
+        public void FontBlur(float blur)
+        {
+            var state = _stateManager.GetState();
+            state.FontBlur = blur;
+        }
+
+        public void TextLetterSpacing(float spacing)
+        {
+            var state = _stateManager.GetState();
+            state.LetterSpacing = spacing;
+        }
+
+        public void TextLineHeight(float lineHeight)
+        {
+            var state = _stateManager.GetState();
+            state.LineHeight = lineHeight;
+        }
+
+        public void TextAlgin(int align)
+        {
+            var state = _stateManager.GetState();
+            state.TextAlign = align;
+        }
+
+        public void FontFaceId(int font)
+        {
+            var state = _stateManager.GetState();
+            state.FontId = font;
+        }
+
+        public void FontFace(string font)
+        {
+            var state = _stateManager.GetState();
+            state.FontId = _fontManager.Fons.GetFontByName(font);
+        }
+
+        public float Text(float x, float y, string str, char end)
+        {
+            return _fontManager.DrawText(x, y, str, end, _stateManager.GetState(), _style, _pathCache);
+        }
+
+        public float Text(float x, float y, string str) => Text(x, y, str, '\0');
+
+        public float Text(Vector2D<float> position, string str, char end) => Text(position.X, position.Y, str, end);
+
+        public float Text(Vector2D<float> position, string str) => Text(position, str, '\0');
+
+        #endregion
 
     }
 }

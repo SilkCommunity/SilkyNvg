@@ -1,6 +1,5 @@
 ﻿using System;
 using SilkyNvg.Common;
-using SilkyNvg.Paths;
 using SilkyNvg.Core.Instructions;
 using SilkyNvg.Core.States;
 using Silk.NET.Maths;

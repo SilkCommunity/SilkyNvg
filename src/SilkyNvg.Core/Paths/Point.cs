@@ -3,7 +3,7 @@ using SilkyNvg.Common;
 
 namespace SilkyNvg.Core.Paths
 {
-    public class Point
+    internal class Point
     {
 
         public static bool PtEquals(Point p1, Point p2, float tol)

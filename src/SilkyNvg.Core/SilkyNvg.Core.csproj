@@ -5,6 +5,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="FontStash.NET" Version="1.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\SilkyNvg.Common\SilkyNvg.Common.csproj" />
 		<ProjectReference Include="..\SilkyNvg.Tools\SilkyNvg.Tools.csproj" />
 	</ItemGroup>

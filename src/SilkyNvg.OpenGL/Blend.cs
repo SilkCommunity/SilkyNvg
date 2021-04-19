@@ -1,5 +1,4 @@
 ﻿using Silk.NET.OpenGL;
-using SilkyNvg.Blending;
 
 namespace SilkyNvg.OpenGL
 {

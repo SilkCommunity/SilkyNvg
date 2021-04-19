@@ -1,10 +1,7 @@
 ﻿using Silk.NET.GLFW;
 using Silk.NET.OpenGL;
 using SilkyNvg;
-using SilkyNvg.Base;
-using SilkyNvg.Colouring;
 using System;
-using SilkyNvg.Image;
 
 namespace SingleClassExample
 {
@@ -76,6 +73,8 @@ namespace SingleClassExample
             int texture = nvg.CreateImage("a-very-potter-musical-a-very-potter-sequel-avpm-avps-starkid-Favim.com-173280.jpg",
                 (uint)ImageFlags.RepeatX | (uint)ImageFlags.RepeatY | (uint)ImageFlags.Premultiplied | (uint)ImageFlags.Nearest);
 
+            int font = nvg.CreateFont("sans", "./Roboto-Regular.ttf");
+
             double time = glfw.GetTime();
             float angle = 0;
 
@@ -103,6 +102,11 @@ namespace SingleClassExample
 
                     if (angle == 360)
                         angle = 0;
+
+                    nvg.BeginPath();
+                    nvg.FontFace("sans");
+                    nvg.Text(200, 200, "Hello World!");
+                    nvg.FillColour(nvg.RgbF(1.0f, 1.0f, 1.0f));
 
                     nvg.BeginPath();
                     float size = winHeight * 0.5f;

@@ -1,4 +1,4 @@
-﻿namespace SilkyNvg.Image
+﻿namespace SilkyNvg
 {
     /// <summary>
     /// Flags set when creating an image.

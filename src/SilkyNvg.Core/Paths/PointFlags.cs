@@ -1,6 +1,6 @@
 ﻿namespace SilkyNvg.Core.Paths
 {
-    public enum PointFlags
+    internal enum PointFlags
     {
 
         Corner = 1 << 0,

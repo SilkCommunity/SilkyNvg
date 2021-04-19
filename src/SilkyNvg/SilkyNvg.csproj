@@ -13,6 +13,7 @@
 		<ProjectReference Include="..\SilkyNvg.Core\SilkyNvg.Core.csproj" />
 		<ProjectReference Include="..\SilkyNvg.Image\SilkyNvg.Image.csproj" />
 		<ProjectReference Include="..\SilkyNvg.OpenGL\SilkyNvg.OpenGL.csproj" />
+		<ProjectReference Include="..\SilkyNvg.Text\SilkyNvg.Text.csproj" />
 		<ProjectReference Include="..\SilkyNvg.Tools\SilkyNvg.Tools.csproj" />
 	</ItemGroup>
 

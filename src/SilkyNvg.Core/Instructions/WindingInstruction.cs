@@ -1,6 +1,5 @@
 ﻿using SilkyNvg.Core.Paths;
 using SilkyNvg.Core.States;
-using SilkyNvg.Paths;
 
 namespace SilkyNvg.Core.Instructions
 {

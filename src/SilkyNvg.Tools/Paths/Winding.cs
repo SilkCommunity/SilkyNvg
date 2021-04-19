@@ -1,4 +1,4 @@
-﻿namespace SilkyNvg.Paths
+﻿namespace SilkyNvg
 {
     /// <summary>
     /// The direction of winding:

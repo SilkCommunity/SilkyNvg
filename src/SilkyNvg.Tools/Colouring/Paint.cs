@@ -1,7 +1,7 @@
 ﻿using Silk.NET.Maths;
 using System;
 
-namespace SilkyNvg.Colouring
+namespace SilkyNvg
 {
 
     /// <summary>

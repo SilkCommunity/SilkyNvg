@@ -1,7 +1,6 @@
 ﻿using Silk.NET.Maths;
 using SilkyNvg.Common;
 using SilkyNvg.Core.Instructions;
-using SilkyNvg.Paths;
 using System;
 using System.Collections.Generic;
 
@@ -23,6 +22,8 @@ namespace SilkyNvg.Core.Paths
         }
 
         public List<Path> Paths => _paths;
+
+        public List<Vertex> Vertices => _vertices;
 
         public PathCache()
         {

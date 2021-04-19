@@ -75,7 +75,17 @@ void main(void) {
     } else if (type == 2) { // stencil fill
         result = vec4(1, 1, 1, 1);
     } else if (type == 3) { // textured tris
-        // TODO
+        vec4 colour = texture(tex, pass_texCoord);
+
+        if (texType == 1) {
+            colour = vec4(colour.xyz * colour.w, colour.w);
+        }
+        if (texType == 2) {
+            colour = vec4(colour.x);
+        }
+
+        colour *= scissor;
+        result = colour * innerCol;
     }
 
     outColour = result;

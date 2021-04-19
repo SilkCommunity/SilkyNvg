@@ -1,7 +1,5 @@
 ﻿using Silk.NET.Maths;
 using Silk.NET.OpenGL;
-using SilkyNvg.Blending;
-using SilkyNvg.Colouring;
 using SilkyNvg.Common;
 using SilkyNvg.OpenGL.Calls;
 using SilkyNvg.OpenGL.Instructions;
@@ -220,7 +218,7 @@ namespace SilkyNvg.OpenGL
 
         public unsafe void UpdateTexture(int image, int x, int y, int w, int h, byte[] data)
         {
-            var tex = _textures[image - 1];
+            var tex = _textures[image];
 
             BindTexture(tex.TextureId);
 
@@ -502,6 +500,16 @@ namespace SilkyNvg.OpenGL
                 call = new StrokeCall(paint.Image, new Blend(compositeOperation), frag0, paths_, new FragmentDataUniforms());
             }
 
+            _callQueue.Add(call);
+        }
+
+        public void Triangles(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, Vertex[] verts, float fringe)
+        {
+            FragmentDataUniforms frag = ConvertPaint(new FragmentDataUniforms(), paint, scissor, 1.0f, fringe, -1.0f);
+            frag.Type = (int)Shaders.ShaderType.Img;
+            Call call = new TrianglesCall(paint.Image, new Blend(compositeOperation),
+                _vertexManager.Offset, verts.Length, frag);
+            _vertexManager.AddVertices(verts);
             _callQueue.Add(call);
         }
 

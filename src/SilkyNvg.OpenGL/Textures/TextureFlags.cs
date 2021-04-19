@@ -1,6 +1,4 @@
-﻿using SilkyNvg.Image;
-
-namespace SilkyNvg.OpenGL.Textures
+﻿namespace SilkyNvg.OpenGL.Textures
 {
     internal struct TextureFlags
     {

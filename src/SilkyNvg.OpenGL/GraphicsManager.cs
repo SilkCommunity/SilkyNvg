@@ -1,7 +1,5 @@
 ﻿using Silk.NET.Maths;
 using Silk.NET.OpenGL;
-using SilkyNvg.Blending;
-using SilkyNvg.Colouring;
 using SilkyNvg.Common;
 using SilkyNvg.OpenGL.Textures;
 using System.Collections.Generic;
@@ -72,6 +70,11 @@ namespace SilkyNvg.OpenGL
             float fringe, float strokeWidth, List<Core.Paths.Path> path)
         {
             _interface.Stroke(paint, compositeOperation, scissor, fringe, strokeWidth, path.ToArray());
+        }
+
+        public void Triangles(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, Vertex[] vertices, float fringe)
+        {
+            _interface.Triangles(paint, compositeOperation, scissor, vertices, fringe);
         }
 
         public void Delete()

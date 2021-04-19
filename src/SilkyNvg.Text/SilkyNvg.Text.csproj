@@ -1,7 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>net5.0</TargetFramework>
 	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="FontStash.NET" Version="1.0.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\SilkyNvg.Common\SilkyNvg.Common.csproj" />
+	  <ProjectReference Include="..\SilkyNvg.Core\SilkyNvg.Core.csproj" />
+	  <ProjectReference Include="..\SilkyNvg.OpenGL\SilkyNvg.OpenGL.csproj" />
+	</ItemGroup>
 
 </Project>

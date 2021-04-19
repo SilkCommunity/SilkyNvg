@@ -19,6 +19,12 @@ namespace SilkyNvg.Common
             return new Vector4D<float>(minx, miny, MathF.Max(0.0f, maxx - minx), MathF.Max(0.0f, maxy - miny));
         }
 
+        public static bool IsTransformFlipped(Matrix3X2<float> transform)
+        {
+            float det = transform.M11 * transform.M22 - transform.M21 * transform.M12;
+            return det < 0;
+        }
+
         public static Matrix3X2<float> TransformMultiply(Matrix3X2<float> t, Matrix3X2<float> s)
         {
             float t0 = t.M11 * s.M11 + t.M12 * s.M21;
@@ -36,6 +42,13 @@ namespace SilkyNvg.Common
         public static Matrix3X2<float> TransformPremultiply(Matrix3X2<float> t, Matrix3X2<float> s)
         {
             return TransformMultiply(s, t);
+        }
+
+        public static float GetAverageScale(Matrix3X2<float> t)
+        {
+            float sx = MathF.Sqrt(t.M11 * t.M11 + t.M21 * t.M21);
+            float sy = MathF.Sqrt(t.M12 * t.M12 + t.M22 * t.M22);
+            return (sx + sy) * 0.5f;
         }
 
         public static float Clamp(float value, float min, float max)
@@ -83,11 +96,9 @@ namespace SilkyNvg.Common
             };
         }
 
-        public static float GetAverageScale(Matrix3X2<float> t)
+        public static float Quantize(float a, float d)
         {
-            float sx = MathF.Sqrt(t.M11 * t.M11 + t.M21 * t.M21);
-            float sy = MathF.Sqrt(t.M12 * t.M12 + t.M22 * t.M22);
-            return (sx + sy) * 0.5f;
+            return ((int)(a / d + 0.5f)) * d;
         }
 
         public static Matrix3X2<float> TransformInverse(Matrix3X2<float> t)
@@ -198,9 +209,11 @@ namespace SilkyNvg.Common
 
         public static Vector2D<float> TransformPoint(Vector2D<float> s, Matrix3X2<float> t)
         {
-            var transformed = new Vector2D<float>();
-            transformed.X = s.X * t.M11 + s.Y * t.M21 + t.M31;
-            transformed.Y = s.X * t.M12 + s.Y * t.M22 + t.M32;
+            Vector2D<float> transformed = new()
+            {
+                X = s.X * t.M11 + s.Y * t.M21 + t.M31,
+                Y = s.X * t.M12 + s.Y * t.M22 + t.M32
+            };
             return transformed;
         }
 

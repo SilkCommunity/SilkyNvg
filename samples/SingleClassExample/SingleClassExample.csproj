@@ -25,6 +25,9 @@
 	  <None Update="a-very-potter-musical-a-very-potter-sequel-avpm-avps-starkid-Favim.com-173280.jpg">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
+	  <None Update="Roboto-Regular.ttf">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
 	</ItemGroup>
 
 </Project>

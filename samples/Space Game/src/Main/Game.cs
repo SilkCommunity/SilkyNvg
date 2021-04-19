@@ -2,8 +2,6 @@
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using SilkyNvg;
-using SilkyNvg.Base;
-using SilkyNvg.Image;
 using SpaceGame.Main.Classes;
 using StbImageSharp;
 using System;
