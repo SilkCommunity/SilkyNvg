@@ -4,3 +4,6 @@
 [submodule "packages/StbImageSharp"]
 	path = packages/StbImageSharp
 	url = https://github.com/StbSharp/StbImageSharp
+[submodule "lib/nanovg"]
+	path = lib/nanovg
+	url = https://github.com/memononen/nanovg
