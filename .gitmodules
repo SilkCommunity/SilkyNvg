@@ -1,6 +1,3 @@
-[submodule "nanovg"]
-	path = lib/nanovg
-	url = https://github.com/memononen/nanovg
 [submodule "packages/Silk.NET"]
 	path = packages/Silk.NET
 	url = https://github.com/dotnet/Silk.NET
