@@ -4,4 +4,8 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\SilkyNvg.Common\SilkyNvg.Common.csproj" />
+  </ItemGroup>
+
 </Project>

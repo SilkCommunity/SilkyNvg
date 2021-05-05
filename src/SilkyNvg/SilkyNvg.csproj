@@ -4,4 +4,12 @@
 		<TargetFramework>net5.0</TargetFramework>
 	</PropertyGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\renderers\SilkyNvg.Rendering\SilkyNvg.Rendering.csproj" />
+	  <ProjectReference Include="..\SilkyNvg.Common\SilkyNvg.Common.csproj" />
+	  <ProjectReference Include="..\SilkyNvg.Core\SilkyNvg.Core.csproj" />
+	  <ProjectReference Include="..\SilkyNvg.Paths\SilkyNvg.Paths.csproj" />
+	  <ProjectReference Include="..\SilkyNvg.Tools\SilkyNvg.Tools.csproj" />
+	</ItemGroup>
+
 </Project>
