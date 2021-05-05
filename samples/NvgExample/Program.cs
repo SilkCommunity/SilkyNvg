@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SingleClassExample
+namespace NvgExample
 {
     class Program
     {
