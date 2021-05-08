@@ -9,29 +9,29 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{225A277C
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "source", "source", "{C5CB43B2-2946-4FD0-A035-B5FFCF9A0F4C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SingleClassExample", "samples\SingleClassExample\SingleClassExample.csproj", "{7A352AC6-FF54-4BA7-A825-0DCC9260184D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SingleClassExample", "samples\SingleClassExample\SingleClassExample.csproj", "{7A352AC6-FF54-4BA7-A825-0DCC9260184D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilkyNvg", "src\SilkyNvg\SilkyNvg.csproj", "{D2464220-2E07-46A7-BEFD-17EDAC6B6F91}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg", "src\SilkyNvg\SilkyNvg.csproj", "{D2464220-2E07-46A7-BEFD-17EDAC6B6F91}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NvgExample", "samples\NvgExample\NvgExample.csproj", "{78BE6EDB-648A-4D6D-9D2C-9E6E822109E4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NvgExample", "samples\NvgExample\NvgExample.csproj", "{78BE6EDB-648A-4D6D-9D2C-9E6E822109E4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilkyNvg.Tools", "src\SilkyNvg.Tools\SilkyNvg.Tools.csproj", "{24F859C8-FDC3-461B-BC30-D99017921A8E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg.Tools", "src\SilkyNvg.Tools\SilkyNvg.Tools.csproj", "{24F859C8-FDC3-461B-BC30-D99017921A8E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "renderers", "renderers", "{8C10A437-CF81-4A46-93A7-E380F60F4F0F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilkyNvg.Rendering", "src\renderers\SilkyNvg.Rendering\SilkyNvg.Rendering.csproj", "{232DF48E-191E-4940-9E6C-4F1A968FBA78}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg.Rendering", "src\renderers\SilkyNvg.Rendering\SilkyNvg.Rendering.csproj", "{232DF48E-191E-4940-9E6C-4F1A968FBA78}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilkyNvg.Rendering.OpenGL", "src\renderers\SilkyNvg.Rendering.OpenGL\SilkyNvg.Rendering.OpenGL.csproj", "{F25B4108-92E1-41CD-B430-A22E355A38AB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg.Rendering.OpenGL", "src\renderers\SilkyNvg.Rendering.OpenGL\SilkyNvg.Rendering.OpenGL.csproj", "{F25B4108-92E1-41CD-B430-A22E355A38AB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilkyNvg.Rendering.LegacyOpenGL", "src\renderers\SilkyNvg.Rendering.LegacyOpenGL\SilkyNvg.Rendering.LegacyOpenGL.csproj", "{811CA5D2-3682-4CC9-AA0D-77CD8D15B165}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg.Common", "src\SilkyNvg.Common\SilkyNvg.Common.csproj", "{9F3B3B22-0B1D-47AF-A155-6E71775113E1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilkyNvg.Common", "src\SilkyNvg.Common\SilkyNvg.Common.csproj", "{9F3B3B22-0B1D-47AF-A155-6E71775113E1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg.Core", "src\SilkyNvg.Core\SilkyNvg.Core.csproj", "{07A9D91E-6B19-45D7-B421-F3F37112DB99}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilkyNvg.Core", "src\SilkyNvg.Core\SilkyNvg.Core.csproj", "{07A9D91E-6B19-45D7-B421-F3F37112DB99}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg.Paths", "src\SilkyNvg.Paths\SilkyNvg.Paths.csproj", "{DE0B2C37-4700-47F6-8B3C-678289369477}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilkyNvg.Paths", "src\SilkyNvg.Paths\SilkyNvg.Paths.csproj", "{DE0B2C37-4700-47F6-8B3C-678289369477}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg.Transforms", "src\SilkyNvg.Transforms\SilkyNvg.Transforms.csproj", "{DD3261A4-F8F2-427B-BC0D-9B2AA9469374}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilkyNvg.Transforms", "src\SilkyNvg.Transforms\SilkyNvg.Transforms.csproj", "{DD3261A4-F8F2-427B-BC0D-9B2AA9469374}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg.Rendering.OpenGL.Legacy", "src\renderers\SilkyNvg.Rendering.OpenGL.Legacy\SilkyNvg.Rendering.OpenGL.Legacy.csproj", "{CDE000FF-DADF-48D9-A460-997A6BAD8919}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,10 +63,6 @@ Global
 		{F25B4108-92E1-41CD-B430-A22E355A38AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F25B4108-92E1-41CD-B430-A22E355A38AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F25B4108-92E1-41CD-B430-A22E355A38AB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{811CA5D2-3682-4CC9-AA0D-77CD8D15B165}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{811CA5D2-3682-4CC9-AA0D-77CD8D15B165}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{811CA5D2-3682-4CC9-AA0D-77CD8D15B165}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{811CA5D2-3682-4CC9-AA0D-77CD8D15B165}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9F3B3B22-0B1D-47AF-A155-6E71775113E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9F3B3B22-0B1D-47AF-A155-6E71775113E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9F3B3B22-0B1D-47AF-A155-6E71775113E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -83,6 +79,10 @@ Global
 		{DD3261A4-F8F2-427B-BC0D-9B2AA9469374}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DD3261A4-F8F2-427B-BC0D-9B2AA9469374}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DD3261A4-F8F2-427B-BC0D-9B2AA9469374}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CDE000FF-DADF-48D9-A460-997A6BAD8919}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CDE000FF-DADF-48D9-A460-997A6BAD8919}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CDE000FF-DADF-48D9-A460-997A6BAD8919}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CDE000FF-DADF-48D9-A460-997A6BAD8919}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -95,11 +95,11 @@ Global
 		{8C10A437-CF81-4A46-93A7-E380F60F4F0F} = {C5CB43B2-2946-4FD0-A035-B5FFCF9A0F4C}
 		{232DF48E-191E-4940-9E6C-4F1A968FBA78} = {8C10A437-CF81-4A46-93A7-E380F60F4F0F}
 		{F25B4108-92E1-41CD-B430-A22E355A38AB} = {8C10A437-CF81-4A46-93A7-E380F60F4F0F}
-		{811CA5D2-3682-4CC9-AA0D-77CD8D15B165} = {8C10A437-CF81-4A46-93A7-E380F60F4F0F}
 		{9F3B3B22-0B1D-47AF-A155-6E71775113E1} = {C5CB43B2-2946-4FD0-A035-B5FFCF9A0F4C}
 		{07A9D91E-6B19-45D7-B421-F3F37112DB99} = {C5CB43B2-2946-4FD0-A035-B5FFCF9A0F4C}
 		{DE0B2C37-4700-47F6-8B3C-678289369477} = {C5CB43B2-2946-4FD0-A035-B5FFCF9A0F4C}
 		{DD3261A4-F8F2-427B-BC0D-9B2AA9469374} = {C5CB43B2-2946-4FD0-A035-B5FFCF9A0F4C}
+		{CDE000FF-DADF-48D9-A460-997A6BAD8919} = {8C10A437-CF81-4A46-93A7-E380F60F4F0F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {08FE0BD8-4253-419D-9FBF-7F9671C9AAC2}

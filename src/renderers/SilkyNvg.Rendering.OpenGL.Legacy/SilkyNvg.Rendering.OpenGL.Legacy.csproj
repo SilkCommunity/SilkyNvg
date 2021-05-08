@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net5.0</TargetFramework>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\SilkyNvg.Common\SilkyNvg.Common.csproj" />
+		<ProjectReference Include="..\SilkyNvg.Rendering\SilkyNvg.Rendering.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Silk.NET.OpenGL.Legacy" Version="2.3.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="Shaders\nvgFragmentShader.glsl">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="Shaders\nvgVertexShader.glsl">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
+</Project>

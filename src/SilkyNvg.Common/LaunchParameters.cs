@@ -1,6 +1,6 @@
 ﻿namespace SilkyNvg.Common
 {
-    internal struct LaunchParameters
+    public struct LaunchParameters
     {
 
         private readonly bool _antialias;
