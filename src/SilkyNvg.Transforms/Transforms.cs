@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace SilkyNvg.Transforms
 {
-    public static class NvgTransforms
+    public static class Transforms
     {
 
         public static Matrix3x2 Identity => TransformsImpl.Identity;

@@ -1,5 +1,9 @@
-﻿namespace SilkyNvg.Common
+﻿using System.Runtime.InteropServices;
+
+namespace SilkyNvg.Common
 {
+
+    [StructLayout(LayoutKind.Sequential)]
     internal struct Vertex
     {
 

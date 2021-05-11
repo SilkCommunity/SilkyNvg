@@ -16,7 +16,7 @@ namespace SilkyNvg.Rendering
 
         Vector2 GetTextureSize();
 
-        void Viewport(Vector2 viewSize);
+        void Viewport(Vector2 viewSize, float devicePxRatio);
 
         void Cancel();
 

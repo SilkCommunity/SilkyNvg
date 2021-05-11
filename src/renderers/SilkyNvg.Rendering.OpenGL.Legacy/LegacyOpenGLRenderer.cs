@@ -14,6 +14,8 @@ namespace SilkyNvg.Rendering.OpenGL.Legacy
         private LaunchParameters _launchParameters;
         private Shader _shader;
 
+        private Vector2 _viewSize;
+
         public LegacyOpenGLRenderer(GL gl)
         {
             _gl = gl;
@@ -84,9 +86,9 @@ namespace SilkyNvg.Rendering.OpenGL.Legacy
             throw new System.NotImplementedException();
         }
 
-        public void Viewport(Vector2 viewSize)
+        public void Viewport(Vector2 viewSize, float _)
         {
-            throw new System.NotImplementedException();
+            _viewSize = viewSize;
         }
 
         public void Cancel()

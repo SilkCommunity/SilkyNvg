@@ -9,9 +9,9 @@
 
         public float FringeWidth { get; private set; }
 
-        public float DeviePxRatio
+        public float DevicePxRatio
         {
-            get => DeviePxRatio;
+            get => DevicePxRatio;
             set
             {
                 TessTol = 0.25f / value;

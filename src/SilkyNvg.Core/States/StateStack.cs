@@ -32,10 +32,10 @@ namespace SilkyNvg.Core.States
 
             if (_states.Count > 0)
             {
-                _states.Push(_states.Peek());
+                _states.Push(_states.Peek().Clone());
             } else if (_states.Count == 0)
             {
-                _states.Push(default);
+                _states.Push(new());
             }
         }
 
@@ -67,6 +67,11 @@ namespace SilkyNvg.Core.States
             state.scissor = new();
 
             // TODO: Font
+        }
+
+        public void Clear()
+        {
+            _states.Clear();
         }
 
     }

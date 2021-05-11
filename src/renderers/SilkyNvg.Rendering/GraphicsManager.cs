@@ -1,4 +1,5 @@
 ﻿using SilkyNvg.Common;
+using System.Numerics;
 
 namespace SilkyNvg.Rendering
 {
@@ -21,6 +22,11 @@ namespace SilkyNvg.Rendering
         public bool Create()
         {
             return _renderer.Create(_launchParameters);
+        }
+
+        public void Viewport(Vector2 viewSize, float devicePxRatio)
+        {
+            _renderer.Viewport(viewSize, devicePxRatio);
         }
 
     }

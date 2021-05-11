@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace SilkyNvg.Core.States
 {
-    internal struct State
+    internal class State
     {
 
         public CompositeOperationState compositeOperation;
@@ -18,6 +18,11 @@ namespace SilkyNvg.Core.States
         public Matrix3x2 transform;
         public Scissor scissor;
         // TODO: Font
+
+        public State Clone()
+        {
+            return (State)MemberwiseClone();
+        }
 
     }
 }

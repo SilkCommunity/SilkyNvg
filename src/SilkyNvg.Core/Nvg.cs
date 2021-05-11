@@ -4,6 +4,7 @@ using SilkyNvg.Core.Instructions;
 using SilkyNvg.Core.Paths;
 using SilkyNvg.Core.States;
 using SilkyNvg.Rendering;
+using System.Numerics;
 
 namespace SilkyNvg
 {
@@ -24,6 +25,13 @@ namespace SilkyNvg
             return nvg;
         }
 
+        #region Meta
+
+        public FrameMeta FrameMeta { get; internal set; }
+
+        #endregion
+
+        #region Implementation
         internal readonly LaunchParameters launchParameters;
         internal readonly GraphicsManager graphicsManager;
 
@@ -41,19 +49,19 @@ namespace SilkyNvg
             // TODO: Font images
 
             // Instructions
-            instructionQueue = new InstructionQueue();
+            instructionQueue = new();
 
             // Path Cache
-            pathCache = new PathCache();
+            pathCache = new();
 
             // States
-            stateStack = new StateStack();
-            Save();
-            Reset();
+            stateStack = new();
+            stateStack.Save();
+            stateStack.Reset();
 
             // Pixel Ratio
             pixelRatio = new();
-            pixelRatio.DeviePxRatio = 1.0f;
+            pixelRatio.DevicePxRatio = 1.0f;
 
             if (!graphicsManager.Create())
             {
@@ -62,8 +70,26 @@ namespace SilkyNvg
 
             // TODO: More on text N stuff
         }
+        #endregion
 
-        #region States
+        #region Frames
+        public void BeginFrame(Vector2 viewSize, float devicePxRatio)
+        {
+            stateStack.Clear();
+            stateStack.Save();
+            stateStack.Reset();
+
+            pixelRatio.DevicePxRatio = devicePxRatio;
+
+            graphicsManager.Viewport(viewSize, devicePxRatio);
+
+            FrameMeta = default;
+        }
+
+        public void BeginFrame(float x, float y, float devicePxRatioo) => BeginFrame(new(x, y), devicePxRatioo);
+        #endregion
+
+        #region State Handling
         public void Save()
         {
             stateStack.Save();
@@ -72,6 +98,33 @@ namespace SilkyNvg
         public void Reset()
         {
             stateStack.Restore();
+        }
+
+        public void Restore()
+        {
+            stateStack.Restore();
+        }
+        #endregion
+
+        #region State Handling
+        public void StrokeColour(Colour colour)
+        {
+            StrokePaint(new Paint(colour));
+        }
+
+        public void StrokePaint(Paint paint)
+        {
+            stateStack.CurrentState.stroke = paint;
+        }
+
+        public void FillColour(Colour colour)
+        {
+            FillPaint(new Paint(colour));
+        }
+
+        public void FillPaint(Paint paint)
+        {
+            stateStack.CurrentState.fill = paint;
         }
         #endregion
 

@@ -6,14 +6,27 @@ namespace SilkyNvg.Common
     {
 
         private readonly int _firstPoint;
-        private readonly int _pointCount;
 
         private readonly List<Vertex> _fill = new();
         private readonly List<Vertex> _stroke = new();
 
-        private Winding _winding;
-        private bool _closed;
-        private bool _convex;
+        public bool Convex { get; set; }
+
+        public Winding Winding { get; set; }
+
+        public bool Closed { get; set; }
+
+        public int BevelCount { get; set; }
+
+        public int PointCount { get; set; }
+
+        public int First => _firstPoint;
+
+        public Path(int pointCount)
+        {
+            _firstPoint = pointCount;
+            Winding = Winding.CCW;
+        }
 
     }
 }

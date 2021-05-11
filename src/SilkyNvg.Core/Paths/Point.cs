@@ -6,11 +6,22 @@ namespace SilkyNvg.Core.Paths
     {
 
         private readonly Vector2 _position;
-        private readonly Vector2 _determinant;
-        private readonly float _length;
-        private readonly Vector2 _matrixDeterminant;
 
-        private PointFlags _flags;
+        public PointFlags Flags { get; set; }
+
+        public Vector2 Position => _position;
+
+        public Vector2 Determinant { get; set; }
+
+        public float Length { get; set; }
+
+        public Vector2 MatrixDeterminant { get; set; }
+
+        public Point(Vector2 pos, PointFlags flags)
+        {
+            _position = pos;
+            Flags = flags;
+        }
 
     }
 }

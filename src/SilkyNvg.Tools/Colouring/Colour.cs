@@ -11,6 +11,15 @@ namespace SilkyNvg
     public struct Colour
     {
 
+        /// <summary>
+        /// RGBA 0 | 0 | 0 | 255
+        /// </summary>
+        public static readonly Colour BLACK = new(0, 0, 0, 255);
+        /// <summary>
+        /// RGBA 255 | 255 | 255 | 255
+        /// </summary>
+        public static readonly Colour WHITE = new(255, 255, 255, 255);
+
         private Vector4 _rgba;
 
         /// <summary>

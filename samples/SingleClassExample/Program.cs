@@ -73,9 +73,15 @@ namespace SingleClassExample
                 float pxRatio = (float)fbWidth / (float)winWidth;
 
                 gl.Viewport(0, 0, (uint)fbWidth, (uint)fbHeight);
-
                 gl.ClearColor(0, 0, 0, 0);
                 gl.Clear((uint)ClearBufferMask.ColorBufferBit | (uint)ClearBufferMask.DepthBufferBit | (uint)ClearBufferMask.StencilBufferBit);
+
+                nvg.BeginFrame(winWidth, winHeight, pxRatio);
+
+                nvg.BeginPath();
+                nvg.Rect(200, 200, 50, 50);
+                nvg.FillColour(Colour.WHITE);
+                nvg.Fill();
 
                 glfw.SwapBuffers(window);
                 glfw.PollEvents();
