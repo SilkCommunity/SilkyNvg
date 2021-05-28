@@ -1,22 +1,20 @@
 ﻿using SilkyNvg.Core.Paths;
-using System.Numerics;
 
 namespace SilkyNvg.Core.Instructions
 {
     internal class CloseInstruction : IInstruction
     {
 
-        public bool RequiresPosition => false;
+        private readonly PathCache _pathCache;
 
-        public float[] Data => null;
-
-        public PathCache PathCache { private get; set; }
-
-        public void Transform(Matrix3x2 _) { }
-
-        public void BuildPath()
+        public CloseInstruction(PathCache pathCache)
         {
-            PathCache.ClosePath();
+            _pathCache = pathCache;
+        }
+
+        public void BuildPaths()
+        {
+            _pathCache.LastPath.Close();
         }
 
     }

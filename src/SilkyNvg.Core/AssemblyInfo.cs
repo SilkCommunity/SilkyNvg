@@ -1,5 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("SilkyNvg.Transforms", AllInternalsVisible = true)]
 [assembly: InternalsVisibleTo("SilkyNvg.Paths", AllInternalsVisible = true)]
-namespace SilkyNvg.Rendering { }
+[assembly: InternalsVisibleTo("SilkyNvg.Blending", AllInternalsVisible = true)]
+[assembly: InternalsVisibleTo("SilkyNvg.Graphics", AllInternalsVisible = true)]
+[assembly: InternalsVisibleTo("SilkyNvg.Transforms", AllInternalsVisible = true)]
+[assembly: InternalsVisibleTo("SilkyNvg.Scissoring", AllInternalsVisible = true)]

@@ -1,33 +1,25 @@
-﻿using SilkyNvg.Core.Paths;
-using System.Numerics;
+﻿using Silk.NET.Maths;
+using SilkyNvg.Common;
+using SilkyNvg.Core.Paths;
 
 namespace SilkyNvg.Core.Instructions
 {
     internal class MoveToInstruction : IInstruction
     {
 
-        private Vector2 _position;
+        private readonly Vector2D<float> _position;
+        private readonly PathCache _pathCache;
 
-        public bool RequiresPosition => true;
-
-        public PathCache PathCache { private get; set; }
-
-        public float[] Data => new float[] { _position.Y, _position.X };
-
-        public MoveToInstruction(Vector2 position)
+        public MoveToInstruction(Vector2D<float> position, PathCache pathCache)
         {
             _position = position;
+            _pathCache = pathCache;
         }
 
-        public void Transform(Matrix3x2 transform)
+        public void BuildPaths()
         {
-            _position = Vector2.Transform(_position, transform);
-        }
-
-        public void BuildPath()
-        {
-            PathCache.AddPath();
-            PathCache.AddPoint(_position, PointFlags.Corner);
+            _pathCache.AddPath();
+            _pathCache.LastPath.AddPoint(_position, PointFlags.Corner);
         }
 
     }

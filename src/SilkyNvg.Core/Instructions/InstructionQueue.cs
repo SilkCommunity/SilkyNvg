@@ -1,45 +1,46 @@
-﻿using SilkyNvg.Core.Paths;
+﻿using Silk.NET.Maths;
 using System.Collections.Generic;
-using System.Numerics;
 
 namespace SilkyNvg.Core.Instructions
 {
-    internal class InstructionQueue
+    internal sealed class InstructionQueue
     {
 
-        private readonly Queue<IInstruction> _instructions;
+        private readonly Nvg _nvg;
 
-        private Vector2 _commandPosition;
+        private readonly Queue<IInstruction> _instructions = new();
 
-        public InstructionQueue()
+        public InstructionQueue(Nvg nvg)
         {
-            _instructions = new();
-            _commandPosition = default;
+            _nvg = nvg;
         }
 
-        public void AddInstructions(Matrix3x2 transform, PathCache pathCache, params IInstruction[] instructions)
+        public void AddMoveTo(Vector2D<float> pos)
         {
-            if (instructions[0].RequiresPosition)
-            {
-                _commandPosition.X = instructions[0].Data[^2];
-                _commandPosition.Y = instructions[0].Data[^1];
-            }
-
-            foreach (IInstruction instruction in instructions)
-            {
-                instruction.PathCache = pathCache;
-                instruction.Transform(transform);
-                _instructions.Enqueue(instruction);
-            }
+            _instructions.Enqueue(new MoveToInstruction(Vector2D.Transform(pos, _nvg.stateStack.CurrentState.Transform), _nvg.pathCache));
         }
 
-        public void BuildPaths()
+        public void AddLineTo(Vector2D<float> pos)
         {
-            foreach (IInstruction instruction in _instructions)
-            {
-                instruction.BuildPath();
-            }
+            _instructions.Enqueue(new LineToInstruction(Vector2D.Transform(pos, _nvg.stateStack.CurrentState.Transform), _nvg.pathCache));
+        }
 
+        public void AddClose()
+        {
+            _instructions.Enqueue(new CloseInstruction(_nvg.pathCache));
+        }
+
+        public void FlattenPaths()
+        {
+            while (_instructions.Count > 0)
+            {
+                _instructions.Dequeue().BuildPaths();
+            }
+            _nvg.pathCache.FlattenPaths();
+        }
+
+        public void Clear()
+        {
             _instructions.Clear();
         }
 

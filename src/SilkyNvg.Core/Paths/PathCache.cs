@@ -1,24 +1,34 @@
-﻿using SilkyNvg.Common;
+﻿using Silk.NET.Maths;
+using SilkyNvg.Common;
+using SilkyNvg.Graphics;
+using SilkyNvg.Paths;
+using SilkyNvg.Renderer;
+using System;
 using System.Collections.Generic;
-using System.Numerics;
 
 namespace SilkyNvg.Core.Paths
 {
     internal class PathCache
     {
 
-        private readonly List<Point> _points;
-        private readonly List<Path> _paths;
+        private readonly List<Path> _paths = new();
+        private readonly Nvg _nvg;
 
-        public PathCache()
+        private Vector4D<float> _bounds;
+
+        public Path[] Paths => _paths.ToArray();
+
+        public Vector4D<float> Bounds => _bounds;
+
+        public PathCache(Nvg nvg)
         {
-            _points = new();
-            _paths = new();
+            _nvg = nvg;
+
+            _bounds = default;
         }
 
         public void Clear()
         {
-            _points.Clear();
             _paths.Clear();
         }
 
@@ -27,45 +37,39 @@ namespace SilkyNvg.Core.Paths
             get
             {
                 if (_paths.Count > 0)
+                {
                     return _paths[^1];
+                }
                 return null;
             }
         }
 
-        public void AddPath()
+        public Path AddPath()
         {
-            _paths.Add(new(_points.Count));
+            Path path = new(Winding.Ccw, _nvg.pixelRatio);
+            _paths.Add(path);
+            return path;
         }
 
-        public Point LastPoint
+        public void FlattenPaths()
         {
-            get
+            _bounds.X = _bounds.Y = 1e6f;
+            _bounds.Z = _bounds.W = -1e6f;
+
+            foreach (Path path in _paths)
             {
-                if (_points.Count > 0)
-                    return _points[^1];
-                return null;
+                path.Flatten();
+
+                _bounds.X = MathF.Min(_bounds.X, path.Bounds.X);
+                _bounds.Y = MathF.Min(_bounds.Y, path.Bounds.Y);
+                _bounds.Z = MathF.Max(_bounds.Z, path.Bounds.Z);
+                _bounds.W = MathF.Max(_bounds.W, path.Bounds.W);
             }
-        }
-
-        public void AddPoint(Vector2 pos, PointFlags flags)
-        {
-            _points.Add(new Point(pos, flags));
-            LastPath.PointCount++;
-        }
-
-        public void ClosePath()
-        {
-            LastPath.Closed = true;
-        }
-
-        public void PathWinding(Winding winding)
-        {
-            LastPath.Winding = winding;
         }
 
         private void CalculateJoins(float w, LineCap lineJoin, float miterLimit)
         {
-            float iw = 1.0f;
+            float iw = 0.0f;
 
             if (w > 0.0f)
             {
@@ -74,25 +78,46 @@ namespace SilkyNvg.Core.Paths
 
             foreach (Path path in _paths)
             {
-                int pi = path.First;
-                Point p0 = _points[pi + path.PointCount - 1];
-                Point p1 = _points[pi];
-                int nleft = 0;
+                path.CalculateJoins(iw, lineJoin, miterLimit);
+            }
+        }
 
-                path.BevelCount = 0;
+        public void ExpandStroke(float w, float fringe, LineCap lineCap, LineCap lineJoin, float miterLimit, PixelRatio pixelRatio)
+        {
+            float aa = fringe;
+            float u0 = 0.0f;
+            float u1 = 1.0f;
+            uint ncap = Maths.CurveDivs(w, MathF.PI, pixelRatio.TessTol);
 
-                for (int i = pi; i < pi + path.PointCount; i++)
-                {
-                    float dlx0 = p0.Determinant.Y;
-                    float dly0 = -p0.Determinant.X;
-                    float dlx1 = p1.Determinant.Y;
-                    float dly1 = -p1.Determinant.X;
+            w += aa * 0.5f;
 
-                    p1.MatrixDeterminant.X = (dlx0 + dlx1) * 0.5f;
-
-                }
+            if (aa == 0.0f)
+            {
+                u0 = 0.5f;
+                u1 = 0.5f;
             }
 
+            CalculateJoins(w, lineJoin, miterLimit);
+
+            foreach (Path path in _paths)
+            {
+                path.ExpandStroke(aa, u0, u1, w, lineCap, lineJoin, ncap);
+            }
+        }
+
+        public void ExpandFill(float w, LineCap lineJoin, float miterLimit, PixelRatio pixelRatio)
+        {
+            float aa = pixelRatio.FringeWidth;
+            bool fringe = w > 0.0f;
+
+            CalculateJoins(w, lineJoin, miterLimit);
+
+            bool convex = _paths.Count == 1 && _paths[0].Convex;
+
+            foreach (Path path in _paths)
+            {
+                path.ExpandFill(aa, fringe, convex, w);
+            }
         }
 
     }

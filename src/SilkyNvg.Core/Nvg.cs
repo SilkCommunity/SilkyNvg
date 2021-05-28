@@ -1,92 +1,105 @@
-﻿using SilkyNvg.Common;
-using SilkyNvg.Core;
+﻿using Silk.NET.Maths;
+using SilkyNvg.Common;
 using SilkyNvg.Core.Instructions;
 using SilkyNvg.Core.Paths;
 using SilkyNvg.Core.States;
-using SilkyNvg.Rendering;
-using System.Numerics;
+using SilkyNvg.Renderer;
 
 namespace SilkyNvg
 {
     public sealed class Nvg
     {
 
-        public static Nvg Create(CreateFlags flags, INvgRenderer renderer)
+        #region Create / Destroy
+        public static Nvg Create(INvgRenderer renderer)
         {
-            LaunchParameters launchParameters = new(
-                (flags & CreateFlags.Antialias) != 0,
-                (flags & CreateFlags.StencilStrokes) != 0,
-                (flags & CreateFlags.Debug) != 0
-            );
-
-            GraphicsManager graphicsManager = new(launchParameters, renderer);
-
-            Nvg nvg = new(launchParameters, graphicsManager);
-            return nvg;
+            return new Nvg(new GraphicsManager(renderer));
         }
 
-        #region Meta
-
-        public FrameMeta FrameMeta { get; internal set; }
-
-        #endregion
-
-        #region Implementation
-        internal readonly LaunchParameters launchParameters;
         internal readonly GraphicsManager graphicsManager;
-
         internal readonly InstructionQueue instructionQueue;
         internal readonly PathCache pathCache;
         internal readonly StateStack stateStack;
+        internal readonly PixelRatio pixelRatio;
 
-        internal PixelRatio pixelRatio;
+        public FrameMeta FrameMeta { get; internal set; }
 
-        private Nvg(LaunchParameters launchParameters, GraphicsManager graphicsManager)
+        private Nvg(GraphicsManager graphicsManager)
         {
-            this.launchParameters = launchParameters;
             this.graphicsManager = graphicsManager;
 
-            // TODO: Font images
-
-            // Instructions
-            instructionQueue = new();
-
-            // Path Cache
-            pathCache = new();
-
-            // States
-            stateStack = new();
-            stateStack.Save();
-            stateStack.Reset();
-
-            // Pixel Ratio
-            pixelRatio = new();
-            pixelRatio.DevicePxRatio = 1.0f;
+            instructionQueue = new InstructionQueue(this);
+            pathCache = new PathCache(this);
+            stateStack = new StateStack();
+            pixelRatio = new PixelRatio();
 
             if (!graphicsManager.Create())
             {
-                throw new System.Exception("Failed to initialize the renderer!");
+                throw new System.InvalidOperationException("Failed to initialize the renderer!");
             }
-
-            // TODO: More on text N stuff
         }
         #endregion
 
         #region Frames
-        public void BeginFrame(Vector2 viewSize, float devicePxRatio)
+        public void BeginFrame(Vector2D<float> windowSize, float devicePixelRatio)
         {
             stateStack.Clear();
-            stateStack.Save();
-            stateStack.Reset();
+            Save();
+            Reset();
 
-            pixelRatio.DevicePxRatio = devicePxRatio;
+            pixelRatio.SetDevicePixelRatio(devicePixelRatio);
 
-            graphicsManager.Viewport(viewSize, devicePxRatio);
+            graphicsManager.Viewport(windowSize, devicePixelRatio);
 
             FrameMeta = default;
         }
 
-        public void BeginFrame(float x, float y, float devicePxRatioo) => BeginFrame(new(x, y), devicePxRatioo);
+        public void BeginFrame(float windowWidth, float windowHeight, float devicePixelRatio) => BeginFrame(new Vector2D<float>(windowWidth, windowHeight), devicePixelRatio);
+
+        public void EndFrame()
+        {
+            graphicsManager.Flush();
+            // TODO: Images
+        }
+
+        #endregion
+
+        #region Colour Utils
+        public Colour Rgb(byte r, byte g, byte b) => Rgba(r, g, b, 255);
+
+        public Colour RgbF(float r, float g, float b) => RgbaF(r, g, b, 1.0f);
+
+        public Colour Rgba(byte r, byte g, byte b, byte a)
+        {
+            return new(r, g, b, a);
+        }
+
+        public Colour RgbaF(float r, float g, float b, float a)
+        {
+            return new(r, g, b, a);
+        }
+
+        public Colour TransRgba(Colour c, byte a)
+        {
+            return new(c, a);
+        }
+
+        public Colour TransRgbaF(Colour c, float a)
+        {
+            return new(c, a);
+        }
+
+        public Colour LerpRgba(Colour c0, Colour c1, float u)
+        {
+            return new(c0, c1, u);
+        }
+
+        public Colour Hsl(float h, float s, float l) => Hsla(h, s, l, 255);
+
+        public Colour Hsla (float h, float s, float l, byte a)
+        {
+            return new(h, s, l, a);
+        }
         #endregion
 
         #region State Handling
@@ -95,37 +108,38 @@ namespace SilkyNvg
             stateStack.Save();
         }
 
-        public void Reset()
-        {
-            stateStack.Restore();
-        }
-
         public void Restore()
         {
             stateStack.Restore();
         }
+
+        public void Reset()
+        {
+            stateStack.Reset();
+        }
         #endregion
 
-        #region State Handling
-        public void StrokeColour(Colour colour)
+        #region Paints
+        public Paint LinearGradient(float sx, float sy, float ex, float ey, Colour icol, Colour ocol)
         {
-            StrokePaint(new Paint(colour));
+            return Paint.LinearGradient(sx, sy, ex, ey, icol, ocol);
         }
 
-        public void StrokePaint(Paint paint)
+        public Paint LinearGradient(Vector2D<float> s, Vector2D<float> e, Colour icol, Colour ocol) => LinearGradient(s.X, s.Y, e.X, e.Y, icol, ocol);
+
+        public Paint BoxGradient(float x, float y, float w, float h, float r, float f, Colour icol, Colour ocol)
         {
-            stateStack.CurrentState.stroke = paint;
+            return Paint.BoxGradient(x, y, w, h, r, f, icol, ocol);
         }
 
-        public void FillColour(Colour colour)
+        public Paint BoxGradient(Vector2D<float> pos, Vector2D<float> size, float r, float f, Colour icol, Colour ocol) => BoxGradient(pos.X, pos.Y, size.X, size.Y, r, f, icol, ocol);
+
+        public Paint RadialGradient(float cx, float cy, float inr, float outr, Colour icol, Colour ocol)
         {
-            FillPaint(new Paint(colour));
+            return Paint.RadialGradient(cx, cy, inr, outr, icol, ocol);
         }
 
-        public void FillPaint(Paint paint)
-        {
-            stateStack.CurrentState.fill = paint;
-        }
+        public Paint RadialGradient(Vector2D<float> c, Vector2D<float> radii, Colour icol, Colour ocol) => RadialGradient(c.X, c.Y, radii.X, radii.Y, icol, ocol);
         #endregion
 
     }

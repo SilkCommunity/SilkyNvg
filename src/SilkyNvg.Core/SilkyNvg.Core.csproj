@@ -5,7 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\renderers\SilkyNvg.Rendering\SilkyNvg.Rendering.csproj" />
+    <ProjectReference Include="..\components\SilkyNvg.Tools\SilkyNvg.Tools.csproj" />
+    <ProjectReference Include="..\rendering\SilkyNvg.Renderer\SilkyNvg.Renderer.csproj" />
     <ProjectReference Include="..\SilkyNvg.Common\SilkyNvg.Common.csproj" />
   </ItemGroup>
 

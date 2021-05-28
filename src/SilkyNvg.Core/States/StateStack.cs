@@ -1,26 +1,28 @@
-﻿using SilkyNvg.Core.Maths;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace SilkyNvg.Core.States
 {
-    internal class StateStack
+    internal sealed class StateStack
     {
 
-        private const byte MAX_STATES = 32;
+        private const uint MAX_STATES = 32;
 
-        private readonly Stack<State> _states;
+        private readonly Stack<State> _states = new();
 
         public State CurrentState
         {
-            get
+            get => _states.Peek();
+            private set
             {
-                return _states.Peek();
+                _ = _states.Pop();
+                _states.Push(value);
             }
         }
 
         public StateStack()
         {
-            _states = new();
+            Save();
+            Reset();
         }
 
         public void Save()
@@ -29,14 +31,19 @@ namespace SilkyNvg.Core.States
             {
                 return;
             }
-
-            if (_states.Count > 0)
+            else if (_states.Count > 0)
             {
                 _states.Push(_states.Peek().Clone());
-            } else if (_states.Count == 0)
-            {
-                _states.Push(new());
             }
+            else if (_states.Count == 0)
+            {
+                _states.Push(default);
+            }
+        }
+
+        public void Reset()
+        {
+            CurrentState = State.Default;
         }
 
         public void Restore()
@@ -45,28 +52,7 @@ namespace SilkyNvg.Core.States
             {
                 return;
             }
-
-            _states.Pop();
-        }
-
-        public void Reset()
-        {
-            var state = CurrentState;
-
-            state.fill = new Paint(new Colour(255, 255, 255, 255));
-            state.stroke = new Paint(new Colour(0, 0, 0, 255));
-            state.compositeOperation = new CompositeOperationState(CompositeOperation.SourceOut);
-            state.shapeAntialias = true;
-            state.strokeWidth = 1.0f;
-            state.miterLimit = 10.0f;
-            state.lineCap = LineCap.Butt;
-            state.lineJoin = LineCap.Miter;
-            state.alpha = 1.0f;
-            state.transform = TransformsImpl.Identity;
-
-            state.scissor = new();
-
-            // TODO: Font
+            _ = _states.Pop();
         }
 
         public void Clear()

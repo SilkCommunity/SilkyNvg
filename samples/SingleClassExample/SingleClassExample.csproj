@@ -14,13 +14,13 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\src\renderers\SilkyNvg.Rendering.OpenGL.Legacy\SilkyNvg.Rendering.OpenGL.Legacy.csproj" />
-		<ProjectReference Include="..\..\src\SilkyNvg\SilkyNvg.csproj" />
+		<PackageReference Include="Silk.NET.GLFW" Version="2.4.0" />
+		<PackageReference Include="Silk.NET.OpenGL.Legacy" Version="2.4.0" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Silk.NET.GLFW" Version="2.3.0" />
-		<PackageReference Include="Silk.NET.OpenGL.Legacy" Version="2.3.0" />
+	  <ProjectReference Include="..\..\src\rendering\SilkyNvg.Rendering.OpenGL.Legacy\SilkyNvg.Rendering.OpenGL.Legacy.csproj" />
+	  <ProjectReference Include="..\..\src\SilkyNvg\SilkyNvg.csproj" />
 	</ItemGroup>
 
 </Project>

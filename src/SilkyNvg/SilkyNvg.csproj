@@ -1,14 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetFramework>net5.0</TargetFramework>
-	</PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
 
-	<ItemGroup>
-	  <ProjectReference Include="..\renderers\SilkyNvg.Rendering\SilkyNvg.Rendering.csproj" />
-	  <ProjectReference Include="..\SilkyNvg.Core\SilkyNvg.Core.csproj" />
-	  <ProjectReference Include="..\SilkyNvg.Paths\SilkyNvg.Paths.csproj" />
-	  <ProjectReference Include="..\SilkyNvg.Tools\SilkyNvg.Tools.csproj" />
-	</ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\components\SilkyNvg.Graphics\SilkyNvg.Graphics.csproj" />
+    <ProjectReference Include="..\components\SilkyNvg.Paths\SilkyNvg.Paths.csproj" />
+    <ProjectReference Include="..\components\SilkyNvg.Tools\SilkyNvg.Tools.csproj" />
+    <ProjectReference Include="..\components\SilkyNvg.Transforms\SilkyNvg.Transforms.csproj" />
+    <ProjectReference Include="..\rendering\SilkyNvg.Renderer\SilkyNvg.Renderer.csproj" />
+    <ProjectReference Include="..\SilkyNvg.Core\SilkyNvg.Core.csproj" />
+  </ItemGroup>
 
 </Project>

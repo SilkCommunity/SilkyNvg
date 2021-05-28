@@ -1,6 +1,8 @@
 ﻿using Silk.NET.GLFW;
 using Silk.NET.OpenGL.Legacy;
 using SilkyNvg;
+using SilkyNvg.Graphics;
+using SilkyNvg.Paths;
 using SilkyNvg.Rendering.OpenGL.Legacy;
 using System;
 
@@ -23,10 +25,9 @@ namespace SingleClassExample
                 glfw.SetWindowShouldClose(window, true);
         }
 
-        static void Main(string[] args)
+        static void Main()
         {
             WindowHandle* window;
-            Nvg nvg;
 
             glfw = Glfw.GetApi();
             if (!glfw.Init())
@@ -58,7 +59,7 @@ namespace SingleClassExample
             gl = GL.GetApi(new GlfwContext(glfw, window));
             gl.GetError();
 
-            nvg = Nvg.Create(CreateFlags.Antialias | CreateFlags.StencilStrokes | CreateFlags.Debug, new LegacyOpenGLRenderer(gl));
+            Nvg nvg = Nvg.Create(new LegacyOpenGLRenderer(CreateFlags.Antialias | CreateFlags.StencilStrokes | CreateFlags.Debug, gl));
 
             glfw.SwapInterval(0);
 
@@ -74,14 +75,16 @@ namespace SingleClassExample
 
                 gl.Viewport(0, 0, (uint)fbWidth, (uint)fbHeight);
                 gl.ClearColor(0, 0, 0, 0);
-                gl.Clear((uint)ClearBufferMask.ColorBufferBit | (uint)ClearBufferMask.DepthBufferBit | (uint)ClearBufferMask.StencilBufferBit);
+                gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
 
                 nvg.BeginFrame(winWidth, winHeight, pxRatio);
 
                 nvg.BeginPath();
-                nvg.Rect(200, 200, 50, 50);
-                nvg.FillColour(Colour.WHITE);
+                nvg.Rect(100, 100, 50, 50);
+                nvg.FillColour(Colour.White);
                 nvg.Fill();
+
+                nvg.EndFrame();
 
                 glfw.SwapBuffers(window);
                 glfw.PollEvents();
