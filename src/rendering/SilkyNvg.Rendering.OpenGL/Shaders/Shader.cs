@@ -101,6 +101,7 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
             _loc.Add(UniformLoc.InnerCol, _gl.GetUniformLocation(_programmeID, "innerCol"));
             _loc.Add(UniformLoc.OuterCol, _gl.GetUniformLocation(_programmeID, "outerCol"));
             _loc.Add(UniformLoc.StrokeMult, _gl.GetUniformLocation(_programmeID, "strokeMult"));
+            _loc.Add(UniformLoc.StrokeThr, _gl.GetUniformLocation(_programmeID, "strokeThr"));
             _loc.Add(UniformLoc.Tex, _gl.GetUniformLocation(_programmeID, "tex"));
             _loc.Add(UniformLoc.TexType, _gl.GetUniformLocation(_programmeID, "texType"));
             _loc.Add(UniformLoc.Type, _gl.GetUniformLocation(_programmeID, "type"));
@@ -136,9 +137,9 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
             _gl.Uniform4(_loc[loc], 1, (float*)&colour);
         }
 
-        public unsafe void LoadMatrix(UniformLoc loc, Matrix3X3<float> value)
+        public unsafe void LoadMatrix(UniformLoc loc, Matrix3X4<float> value)
         {
-            _gl.UniformMatrix3(_loc[loc], 1, false, (float*)&value);
+            _gl.UniformMatrix3x4(_loc[loc], 1, false, (float*)&value);
         }
 
     }

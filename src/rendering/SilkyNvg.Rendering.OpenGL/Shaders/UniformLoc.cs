@@ -15,6 +15,7 @@
         InnerCol,
         OuterCol,
         StrokeMult,
+        StrokeThr,
         Tex,
         TexType,
         Type,

@@ -4,18 +4,19 @@ in vec2 pass_vertex;
 in vec2 pass_tcoord;
 in vec4 pass_colour;
 
-out vec4 outColour;
+out vec4 out_Colour;
 
-uniform mat3 scissorMat;
+uniform mat3x4 scissorMat;
 uniform vec2 scissorExt;
 uniform vec2 scissorScale;
-uniform mat3 paintMat;
+uniform mat3x4 paintMat;
 uniform vec2 extent;
 uniform float radius;
 uniform float feather;
 uniform vec4 innerCol;
 uniform vec4 outerCol;
 uniform float strokeMult;
+uniform float strokeThr;
 
 uniform int texType;
 uniform int type;
@@ -35,14 +36,20 @@ float scissorMask(vec2 p) {
 }
 
 void main(void) {
-    if (type == 0) { // Gradient
-        float scissor = scissorMask(pass_vertex);
+    float scissor = scissorMask(pass_vertex);
 
+    if (type == 0) { // Gradient
         vec2 pt = (paintMat * vec3(pass_vertex, 1.0)).xy;
         float d = clamp((sdroundrect(pt, extent, radius) + feather * 0.5) / feather, 0.0, 1.0);
         vec4 colour = mix(innerCol, outerCol, d);
 
         colour.w *= scissor;
-        outColour = colour;
-    }
+        out_Colour = colour;
+	} else if (type == 1) { // Image
+		out_Colour = vec4(0, 0, 0, 0);
+	} else if (type == 2) { // Stencil Fill
+		out_Colour = vec4(1, 1, 1, 1);
+	} else if (type == 3) { // Textured Tris
+		out_Colour = texture(tex, pass_tcoord);
+	}
 }

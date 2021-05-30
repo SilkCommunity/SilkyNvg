@@ -2,6 +2,8 @@
 using Silk.NET.OpenGL;
 using SilkyNvg.Blending;
 using SilkyNvg.Renderer;
+using SilkyNvg.Rendering.OpenGL.Blending;
+using SilkyNvg.Rendering.OpenGL.Calls;
 using SilkyNvg.Rendering.OpenGL.Shaders;
 using SilkyNvg.Rendering.OpenGL.Utils;
 using System;
@@ -13,13 +15,12 @@ namespace SilkyNvg.Rendering.OpenGL
     {
 
         private readonly CreateFlags _flags;
+        private readonly VertexCollection _vertexCollection;
+        private readonly CallQueue _callQueue;
 
-        private Shader _shader;
+        private VAO _vao;
 
         private Vector2D<float> _size;
-
-        private uint _vertexArray;
-        private uint _vertexBuffer;
 
         internal GL Gl { get; }
 
@@ -27,111 +28,92 @@ namespace SilkyNvg.Rendering.OpenGL
 
         internal bool Debug => _flags.HasFlag(CreateFlags.Debug);
 
+        internal StateFilter Filter { get; private set; }
+
+        internal Shader Shader { get; private set; }
+
         public bool EdgeAntiAlias => _flags.HasFlag(CreateFlags.Antialias);
 
         public OpenGLRenderer(CreateFlags flags, GL gl)
         {
             _flags = flags;
             Gl = gl;
+
+            _vertexCollection = new VertexCollection();
+            _callQueue = new CallQueue();
         }
 
-        internal bool CheckError(string str)
+        internal void StencilMask(uint mask)
+        {
+            if (Filter.StencilMask != mask)
+            {
+                Filter.StencilMask = mask;
+                Gl.StencilMask(mask);
+            }
+        }
+
+        internal void StencilFunc(StencilFunction func, int @ref, uint mask)
+        {
+            if (Filter.StencilFunc != func ||
+                Filter.StencilFuncRef != @ref ||
+                Filter.StencilFuncMask != mask)
+            {
+                Filter.StencilFunc = func;
+                Filter.StencilFuncRef = @ref;
+                Filter.StencilFuncMask = mask;
+                Gl.StencilFunc(func, @ref, mask);
+            }
+        }
+
+        internal void CheckError(string str)
         {
             if (!Debug)
             {
-                return false;
+                return;
             }
 
             GLEnum err = Gl.GetError();
             if (err != GLEnum.NoError)
             {
                 Console.Error.WriteLine("Error " + err + " after" + Environment.NewLine + str);
-                return true;
+                return;
             }
-            return false;
         }
 
         public bool Create()
         {
-            _ = CheckError("init");
+            CheckError("init");
 
             if (EdgeAntiAlias)
             {
-                _shader = new Shader("SilkyNvg-Shader", "vertexShader", "fragmentShaderEdgeAA", Gl);
-                if (!_shader.Status)
+                Shader = new Shader("SilkyNvg-Shader", "vertexShader", "fragmentShaderEdgeAA", Gl);
+                if (!Shader.Status)
                 {
                     return false;
                 }
             }
             else
             {
-                _shader = new Shader("SilkyNvg-Shader", "vertexShader", "fragmentShader", Gl);
-                if (!_shader.Status)
+                Shader = new Shader("SilkyNvg-Shader", "vertexShader", "fragmentShader", Gl);
+                if (!Shader.Status)
                 {
                     return false;
                 }
             }
 
-            _ = CheckError("uniform locations");
-            _shader.GetUniforms();
+            CheckError("uniform locations");
+            Shader.GetUniforms();
 
-            _vertexArray = Gl.GenVertexArray();
-            _vertexBuffer = Gl.GenBuffer();
+            _vao = new(Gl);
+            _vao.Vbo = new(Gl);
 
-            _ = CheckError("done");
+            // TODO: Dummy texture
 
-            return true;
-        }
+            Filter = new StateFilter();
 
-        private bool SetupPaint(Paint paint, Scissor scissor, float width, float fringe)
-        {
-            Colour innerCol = paint.InnerColour;
-            Colour outerCol = paint.OuterColour;
+            CheckError("create done!");
 
-            Matrix3X2<float> invtransform = Maths.Inverse(paint.Transform);
-            Matrix3X3<float> paintMat = Maths.TransformToMat3x3(invtransform);
-
-            Matrix3X3<float> scissorMat;
-            Vector2D<float> scissorPos, scissorScale;
-            if (scissor.Extent.X < 0.5f || scissor.Extent.Y < 0.5f)
-            {
-                scissorMat = default;
-                scissorPos = new(1.0f);
-                scissorScale = new(1.0f);
-            }
-            else
-            {
-                invtransform = Maths.Inverse(scissor.Transform);
-                scissorMat = Maths.TransformToMat3x3(invtransform);
-                scissorPos = scissor.Extent;
-                scissorScale = new(
-                    MathF.Sqrt(scissor.Transform.M11 * scissor.Transform.M11 + scissor.Transform.M21 * scissor.Transform.M21) / fringe,
-                    MathF.Sqrt(scissor.Transform.M12 * scissor.Transform.M12 + scissor.Transform.M22 * scissor.Transform.M22) / fringe
-                );
-            }
-
-            if (paint.Image != 0)
-            {
-                // TODO: Implement this!
-                throw new Exception();
-            }
-            else
-            {
-                _shader.Start();
-                _shader.LoadInt(UniformLoc.Type, (int)Shaders.ShaderType.Fillgrad);
-                _shader.LoadVector(UniformLoc.ViewSize, _size);
-                _shader.LoadMatrix(UniformLoc.ScissorMat, scissorMat);
-                _shader.LoadVector(UniformLoc.ScissorExt, scissorPos);
-                _shader.LoadVector(UniformLoc.ScissorScale, scissorScale);
-                _shader.LoadMatrix(UniformLoc.PaintMat, paintMat);
-                _shader.LoadVector(UniformLoc.Extent, paint.Extent);
-                _shader.LoadFloat(UniformLoc.Radius, paint.Radius);
-                _shader.LoadFloat(UniformLoc.Feather, paint.Feather);
-                _shader.LoadColour(UniformLoc.InnerCol, innerCol);
-                _shader.LoadColour(UniformLoc.OuterCol, outerCol);
-                _shader.LoadFloat(UniformLoc.StrokeMult, (width * 0.5f + fringe * 0.5f) / fringe);
-                CheckError("grad paint loc");
-            }
+            Gl.Finish();
 
             return true;
         }
@@ -141,269 +123,125 @@ namespace SilkyNvg.Rendering.OpenGL
             _size = size;
         }
 
-        public void Flush() { }
-
-        private static uint VertexCount(Path[] paths)
+        public void Flush()
         {
-            uint count = 0;
-            foreach (Path path in paths)
+            if (_callQueue.HasCalls)
             {
-                count += (uint)path.Fill.Length;
-                count += (uint)path.Stroke.Length;
-            }
-            return count;
-        }
-
-        private unsafe void UploadPaths(Path[] paths)
-        {
-            uint n = 0;
-            foreach (Path path in paths)
-            {
-                if (path.Fill.Length > 0)
-                {
-                    fixed (Vertex* vertex = &path.Fill[0])
-                    {
-                        Gl.BufferSubData(BufferTargetARB.ArrayBuffer, (nint)(n * sizeof(Vertex)), (uint)(path.Fill.Length * sizeof(Vertex)), vertex);
-                    }
-                    n += (uint)path.Fill.Length;
-                }
-                if (path.Stroke.Length > 0)
-                {
-                    fixed (Vertex* vertex = &path.Stroke[0])
-                    {
-                        Gl.BufferSubData(BufferTargetARB.ArrayBuffer, (nint)(n * sizeof(Vertex)), (uint)(path.Stroke.Length * sizeof(Vertex)), vertex);
-                    }
-                    n += (uint)path.Stroke.Length;
-                }
-            }
-        }
-
-        private unsafe void Fill_ConvexRender(Path[] paths)
-        {
-            uint n = 0;
-            foreach (Path path in paths)
-            {
-                uint offset = (uint)(n * sizeof(Vertex));
-                Gl.VertexAttribPointer(0, 2, GLEnum.Float, false, (uint)(sizeof(Vertex)), (void*)offset);
-                Gl.VertexAttribPointer(1, 2, GLEnum.Float, false, (uint)(sizeof(Vertex)), (void*)(offset + 2 * sizeof(float)));
-                Gl.DrawArrays(PrimitiveType.TriangleFan, 0, (uint)path.Fill.Length);
-                n += (uint)(path.Fill.Length * path.Stroke.Length);
-            }
-        }
-
-        private unsafe void Fill_Antialias(Path[] paths)
-        {
-            Gl.StencilFunc(StencilFunction.Lequal, 0x00, 0xff);
-            Gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Keep);
-
-            uint n = 0;
-            foreach (Path path in paths)
-            {
-                uint offset = (uint)((n + path.Fill.Length) * sizeof(Vertex));
-                Gl.VertexAttribPointer(0, 2, GLEnum.Float, false, (uint)sizeof(Vertex), (void*)offset);
-                Gl.VertexAttribPointer(1, 2, GLEnum.Float, false, (uint)sizeof(Vertex), (void*)(offset + 2 * sizeof(float)));
-                Gl.DrawArrays(PrimitiveType.TriangleStrip, 0, (uint)path.Stroke.Length);
-                n += (uint)(path.Fill.Length + path.Stroke.Length);
-            }
-        }
-
-        private unsafe void Fill_Stencil(Path[] paths)
-        {
-            uint n = 0;
-            foreach (Path path in paths)
-            {
-                uint offset = (uint)(n * sizeof(Vertex));
-                Gl.VertexAttribPointer(0, 2, GLEnum.Float, false, (uint)sizeof(Vertex), (void*)offset);
-                Gl.DrawArrays(PrimitiveType.TriangleFan, 0, (uint)path.Fill.Length);
-                n += (uint)(path.Fill.Length + path.Stroke.Length);
-            }
-        }
-
-        private unsafe void Fill_RenderQuad(Vector4D<float> bounds)
-        {
-            float[] quadVerts =
-            {
-                    bounds.X, bounds.W,
-                    bounds.Z, bounds.W,
-                    bounds.Z, bounds.Y,
-                    bounds.X, bounds.W,
-                    bounds.Z, bounds.Y,
-                    bounds.X, bounds.Y,
-                };
-            fixed (float* qv = quadVerts)
-            {
-                Gl.BufferSubData(BufferTargetARB.ArrayBuffer, 0, (uint)(6 * 2 * sizeof(float)), qv);
-            }
-            Gl.VertexAttribPointer(0, 2, GLEnum.Float, false, (uint)(2 * sizeof(float)), (void*)0);
-            Gl.VertexAttrib2(1, 0.5f, 0.5f);
-            Gl.DrawArrays(PrimitiveType.TriangleFan, 0, 6);
-        }
-
-        public unsafe void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Vector4D<float> bounds, Path[] paths)
-        {
-            Blending.Blending.Blend(compositeOperation, Gl);
-
-            Gl.BindVertexArray(_vertexArray);
-            Gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vertexBuffer);
-            Gl.BufferData(BufferTargetARB.ArrayBuffer, (uint)(VertexCount(paths) * sizeof(Vertex)), null, BufferUsageARB.StreamDraw);
-            UploadPaths(paths);
-
-            if (paths.Length == 1 && paths[0].Convex)
-            {
-                Gl.Enable(EnableCap.CullFace);
-
-                Gl.EnableVertexAttribArray(0);
-                Gl.EnableVertexAttribArray(1);
-                SetupPaint(paint, scissor, fringe, fringe);
-
-                Gl.Disable(EnableCap.CullFace);
-                Fill_ConvexRender(paths);
+                Shader.Start();
 
                 Gl.Enable(EnableCap.CullFace);
+                Gl.CullFace(CullFaceMode.Back);
+                Gl.FrontFace(FrontFaceDirection.Ccw);
+                Gl.Enable(EnableCap.Blend);
+                Gl.Disable(EnableCap.DepthTest);
+                Gl.Disable(EnableCap.ScissorTest);
+                Gl.ColorMask(true, true, true, true);
+                Gl.StencilMask(0xffffffff);
+                Gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Keep);
+                Gl.StencilFunc(StencilFunction.Always, 0, 0xffffffff);
+                Gl.ActiveTexture(TextureUnit.Texture0);
+                Gl.BindTexture(TextureTarget.Texture2D, 0);
+                Filter.BoundTexture = 0;
+                Filter.StencilMask = 0xffffffff;
+                Filter.StencilFunc = StencilFunction.Always;
+                Filter.StencilFuncRef = 0;
+                Filter.StencilFuncMask = 0xffffffff;
+                Filter.BlendFunc = new Blend(GLEnum.InvalidEnum, GLEnum.InvalidEnum, GLEnum.InvalidEnum, GLEnum.InvalidEnum);
 
-                if (EdgeAntiAlias)
-                {
-                    Fill_Antialias(paths);
-                }
+                _vao.Bind();
+                _vao.Vbo.Update(_vertexCollection.Vertices);
 
-                _shader.Stop();
+                Shader.LoadInt(UniformLoc.Tex, 0);
+                Shader.LoadVector(UniformLoc.ViewSize, _size);
+
+                _callQueue.Run();
+
                 Gl.DisableVertexAttribArray(0);
                 Gl.DisableVertexAttribArray(1);
-                Gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
-                Gl.BindVertexArray(0);
+
+                _vao.Unbind();
+
+                Gl.Disable(EnableCap.CullFace);
+                Shader.Stop();
+                // TODO: Unbind texture
+            }
+
+            _vertexCollection.Clear();
+            _callQueue.Clear();
+        }
+
+        public void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Vector4D<float> bounds, Renderer.Path[] paths)
+        {
+            int offset = _vertexCollection.CurrentsOffset;
+            Path[] renderPaths = new Path[paths.Length];
+            for (int i = 0; i < paths.Length; i++)
+            {
+                Renderer.Path path = paths[i];
+                renderPaths[i] = new Path(
+                    _vertexCollection.CurrentsOffset, path.Fill.Count,
+                    _vertexCollection.CurrentsOffset + path.Fill.Count, path.Stroke.Count
+                );
+                _vertexCollection.AddVertices(path.Fill);
+                _vertexCollection.AddVertices(path.Stroke);
+                offset += path.Fill.Count;
+                offset += path.Stroke.Count;
+            }
+
+
+            FragUniforms uniforms = new(paint, scissor, fringe, fringe, -1.0f);
+            Call call;
+            if ((paths.Length == 1) && paths[0].Convex) // Convex
+            {
+                call = new ConvexFillCall(paint.Image, renderPaths, uniforms, compositeOperation, this);
             }
             else
             {
-                Gl.Enable(EnableCap.CullFace);
+                _vertexCollection.AddVertex(new Vertex(bounds.Z, bounds.W, 0.5f, 1.0f));
+                _vertexCollection.AddVertex(new Vertex(bounds.Z, bounds.Y, 0.5f, 1.0f));
+                _vertexCollection.AddVertex(new Vertex(bounds.X, bounds.W, 0.5f, 1.0f));
+                _vertexCollection.AddVertex(new Vertex(bounds.X, bounds.Y, 0.5f, 1.0f));
 
-                Gl.BindVertexArray(_vertexArray);
-                Gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vertexBuffer);
+                FragUniforms stencilUniforms = new(-1.0f, Shaders.ShaderType.Simple);
 
-                Gl.Disable(EnableCap.Blend);
-                Gl.Enable(EnableCap.StencilTest);
-                Gl.StencilMask(0xff);
-                int op = ~0;
-                Gl.StencilFunc(StencilFunction.Always, 0, (uint)op);
-                Gl.ColorMask(false, false, false, false);
+                call = new FillCall(paint.Image, renderPaths, offset, stencilUniforms, uniforms, compositeOperation, this);
+            }
 
-                _shader.Start();
-                _shader.LoadInt(UniformLoc.Type, (int)Shaders.ShaderType.Simple);
-                _shader.LoadVector(UniformLoc.ViewSize, _size);
-                CheckError("fill solid loc");
+            _callQueue.Add(call);
+        }
 
-                Gl.EnableVertexAttribArray(0);
-
-                Gl.StencilOpSeparate(StencilFaceDirection.Front, StencilOp.Keep, StencilOp.Keep, StencilOp.IncrWrap);
-                Gl.StencilOpSeparate(StencilFaceDirection.Back, StencilOp.Keep, StencilOp.Keep, StencilOp.DecrWrap);
-                Gl.Disable(EnableCap.CullFace);
-
-                Fill_Stencil(paths);
-
-                Gl.Enable(EnableCap.CullFace);
-
-                Gl.ColorMask(true, true, true, true);
-                Gl.Enable(EnableCap.Blend);
-
-                Gl.EnableVertexAttribArray(1);
-                SetupPaint(paint, scissor, fringe, fringe);
-
-                if (EdgeAntiAlias)
+        public void Stroke(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, float strokeWidth, Renderer.Path[] paths)
+        {
+            int offset = _vertexCollection.CurrentsOffset;
+            Path[] renderPaths = new Path[paths.Length];
+            for (int i = 0; i < paths.Length; i++)
+            {
+                if (paths[i].Stroke.Count > 0)
                 {
-                    Fill_Antialias(paths);
+                    renderPaths[i] = new Path(0, 0, offset, paths[i].Stroke.Count);
                 }
-
-                Gl.StencilFunc(StencilFunction.Notequal, 0x0, 0xff);
-                Gl.StencilOp(StencilOp.Zero, StencilOp.Zero, StencilOp.Zero);
-
-                Gl.DisableVertexAttribArray(1);
-
-                Fill_RenderQuad(bounds);
-
-                _shader.Stop();
-
-                Gl.DisableVertexAttribArray(0);
-
-                Gl.Disable(EnableCap.StencilTest);
+                else
+                {
+                    renderPaths[i] = default;
+                }
+                _vertexCollection.AddVertices(paths[i].Stroke);
+                offset += paths[i].Stroke.Count;
             }
-        }
 
-        private unsafe void Stroke_Render(Path[] paths)
-        {
-            uint n = 0;
-            foreach (Path path in paths)
-            {
-                uint offset = (uint)((n * path.Fill.Length) * sizeof(Vertex));
-                Gl.VertexAttribPointer(0, 2, GLEnum.Float, false, (uint)sizeof(Vertex), (void*)offset);
-                Gl.VertexAttribPointer(1, 2, GLEnum.Float, false, (uint)sizeof(Vertex), (void*)(offset + 2 * sizeof(float)));
-                Gl.DrawArrays(PrimitiveType.TriangleStrip, 0, (uint)path.Stroke.Length);
-                n += (uint)(path.Fill.Length + path.Stroke.Length);
-            }
-        }
-
-        private unsafe void Stroke_Stencil(Path[] paths)
-        {
-            uint n = 0;
-            foreach (Path path in paths)
-            {
-                uint offset = (uint)(n * sizeof(Vertex));
-                Gl.VertexAttribPointer(0, 1, GLEnum.Float, false, 0, (void*)offset);
-                Gl.DrawArrays(PrimitiveType.TriangleStrip, 0, (uint)path.Stroke.Length);
-                n += (uint)(path.Fill.Length + path.Stroke.Length);
-            }
-        }
-
-        public unsafe void Stroke(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, float width, Path[] paths)
-        {
-            Blending.Blending.Blend(compositeOperation, Gl);
-
+            Call call;
             if (StencilStrokes)
             {
-                Gl.Enable(EnableCap.StencilTest);
-                Gl.StencilMask(0xff);
+                FragUniforms uniforms = new(paint, scissor, strokeWidth, fringe, -1.0f);
+                FragUniforms stencilUniforms = new(paint, scissor, strokeWidth, fringe, 1.0f - 0.5f / 255.0f);
 
-                Gl.StencilFunc(StencilFunction.Equal, 0x0, 0xff);
-                _shader.Start();
-                _shader.LoadInt(UniformLoc.Type, (int)Shaders.ShaderType.Simple);
-                _shader.LoadVector(UniformLoc.ViewSize, _size);
-                CheckError("fill solid loc");
-
-                Gl.EnableVertexAttribArray(0);
-                Stroke_Stencil(paths);
-
-                _shader.LoadInt(UniformLoc.Type, (int)Shaders.ShaderType.Simple);
-                _shader.LoadVector(UniformLoc.ViewSize, _size);
-                Gl.StencilFunc(StencilFunction.Equal, 0x00, 0xff);
-                Gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Keep);
-                Stroke_Stencil(paths);
-
-                Gl.ColorMask(false, false, false, false);
-                Gl.StencilFunc(StencilFunction.Always, 0x0, 0xff);
-                Gl.StencilOp(StencilOp.Zero, StencilOp.Zero, StencilOp.Zero);
-                CheckError("stroke fill 1");
-
+                call = new StencilStrokeCall(paint.Image, renderPaths, stencilUniforms, uniforms, compositeOperation, this);
             }
             else
             {
-                SetupPaint(paint, scissor, width, fringe);
+                FragUniforms uniforms = new(paint, scissor, strokeWidth, fringe, -1.0f);
 
-                Gl.Enable(EnableCap.CullFace);
-
-                uint maxCount = VertexCount(paths);
-                Gl.BindVertexArray(_vertexArray);
-                Gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vertexBuffer);
-                Gl.BufferData(BufferTargetARB.ArrayBuffer, (uint)(maxCount * sizeof(Vertex)), null, BufferUsageARB.StreamDraw);
-                UploadPaths(paths);
-
-                Gl.EnableVertexAttribArray(0);
-                Gl.EnableVertexAttribArray(1);
-
-                Stroke_Render(paths);
-
-                Gl.DisableVertexAttribArray(0);
-                Gl.DisableVertexAttribArray(1);
+                call = new StrokeCall(paint.Image, renderPaths, uniforms, compositeOperation, this);
             }
-
-            _shader.Stop();
+            _callQueue.Add(call);
         }
 
     }
