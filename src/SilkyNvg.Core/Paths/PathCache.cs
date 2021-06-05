@@ -2,7 +2,7 @@
 using SilkyNvg.Common;
 using SilkyNvg.Graphics;
 using SilkyNvg.Paths;
-using SilkyNvg.Renderer;
+using SilkyNvg.Rendering;
 using System;
 using System.Collections.Generic;
 

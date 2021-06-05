@@ -1,6 +1,6 @@
 ﻿using Silk.NET.Maths;
 
-namespace SilkyNvg.Renderer
+namespace SilkyNvg.Rendering
 {
     public struct Scissor
     {

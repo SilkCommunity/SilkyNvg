@@ -1,7 +1,7 @@
 ﻿using Silk.NET.Maths;
 using SilkyNvg.Blending;
 
-namespace SilkyNvg.Renderer
+namespace SilkyNvg.Rendering
 {
     public interface INvgRenderer
     {
@@ -9,6 +9,8 @@ namespace SilkyNvg.Renderer
         bool EdgeAntiAlias { get; }
 
         bool Create();
+
+        int CreateTexture(Vector2D<uint> size, byte[] data);
 
         void Viewport(Vector2D<float> size, float devicePixelRatio);
 

@@ -21,7 +21,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg.Core", "src\SilkyN
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg.Common", "src\SilkyNvg.Common\SilkyNvg.Common.csproj", "{22B600F0-2ABD-4199-A1E6-A82BAC55A79D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg.Renderer", "src\rendering\SilkyNvg.Renderer\SilkyNvg.Renderer.csproj", "{60BEA056-ACFE-4AD3-BC06-57FCA8FEC80C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg.Rendering", "src\rendering\SilkyNvg.Rendering\SilkyNvg.Rendering.csproj", "{60BEA056-ACFE-4AD3-BC06-57FCA8FEC80C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg.Rendering.OpenGL", "src\rendering\SilkyNvg.Rendering.OpenGL\SilkyNvg.Rendering.OpenGL.csproj", "{EB00B508-6270-4D12-92C3-C3BF4FAE02B7}"
 EndProject

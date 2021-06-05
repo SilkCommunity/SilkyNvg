@@ -1,7 +1,6 @@
 ﻿using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using SilkyNvg.Blending;
-using SilkyNvg.Renderer;
 using SilkyNvg.Rendering.OpenGL.Blending;
 using SilkyNvg.Rendering.OpenGL.Calls;
 using SilkyNvg.Rendering.OpenGL.Shaders;
@@ -118,6 +117,11 @@ namespace SilkyNvg.Rendering.OpenGL
             return true;
         }
 
+        public int CreateTexture(Vector2D<uint> size, byte[] data)
+        {
+            return 0;
+        }
+
         public void Viewport(Vector2D<float> size, float devicePixelRatio)
         {
             _size = size;
@@ -170,13 +174,13 @@ namespace SilkyNvg.Rendering.OpenGL
             _callQueue.Clear();
         }
 
-        public void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Vector4D<float> bounds, Renderer.Path[] paths)
+        public void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Vector4D<float> bounds, Rendering.Path[] paths)
         {
             int offset = _vertexCollection.CurrentsOffset;
             Path[] renderPaths = new Path[paths.Length];
             for (int i = 0; i < paths.Length; i++)
             {
-                Renderer.Path path = paths[i];
+                Rendering.Path path = paths[i];
                 renderPaths[i] = new Path(
                     _vertexCollection.CurrentsOffset, path.Fill.Count,
                     _vertexCollection.CurrentsOffset + path.Fill.Count, path.Stroke.Count
@@ -208,7 +212,7 @@ namespace SilkyNvg.Rendering.OpenGL
             _callQueue.Add(call);
         }
 
-        public void Stroke(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, float strokeWidth, Renderer.Path[] paths)
+        public void Stroke(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, float strokeWidth, Rendering.Path[] paths)
         {
             int offset = _vertexCollection.CurrentsOffset;
             Path[] renderPaths = new Path[paths.Length];

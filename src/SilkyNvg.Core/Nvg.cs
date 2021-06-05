@@ -3,7 +3,7 @@ using SilkyNvg.Common;
 using SilkyNvg.Core.Instructions;
 using SilkyNvg.Core.Paths;
 using SilkyNvg.Core.States;
-using SilkyNvg.Renderer;
+using SilkyNvg.Rendering;
 
 namespace SilkyNvg
 {

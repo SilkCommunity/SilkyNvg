@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SilkyNvg.Renderer
+namespace SilkyNvg.Rendering
 {
     public sealed class Path
     {

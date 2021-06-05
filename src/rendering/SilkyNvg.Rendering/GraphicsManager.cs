@@ -2,7 +2,7 @@
 using SilkyNvg.Blending;
 using System;
 
-namespace SilkyNvg.Renderer
+namespace SilkyNvg.Rendering
 {
     internal class GraphicsManager
     {

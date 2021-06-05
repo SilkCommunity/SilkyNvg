@@ -1,7 +1,7 @@
 ﻿using Silk.NET.Maths;
 using System.Runtime.InteropServices;
 
-namespace SilkyNvg
+namespace SilkyNvg.Rendering
 {
 
     [StructLayout(LayoutKind.Explicit)]

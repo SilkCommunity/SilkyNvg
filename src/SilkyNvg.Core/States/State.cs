@@ -1,7 +1,7 @@
 ﻿using Silk.NET.Maths;
 using SilkyNvg.Blending;
 using SilkyNvg.Graphics;
-using SilkyNvg.Renderer;
+using SilkyNvg.Rendering;
 
 namespace SilkyNvg.Core.States
 {

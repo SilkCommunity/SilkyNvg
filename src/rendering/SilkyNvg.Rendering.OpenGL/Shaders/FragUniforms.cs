@@ -1,5 +1,4 @@
 ﻿using Silk.NET.Maths;
-using SilkyNvg.Renderer;
 using System;
 
 namespace SilkyNvg.Rendering.OpenGL.Shaders
