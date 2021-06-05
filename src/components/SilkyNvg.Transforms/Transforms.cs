@@ -29,7 +29,11 @@ namespace SilkyNvg.Transforms
             return matrix;
         }
 
+        public static Matrix3X2<float> Scale(float x, float y) => Scale(new Vector2D<float>(x, y));
+
         public static Matrix3X2<float> TransformScale(this Nvg _, Vector2D<float> s) => Scale(s);
+
+        public static Matrix3X2<float> TransformScale(this Nvg _, float x, float y) => Scale(new Vector2D<float>(x, y));
 
         public static Matrix3X2<float> Rotate(float a)
         {
@@ -42,6 +46,8 @@ namespace SilkyNvg.Transforms
             matrix.M22 = cs;
             return matrix;
         }
+
+        public static Matrix3X2<float> TransformRotate(this Nvg _, float a) => Rotate(a);
 
         public static Matrix3X2<float> SkewX(float a)
         {
@@ -103,7 +109,11 @@ namespace SilkyNvg.Transforms
             return p;
         }
 
-        public static Vector2D<float> Point(this Nvg _, Matrix3X2<float> t, Vector2D<float> p) => Point(t, p);
+        public static Vector2D<float> Point(Matrix3X2<float> t, float x, float y) => Point(t, new Vector2D<float>(x, y));
+
+        public static Vector2D<float> TransformPoint(this Nvg _, Matrix3X2<float> t, Vector2D<float> p) => Point(t, p);
+
+        public static Vector2D<float> TransformPoint(this Nvg _, Matrix3X2<float> t, float x, float y) => Point(t, new Vector2D<float>(x, y));
 
         public static float DegToRad(float deg)
         {

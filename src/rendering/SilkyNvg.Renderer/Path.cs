@@ -24,9 +24,9 @@ namespace SilkyNvg.Renderer
 
         public uint BevelCount => _bevelCount;
 
-        public Vertex[] Fill => _fill.ToArray();
+        public IReadOnlyCollection<Vertex> Fill => _fill.AsReadOnly();
 
-        public Vertex[] Stroke => _stroke.ToArray();
+        public IReadOnlyCollection<Vertex> Stroke => _stroke.AsReadOnly();
 
         public bool Convex { get; private set; }
 
@@ -175,7 +175,7 @@ namespace SilkyNvg.Renderer
             Vector2D<float> dl1 = new(p1.Determinant.Y, -p1.Determinant.X);
 
             Vector4D<float>[] data = p1.JoinBevel(lw, rw, lu, ru, dl0, dl1, p0);
-            _stroke.AddRange(Enumerable.Repeat(0, data.Length).Select((i, _) => new Vertex(data[i])).ToArray());
+            _stroke.AddRange(Enumerable.Range(0, data.Length).Select(i => new Vertex(data[i])).ToArray());
         }
 
         internal void CalculateJoins(float iw, LineCap lineJoin, float miterLimit)
@@ -248,12 +248,12 @@ namespace SilkyNvg.Renderer
                     if (lineJoin == LineCap.Round)
                     {
                         Vector4D<float>[] data = p1.RoundJoin(w, w, u0, u1, ncap, p0);
-                        _stroke.AddRange(Enumerable.Repeat(0, data.Length).Select((i, _) => new Vertex(data[i])).ToArray());
+                        _stroke.AddRange(Enumerable.Range(0, data.Length).Select(i => new Vertex(data[i])).ToArray());
                     }
                     else
                     {
                         Vector4D<float>[] data = p1.BevelJoin(w, w, u0, u1, p0);
-                        _stroke.AddRange(Enumerable.Repeat(0, data.Length).Select((i, _) => new Vertex(data[i])).ToArray());
+                        _stroke.AddRange(Enumerable.Range(0, data.Length).Select(i => new Vertex(data[i])).ToArray());
                     }
                 }
                 else
@@ -300,7 +300,7 @@ namespace SilkyNvg.Renderer
                 {
                     p1 = point;
                     Vector2D<float>[] data = Point.Vertex(p0, p1, woff);
-                    _fill.AddRange(Enumerable.Repeat(0, data.Length).Select((i, _) => new Vertex(data[i], 0.5f, 1.0f)).ToArray());
+                    _fill.AddRange(Enumerable.Range(0, data.Length).Select(i => new Vertex(data[i], 0.5f, 1.0f)).ToArray());
 
                     p0 = p1;
                 }
@@ -344,7 +344,7 @@ namespace SilkyNvg.Renderer
                         _stroke.Add(new Vertex(p1.Position - (p1.MatrixDeterminant * rw), ru, 1.0f));
                     }
 
-                    p1 = p0;
+                    p0 = p1;
                 }
 
                 _stroke.Add(new Vertex(_stroke[0].Pos, lu, 1.0f));

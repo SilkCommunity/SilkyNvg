@@ -187,7 +187,6 @@ namespace SilkyNvg.Rendering.OpenGL
                 offset += path.Stroke.Count;
             }
 
-
             FragUniforms uniforms = new(paint, scissor, fringe, fringe, -1.0f);
             Call call;
             if ((paths.Length == 1) && paths[0].Convex) // Convex

@@ -372,8 +372,8 @@ namespace SilkyNvg.Common
             }
             else
             {
-                pos0 = new(p1.Position.X + p0.MatrixDeterminant.Y * w, p1.Position.Y + p0.MatrixDeterminant.X * w);
-                pos1 = new(p1.Position.X + p0.MatrixDeterminant.Y * w, p1.Position.Y + p0.MatrixDeterminant.X * w);
+                pos0 = new(p1.Position.X + p1.MatrixDeterminant.X * w, p1.Position.Y + p1.MatrixDeterminant.Y * w);
+                pos1 = new(p1.Position.X + p1.MatrixDeterminant.X * w, p1.Position.Y + p1.MatrixDeterminant.Y * w);
             }
         }
 

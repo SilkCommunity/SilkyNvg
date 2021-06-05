@@ -41,5 +41,11 @@ namespace SilkyNvg
 
         public Vertex(Vector2D<float> pos, float u, float v) : this(pos.X, pos.Y, u, v) { }
 
+        public override string ToString()
+        {
+            string @base = base.ToString();
+            return @base + " [" + _x + ", " + _y + ", " + _u + ", " + _v + "]";
+        }
+
     }
 }

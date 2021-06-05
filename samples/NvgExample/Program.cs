@@ -118,17 +118,13 @@ namespace NvgExample
                 // Render all the stuff
 
                 nvg.BeginPath();
-                nvg.Rect(100, 100, 50, 50);
-                nvg.StrokeColour(Colour.White);
-                nvg.Stroke();
-
-                nvg.BeginPath();
+                // nvg.Rect(100, 100, 50, 50);
                 nvg.MoveTo(200, 200);
                 nvg.LineTo(200, 250);
                 nvg.LineTo(250, 200);
                 nvg.ClosePath();
-                nvg.StrokeColour(new Colour(0, 0, 255));
-                nvg.Stroke();
+                nvg.FillColour(new Colour(1.0f, 1.0f, 1.0f));
+                nvg.Fill();
 
                 nvg.EndFrame();
 
