@@ -21,16 +21,7 @@ namespace SilkyNvg
 
         public int Image { get; }
 
-        internal Paint(Colour colour)
-        {
-            Transform = Matrix3X2<float>.Identity;
-            Radius = 0;
-            Feather = 1;
-            InnerColour = colour;
-            OuterColour = colour;
-        }
-
-        private Paint(Matrix3X2<float> transform, Vector2D<float> extent, float radius, float feather, Colour innerColour, Colour outerColour)
+        public Paint(Matrix3X2<float> transform, Vector2D<float> extent, float radius, float feather, Colour innerColour, Colour outerColour)
         {
             Transform = transform;
             Extent = extent;
@@ -40,7 +31,16 @@ namespace SilkyNvg
             OuterColour = outerColour;
         }
 
-        private Paint(Matrix3X2<float> transform, Vector2D<float> extent, int image, Colour innerColour, Colour outerColour)
+        internal Paint(Colour colour)
+        {
+            Transform = Matrix3X2<float>.Identity;
+            Radius = 0;
+            Feather = 1;
+            InnerColour = colour;
+            OuterColour = colour;
+        }
+
+        internal Paint(Matrix3X2<float> transform, Vector2D<float> extent, int image, Colour innerColour, Colour outerColour)
         {
             Transform = transform;
             Extent = extent;
@@ -131,20 +131,23 @@ namespace SilkyNvg
 
         public static Paint BoxGradient(Vector2D<float> pos, Vector2D<float> size, float r, float f, Colour icol, Colour ocol) => BoxGradient(pos.X, pos.Y, size.X, size.Y, r, f, icol, ocol);
 
-        public static Paint ImagePattern(float cx, float cy, float w, float h, float angle, int image, float alpha)
+        public static Paint ImagePattern(float x, float y, float width, float height, float angle, int image, float alpha)
         {
             Matrix3X2<float> transform = Matrix3X2.CreateRotation(angle);
-            transform.M31 = cx;
-            transform.M32 = cy;
+            transform.M31 = x;
+            transform.M32 = y;
 
             return new Paint(
                 transform,
-                new Vector2D<float>(w, h),
+                new Vector2D<float>(width, height),
                 image,
                 new Colour(1.0f, 1.0f, 1.0f, alpha),
                 new Colour(1.0f, 1.0f, 1.0f, alpha)
             );
         }
+
+        public static Paint ImagePattern(Vector2D<float> pos, Vector2D<float> size, float angle, int image, float alpha)
+            => ImagePattern(pos.X, pos.Y, size.X, size.Y, angle, image, alpha);
 
     }
 }

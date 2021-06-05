@@ -1,5 +1,6 @@
 ﻿using Silk.NET.Maths;
 using SilkyNvg.Blending;
+using SilkyNvg.Images;
 using System;
 
 namespace SilkyNvg.Rendering
@@ -19,6 +20,26 @@ namespace SilkyNvg.Rendering
         public bool Create()
         {
             return _renderer.Create();
+        }
+
+        public int CreateTexture(Texture type, Vector2D<uint> size, ImageFlags imageFlags, byte[] data)
+        {
+            return _renderer.CreateTexture(type, size, imageFlags, data);
+        }
+
+        public bool DeleteTexture(int image)
+        {
+            return _renderer.DeleteTexture(image);
+        }
+
+        public bool UpdateTexture(int image, Vector4D<uint> bounds, byte[] data)
+        {
+            return _renderer.UpdateTexture(image, bounds, data);
+        }
+
+        public bool GetTextureSize(int image, out Vector2D<uint> bounds)
+        {
+            return _renderer.GetTextureSize(image, out bounds);
         }
 
         public void Viewport(Vector2D<float> size, float devicePixelRatio)

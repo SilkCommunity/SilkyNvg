@@ -2,7 +2,6 @@
 using SilkyNvg.Blending;
 using SilkyNvg.Rendering.OpenGL.Blending;
 using SilkyNvg.Rendering.OpenGL.Shaders;
-using System;
 
 namespace SilkyNvg.Rendering.OpenGL.Calls
 {
@@ -16,7 +15,7 @@ namespace SilkyNvg.Rendering.OpenGL.Calls
         {
             GL gl = renderer.Gl;
 
-            uniforms.LoadToShader(renderer.Shader);
+            uniforms.LoadToShader(renderer.Shader, image);
             renderer.CheckError("stroke fill");
 
             foreach (Path path in paths)

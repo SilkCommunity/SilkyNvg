@@ -1,6 +1,7 @@
 ﻿using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using SilkyNvg.Blending;
+using SilkyNvg.Images;
 using SilkyNvg.Rendering.OpenGL.Blending;
 using SilkyNvg.Rendering.OpenGL.Calls;
 using SilkyNvg.Rendering.OpenGL.Shaders;
@@ -18,7 +19,6 @@ namespace SilkyNvg.Rendering.OpenGL
         private readonly CallQueue _callQueue;
 
         private VAO _vao;
-
         private Vector2D<float> _size;
 
         internal GL Gl { get; }
@@ -106,9 +106,10 @@ namespace SilkyNvg.Rendering.OpenGL
             _vao = new(Gl);
             _vao.Vbo = new(Gl);
 
-            // TODO: Dummy texture
-
             Filter = new StateFilter();
+
+            // Dummy tex will always be at index 0.
+            _ = CreateTexture(Texture.Alpha, new Vector2D<uint>(1, 1), 0, null);
 
             CheckError("create done!");
 
@@ -117,9 +118,44 @@ namespace SilkyNvg.Rendering.OpenGL
             return true;
         }
 
-        public int CreateTexture(Vector2D<uint> size, byte[] data)
+        public int CreateTexture(Texture type, Vector2D<uint> size, ImageFlags imageFlags, byte[] data)
         {
-            return 0;
+            Textures.Texture texture = new(size, imageFlags, type, data, this);
+            return texture.Id;
+        }
+
+        public bool DeleteTexture(int image)
+        {
+            Textures.Texture tex = Textures.Texture.FindTexture(image);
+            if (tex == null)
+            {
+                return false;
+            }
+            tex.Dispose();
+            return true;
+        }
+
+        public bool UpdateTexture(int image, Vector4D<uint> bounds, byte[] data)
+        {
+            Textures.Texture tex = Textures.Texture.FindTexture(image);
+            if (tex == null)
+            {
+                return false;
+            }
+            tex.Update(bounds, data);
+            return true;
+        }
+
+        public bool GetTextureSize(int image, out Vector2D<uint> size)
+        {
+            Textures.Texture tex = Textures.Texture.FindTexture(image);
+            if (tex == null)
+            {
+                size = default;
+                return false;
+            }
+            size = tex.Size;
+            return false;
         }
 
         public void Viewport(Vector2D<float> size, float devicePixelRatio)

@@ -26,7 +26,7 @@ namespace SilkyNvg.Rendering.OpenGL.Calls
             renderer.StencilFunc(StencilFunction.Always, 0, 0xff);
             gl.ColorMask(false, false, false, false);
 
-            _stencilUniforms.LoadToShader(renderer.Shader);
+            _stencilUniforms.LoadToShader(renderer.Shader, 0);
             renderer.CheckError("fill simple");
 
             gl.StencilOpSeparate(StencilFaceDirection.Front, StencilOp.Keep, StencilOp.Keep, StencilOp.IncrWrap);
@@ -40,7 +40,7 @@ namespace SilkyNvg.Rendering.OpenGL.Calls
 
             gl.ColorMask(true, true, true, true);
 
-            uniforms.LoadToShader(renderer.Shader);
+            uniforms.LoadToShader(renderer.Shader, image);
             renderer.CheckError("fill fill");
 
             if (renderer.EdgeAntiAlias)

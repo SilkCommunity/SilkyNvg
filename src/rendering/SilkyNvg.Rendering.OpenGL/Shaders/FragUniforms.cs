@@ -1,4 +1,6 @@
 ﻿using Silk.NET.Maths;
+using SilkyNvg.Images;
+using SilkyNvg.Rendering.OpenGL.Utils;
 using System;
 
 namespace SilkyNvg.Rendering.OpenGL.Shaders
@@ -56,8 +58,38 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
 
             if (paint.Image != 0)
             {
-                // TODO: Image
-                throw new NotImplementedException("Images not yet implemented!");
+                Textures.Texture tex = Textures.Texture.FindTexture(paint.Image);
+                if (tex == null)
+                {
+                    throw new NullReferenceException("Image with ID " + paint.Image + " does not exist!");
+                }
+                if (tex.HasFlag(ImageFlags.FlipY))
+                {
+                    Matrix3X2<float> m1, m2;
+                    m1 = Matrix3X2.CreateTranslation(new Vector2D<float>(0.0f, _extent.Y * 0.5f));
+                    m1 = Maths.Multiply(m1, paint.Transform);
+                    m2 = Matrix3X2.CreateScale(new Vector2D<float>(1.0f, -1.0f));
+                    m2 = Maths.Multiply(m2, m1);
+                    m1 = Matrix3X2.CreateTranslation(new Vector2D<float>(0.0f, -_extent.Y * 0.5f));
+                    m1 = Maths.Multiply(m1, m2);
+                    _ = Matrix3X2.Invert(m1, out invtransform);
+                }
+                else
+                {
+                    _ = Matrix3X2.Invert(paint.Transform, out invtransform);
+                }
+                _type = (int)ShaderType.FillImg;
+
+                if (tex.TextureType == Texture.Rgba)
+                {
+                    _texType = tex.HasFlag(ImageFlags.Premultiplied) ? 0 : 1;
+                }
+                else
+                {
+                    _texType = 2;
+                }
+
+                _radius = _feather = 0.0f;
             }
             else
             {
@@ -72,7 +104,7 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
             _paintMat = new Matrix3X4<float>(invtransform);
         }
 
-        public void LoadToShader(Shader shader)
+        public void LoadToShader(Shader shader, int image)
         {
             shader.LoadMatrix(UniformLoc.ScissorMat, _scissorMat);
             shader.LoadVector(UniformLoc.ScissorExt, _scissorExt);
@@ -87,6 +119,19 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
             shader.LoadFloat(UniformLoc.StrokeThr, _strokeThr);
             shader.LoadInt(UniformLoc.TexType, _texType);
             shader.LoadInt(UniformLoc.Type, _type);
+
+            Textures.Texture tex = null;
+            if (image != 0)
+            {
+                tex = Textures.Texture.FindTexture(image);
+            }
+
+            if (tex == null)
+            {
+                tex = Textures.Texture.DummyTex;
+            }
+
+            tex.Bind();
         }
 
     }

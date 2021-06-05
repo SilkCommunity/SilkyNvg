@@ -27,7 +27,7 @@ namespace SilkyNvg.Rendering.OpenGL.Calls
             // Fill the stroke base without overlap.
             renderer.StencilFunc(StencilFunction.Equal, 0x0, 0xff);
             gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Incr);
-            _stencilUniforms.LoadToShader(renderer.Shader);
+            _stencilUniforms.LoadToShader(renderer.Shader, image);
             renderer.CheckError("stroke fill 0");
             foreach (Path path in paths)
             {
@@ -35,7 +35,7 @@ namespace SilkyNvg.Rendering.OpenGL.Calls
             }
 
             // Draw anti-aliased pixels.
-            uniforms.LoadToShader(renderer.Shader);
+            uniforms.LoadToShader(renderer.Shader, image);
             renderer.StencilFunc(StencilFunction.Equal, 0x0, 0xff);
             gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Keep);
             foreach (Path path in paths)

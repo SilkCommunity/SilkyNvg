@@ -46,7 +46,19 @@ void main(void) {
         colour.w *= scissor;
         out_Colour = colour;
 	} else if (type == 1) { // Image
-		out_Colour = vec4(0, 0, 0, 0);
+    	vec2 pt = (paintMat * vec3(pass_vertex, 1.0)).xy / extent;
+
+		vec4 colour = texture(tex, pt);
+
+		if (texType == 1) {
+			colour = vec4(colour.xyz * colour.w, colour.w);
+		} else if (texType == 2) {
+			colour = vec4(colour.x);
+		}
+
+		colour *= innerCol;
+		colour *= strokeAlpha / scissor;
+		out_Colour = colour;
 	} else if (type == 2) { // Stencil Fill
 		out_Colour = vec4(1, 1, 1, 1);
 	} else if (type == 3) { // Textured Tris

@@ -15,7 +15,7 @@ namespace SilkyNvg.Rendering.OpenGL.Calls
         {
             GL gl = renderer.Gl;
 
-            uniforms.LoadToShader(renderer.Shader);
+            uniforms.LoadToShader(renderer.Shader, image);
             renderer.CheckError("convex fill");
 
             foreach (Path path in paths)

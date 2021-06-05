@@ -2,6 +2,7 @@
 using Silk.NET.OpenGL;
 using SilkyNvg;
 using SilkyNvg.Graphics;
+using SilkyNvg.Images;
 using SilkyNvg.Paths;
 using SilkyNvg.Rendering;
 using SilkyNvg.Rendering.OpenGL;
@@ -81,6 +82,7 @@ namespace NvgExample
             nvg = Nvg.Create(new OpenGLRenderer(CreateFlags.Antialias | CreateFlags.StencilStrokes | CreateFlags.Debug, gl));
 
             // TODO: Load demo data
+            int image = nvg.CreateImage("./images/image0.jpg", ImageFlags.Premultiplied);
 
             glfw.SwapInterval(0);
 
@@ -117,14 +119,11 @@ namespace NvgExample
                 nvg.BeginFrame(winWidth, winHeight, pxRatio); ;
 
                 // Render all the stuff
+                nvg.ImageSize(image, out var size);
 
                 nvg.BeginPath();
-                // nvg.Rect(100, 100, 50, 50);
-                nvg.MoveTo(200, 200);
-                nvg.LineTo(200, 250);
-                nvg.LineTo(250, 200);
-                nvg.ClosePath();
-                nvg.FillColour(new Colour(1.0f, 1.0f, 1.0f));
+                nvg.Rect(100, 100, size.X, size.Y);
+                nvg.FillPaint(Paint.ImagePattern(100, 100, size.X, size.Y, 0.0f, image, 1.0f));
                 nvg.Fill();
 
                 nvg.EndFrame();
