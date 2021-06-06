@@ -40,7 +40,10 @@ namespace SilkyNvg.Rendering.OpenGL.Utils
 
         public void Dispose()
         {
-            _gl.DeleteBuffer(_vboID);
+            if (_vboID != 0)
+            {
+                _gl.DeleteBuffer(_vboID);
+            }
         }
 
     }

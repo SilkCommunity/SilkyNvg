@@ -62,5 +62,10 @@ namespace SilkyNvg.Rendering
             _renderer.Stroke(strokePaint, compositeOperation, scissor, fringeWidth, strokeWidth, paths);
         }
 
+        public void Delete()
+        {
+            _renderer.Dispose();
+        }
+
     }
 }

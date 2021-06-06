@@ -33,7 +33,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg.Graphics", "src\co
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg.Transforms", "src\components\SilkyNvg.Transforms\SilkyNvg.Transforms.csproj", "{13F13F6E-2755-46DB-B939-A801A1C75A80}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilkyNvg.Images", "SilkyNvg.Images\SilkyNvg.Images.csproj", "{DAC6946D-8405-4C46-886C-D3FC3B54DAC5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilkyNvg.Images", "src\components\SilkyNvg.Images\SilkyNvg.Images.csproj", "{DAC6946D-8405-4C46-886C-D3FC3B54DAC5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

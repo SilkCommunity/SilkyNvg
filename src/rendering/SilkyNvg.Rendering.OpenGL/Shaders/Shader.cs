@@ -80,6 +80,8 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
 
         public void Dispose()
         {
+            Stop();
+
             if (_programmeID != 0)
                 _gl.DeleteProgram(_programmeID);
             if (_vertexShaderID != 0)

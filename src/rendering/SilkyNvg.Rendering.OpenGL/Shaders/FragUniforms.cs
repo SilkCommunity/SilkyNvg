@@ -61,7 +61,7 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
                 Textures.Texture tex = Textures.Texture.FindTexture(paint.Image);
                 if (tex == null)
                 {
-                    throw new NullReferenceException("Image with ID " + paint.Image + " does not exist!");
+                    tex = Textures.Texture.FindTexture(0);
                 }
                 if (tex.HasFlag(ImageFlags.FlipY))
                 {

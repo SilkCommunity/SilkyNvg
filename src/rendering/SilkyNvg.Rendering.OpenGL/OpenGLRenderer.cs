@@ -19,6 +19,7 @@ namespace SilkyNvg.Rendering.OpenGL
         private readonly CallQueue _callQueue;
 
         private VAO _vao;
+
         private Vector2D<float> _size;
 
         internal GL Gl { get; }
@@ -203,7 +204,11 @@ namespace SilkyNvg.Rendering.OpenGL
 
                 Gl.Disable(EnableCap.CullFace);
                 Shader.Stop();
-                // TODO: Unbind texture
+
+                if (Filter.BoundTexture != 0)
+                {
+                    Gl.BindTexture(TextureTarget.Texture2D, 0);
+                }
             }
 
             _vertexCollection.Clear();
@@ -281,6 +286,18 @@ namespace SilkyNvg.Rendering.OpenGL
                 call = new StrokeCall(paint.Image, renderPaths, uniforms, compositeOperation, this);
             }
             _callQueue.Add(call);
+        }
+
+        public void Dispose()
+        {
+            Shader.Dispose();
+
+            _vao.Dispose();
+
+            Textures.Texture.DeleteAll();
+
+            _callQueue.Clear();
+            _vertexCollection.Clear();
         }
 
     }

@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="StbImageSharp" Version="2.22.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\rendering\SilkyNvg.Rendering\SilkyNvg.Rendering.csproj" />
+    <ProjectReference Include="..\..\SilkyNvg.Core\SilkyNvg.Core.csproj" />
+    <ProjectReference Include="..\SilkyNvg.Tools\SilkyNvg.Tools.csproj" />
+  </ItemGroup>
+
+</Project>

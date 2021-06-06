@@ -204,12 +204,23 @@ namespace SilkyNvg.Rendering.OpenGL.Textures
 
         public void Dispose()
         {
-            _gl.DeleteTexture(_textureID);
+            if (_textureID != 0)
+            {
+                _gl.DeleteTexture(_textureID);
+            }
         }
 
         public static Texture FindTexture(int image)
         {
-            return (image >= textures.Count) || (image < 1) ? null : textures[image];
+            return (image >= textures.Count) || (image < 0) ? null : textures[image];
+        }
+
+        public static void DeleteAll()
+        {
+            foreach (Texture tex in textures)
+            {
+                tex.Dispose();
+            }
         }
 
     }

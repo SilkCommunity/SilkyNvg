@@ -33,7 +33,10 @@ namespace SilkyNvg.Rendering.OpenGL.Utils
         public void Dispose()
         {
             Vbo.Dispose();
-            _gl.DeleteVertexArray(_vaoID);
+            if (_vaoID != 0)
+            {
+                _gl.DeleteVertexArray(_vaoID);
+            }
         }
 
     }

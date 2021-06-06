@@ -62,7 +62,7 @@ void main(void) {
 		}
 
 		colour *= innerCol;
-		colour *= strokeAlpha / scissor;
+		colour *= strokeAlpha * scissor;
 		out_Colour = colour;
 	} else if (type == 2) { // Stencil Fill
 		out_Colour = vec4(1, 1, 1, 1);

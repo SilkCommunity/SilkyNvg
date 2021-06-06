@@ -1,10 +1,11 @@
 ﻿using Silk.NET.Maths;
 using SilkyNvg.Blending;
 using SilkyNvg.Images;
+using System;
 
 namespace SilkyNvg.Rendering
 {
-    public interface INvgRenderer
+    public interface INvgRenderer : IDisposable
     {
 
         bool EdgeAntiAlias { get; }

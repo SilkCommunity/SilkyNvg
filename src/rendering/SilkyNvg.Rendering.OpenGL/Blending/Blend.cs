@@ -24,9 +24,9 @@ namespace SilkyNvg.Rendering.OpenGL.Blending
         public Blend(CompositeOperationState compositeOperation, OpenGLRenderer renderer)
         {
             GLEnum srcRgb = ConvertBlend(compositeOperation.SrcRgb);
-            GLEnum dstRgb = ConvertBlend(compositeOperation.SrcRgb);
-            GLEnum srcAlpha = ConvertBlend(compositeOperation.SrcRgb);
-            GLEnum dstAlpha = ConvertBlend(compositeOperation.SrcRgb);
+            GLEnum dstRgb = ConvertBlend(compositeOperation.DstRgb);
+            GLEnum srcAlpha = ConvertBlend(compositeOperation.SrcAlpha);
+            GLEnum dstAlpha = ConvertBlend(compositeOperation.DstAlpha);
             if (srcRgb == GLEnum.InvalidEnum | dstRgb == GLEnum.InvalidEnum |
                 srcAlpha == GLEnum.InvalidEnum | dstAlpha == GLEnum.InvalidEnum)
             {

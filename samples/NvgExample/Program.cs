@@ -4,7 +4,6 @@ using SilkyNvg;
 using SilkyNvg.Graphics;
 using SilkyNvg.Images;
 using SilkyNvg.Paths;
-using SilkyNvg.Rendering;
 using SilkyNvg.Rendering.OpenGL;
 using System;
 
@@ -82,7 +81,7 @@ namespace NvgExample
             nvg = Nvg.Create(new OpenGLRenderer(CreateFlags.Antialias | CreateFlags.StencilStrokes | CreateFlags.Debug, gl));
 
             // TODO: Load demo data
-            int image = nvg.CreateImage("./images/image0.jpg", ImageFlags.Premultiplied);
+            int image = nvg.CreateImage("./images/image0.jpg", 0);
 
             glfw.SwapInterval(0);
 
@@ -137,6 +136,13 @@ namespace NvgExample
                 glfw.SwapBuffers(window);
                 glfw.PollEvents();
             }
+
+            nvg.Dispose();
+            gl.Dispose();
+
+            glfw.Terminate();
+
+            glfw.Dispose();
         }
     }
 }

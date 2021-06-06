@@ -4,10 +4,11 @@ using SilkyNvg.Core.Instructions;
 using SilkyNvg.Core.Paths;
 using SilkyNvg.Core.States;
 using SilkyNvg.Rendering;
+using System;
 
 namespace SilkyNvg
 {
-    public sealed class Nvg
+    public sealed class Nvg : IDisposable
     {
 
         #region Create / Destroy
@@ -37,6 +38,14 @@ namespace SilkyNvg
             {
                 throw new System.InvalidOperationException("Failed to initialize the renderer!");
             }
+        }
+
+        public void Dispose()
+        {
+            instructionQueue.Clear();
+            pathCache.Clear();
+
+            graphicsManager.Delete();
         }
         #endregion
 
