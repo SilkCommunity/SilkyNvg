@@ -15,5 +15,11 @@ namespace SilkyNvg.Rendering
             Transform = default;
         }
 
+        public Scissor(Matrix3X2<float> transform, Vector2D<float> extent)
+        {
+            Transform = transform;
+            Extent = extent;
+        }
+
     }
 }

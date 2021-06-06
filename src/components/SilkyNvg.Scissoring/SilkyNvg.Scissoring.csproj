@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\SilkyNvg.Core\SilkyNvg.Core.csproj" />
+    <ProjectReference Include="..\SilkyNvg.Transforms\SilkyNvg.Transforms.csproj" />
+  </ItemGroup>
+
+</Project>

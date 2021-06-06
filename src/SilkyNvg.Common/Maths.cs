@@ -82,5 +82,24 @@ namespace SilkyNvg.Common
             return Math.Max(2, (uint)MathF.Ceiling(arc / da));
         }
 
+        public static float DistPtSeg(Vector2D<float> pos, Vector2D<float> p, Vector2D<float> q)
+        {
+            Vector2D<float> pq = q - p;
+            Vector2D<float> d = pos - p;
+            float delta = (pq.X * pq.X) + (pq.Y * pq.Y);
+            float t = (pq.X * d.X) + (pq.Y * d.Y);
+
+            if (delta > 0)
+            {
+                t /= delta;
+            }
+
+
+            t = Clamp(t, 0.0f, 1.0f);
+
+            d = p + (t * pq) - pos;
+            return (d.X * d.X) + (d.Y * d.Y);
+        }
+
     }
 }

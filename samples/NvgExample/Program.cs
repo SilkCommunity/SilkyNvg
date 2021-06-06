@@ -118,11 +118,10 @@ namespace NvgExample
                 nvg.BeginFrame(winWidth, winHeight, pxRatio); ;
 
                 // Render all the stuff
-                nvg.ImageSize(image, out var size);
 
                 nvg.BeginPath();
-                nvg.Rect(100, 100, size.X, size.Y);
-                nvg.FillPaint(Paint.ImagePattern(100, 100, size.X, size.Y, 0.0f, image, 1.0f));
+                nvg.Ellipse(400, 400, 300, 200);
+                nvg.FillPaint(Paint.RadialGradient(350, 350, 100, 250, Colour.White, Colour.Black));
                 nvg.Fill();
 
                 nvg.EndFrame();

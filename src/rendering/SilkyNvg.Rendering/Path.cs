@@ -30,7 +30,7 @@ namespace SilkyNvg.Rendering
 
         public bool Convex { get; private set; }
 
-        public Winding Winding { get; }
+        public Winding Winding { get; internal set; }
 
         internal Vector4D<float> Bounds => _bounds;
 
