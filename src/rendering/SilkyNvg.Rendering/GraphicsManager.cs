@@ -47,6 +47,11 @@ namespace SilkyNvg.Rendering
             _renderer.Viewport(size, devicePixelRatio);
         }
 
+        public void Cancel()
+        {
+            _renderer.Cancel();
+        }
+
         public void Flush()
         {
             _renderer.Flush();
@@ -60,6 +65,11 @@ namespace SilkyNvg.Rendering
         public void Stroke(Paint strokePaint, CompositeOperationState compositeOperation, Scissor scissor, float fringeWidth, float strokeWidth, Path[] paths)
         {
             _renderer.Stroke(strokePaint, compositeOperation, scissor, fringeWidth, strokeWidth, paths);
+        }
+
+        public void Triangles(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, Vertex[] vertices, float fringeWidth)
+        {
+            _renderer.Triangles(paint, compositeOperation, scissor, vertices, fringeWidth);
         }
 
         public void Delete()

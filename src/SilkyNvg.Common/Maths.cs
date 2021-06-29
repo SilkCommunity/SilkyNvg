@@ -16,6 +16,11 @@ namespace SilkyNvg.Common
             return a < min ? min : (a > max ? max : a);
         }
 
+        public static float Quantize(float a, float d)
+        {
+            return ((int)((a / d) + 0.5f)) * d;
+        }
+
         public static float Sign(float a)
         {
             return a >= 0.0f ? 1.0f : -1.0f;
@@ -99,6 +104,12 @@ namespace SilkyNvg.Common
 
             d = p + (t * pq) - pos;
             return (d.X * d.X) + (d.Y * d.Y);
+        }
+
+        public static bool IsTransformFlipped(Matrix3X2<float> t)
+        {
+            float det = (t.M11 * t.M22) - (t.M21 * t.M12);
+            return det < 0.0f;
         }
 
     }

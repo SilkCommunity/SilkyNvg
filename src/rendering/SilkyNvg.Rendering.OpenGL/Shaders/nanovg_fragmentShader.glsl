@@ -43,7 +43,7 @@ void main(void) {
         float d = clamp((sdroundrect(pt, extent, radius) + feather * 0.5) / feather, 0.0, 1.0);
         vec4 colour = mix(innerCol, outerCol, d);
 
-        colour.w *= scissor;
+        colour *= scissor;
         out_Colour = colour;
 	} else if (type == 1) { // Image
     	vec2 pt = (paintMat * vec3(pass_vertex, 1.0)).xy / extent;
@@ -57,11 +57,21 @@ void main(void) {
 		}
 
 		colour *= innerCol;
-		colour *= strokeAlpha * scissor;
+		colour *= scissor;
 		out_Colour = colour;
 	} else if (type == 2) { // Stencil Fill
 		out_Colour = vec4(1, 1, 1, 1);
 	} else if (type == 3) { // Textured Tris
-		out_Colour = texture(tex, pass_tcoord);
+		vec4 colour = texture(tex, pass_tcoord);
+
+		if (texType == 1) {
+			colour = vec4(colour.xyz * colour.w, colour.w);
+		}
+		if (texType == 2) {
+			colour = vec4(colour.x);
+		}
+
+		colour *= scissor;
+		out_Colour = colour * innerCol;
 	}
 }

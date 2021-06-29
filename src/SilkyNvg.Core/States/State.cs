@@ -1,5 +1,6 @@
 ﻿using Silk.NET.Maths;
 using SilkyNvg.Blending;
+using SilkyNvg.Text;
 using SilkyNvg.Graphics;
 using SilkyNvg.Rendering;
 
@@ -30,28 +31,52 @@ namespace SilkyNvg.Core.States
 
         public Scissor Scissor { get; set; }
 
-        private State()
-        {
-            Fill = new Paint(Colour.White);
-            Stroke = new Paint(Colour.Black);
-            CompositeOperation = new CompositeOperationState(Blending.CompositeOperation.SourceOver);
-            ShapeAntiAlias = true;
-            StrokeWidth = 1.0f;
-            MiterLimit = 10.0f;
-            LineCap = LineCap.Butt;
-            LineJoin = LineCap.Miter;
-            Alpha = 1.0f;
-            Transform = Matrix3X2<float>.Identity;
+        public float FontSize { get; set; }
 
-            Scissor = new Scissor(new Vector2D<float>(-1.0f));
+        public float LetterSpacing { get; set; }
+
+        public float LineHeight { get; set; }
+
+        public float FontBlur { get; set; }
+
+        public Align TextAlign { get; set; }
+
+        public int FontId { get; set; }
+
+        public static State Default
+        {
+            get
+            {
+                State state = new();
+
+                state.Fill = new Paint(Colour.White);
+                state.Stroke = new Paint(Colour.Black);
+                state.CompositeOperation = new CompositeOperationState(Blending.CompositeOperation.SourceOver);
+                state.ShapeAntiAlias = true;
+                state.StrokeWidth = 1.0f;
+                state.MiterLimit = 10.0f;
+                state.LineCap = LineCap.Butt;
+                state.LineJoin = LineCap.Miter;
+                state.Alpha = 1.0f;
+                state.Transform = Matrix3X2<float>.Identity;
+
+                state.Scissor = new Scissor(new Vector2D<float>(-1.0f));
+
+                state.FontSize = 16.0f;
+                state.LetterSpacing = 0.0f;
+                state.LineHeight = 1.0f;
+                state.FontBlur = 0.0f;
+                state.TextAlign = Align.Left | Align.Baseline;
+                state.FontId = 0;
+
+                return state;
+            }
         }
 
         public State Clone()
         {
             return (State)MemberwiseClone();
         }
-
-        public static State Default => new();
 
     }
 }

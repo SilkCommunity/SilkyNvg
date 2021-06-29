@@ -120,5 +120,33 @@ namespace SilkyNvg.Core.Paths
             }
         }
 
+        public void Dump()
+        {
+            Console.WriteLine("Dumping " + _paths.Count + " cached paths:");
+            for (int i = 0; i < _paths.Count; i++)
+            {
+                Path path = _paths[i];
+                Console.WriteLine(" - Path " + i);
+                if (path.Fill.Count > 0)
+                {
+                    Console.WriteLine("     - fill: " + path.Fill.Count);
+                    IEnumerator<Vertex> enumerator = path.Fill.GetEnumerator();
+                    while (enumerator.MoveNext())
+                    {
+                        Console.WriteLine("         " + enumerator.Current.X + "    " + enumerator.Current.Y);
+                    }
+                }
+                if (path.Stroke.Count > 0)
+                {
+                    Console.WriteLine("     - stroke: " + path.Stroke.Count);
+                    IEnumerator<Vertex> enumerator = path.Stroke.GetEnumerator();
+                    while (enumerator.MoveNext())
+                    {
+                        Console.WriteLine("         " + enumerator.Current.X + "    " + enumerator.Current.Y);
+                    }
+                }
+            }
+        }
+
     }
 }

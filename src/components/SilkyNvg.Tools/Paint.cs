@@ -7,6 +7,9 @@ namespace SilkyNvg
     public class Paint
     {
 
+        private Colour _innerColour;
+        private Colour _outerColour;
+
         public Matrix3X2<float> Transform { get; private set; }
 
         public Vector2D<float> Extent { get; }
@@ -15,9 +18,9 @@ namespace SilkyNvg
 
         public float Feather { get; }
 
-        public Colour InnerColour { get; }
+        public ref Colour InnerColour { get => ref _innerColour; }
 
-        public Colour OuterColour { get; }
+        public ref Colour OuterColour { get => ref _outerColour; }
 
         public int Image { get; }
 
@@ -29,6 +32,11 @@ namespace SilkyNvg
             Feather = feather;
             InnerColour = innerColour;
             OuterColour = outerColour;
+        }
+        public Paint(Matrix3X2<float> transform, Vector2D<float> extent, float radius, float feather, Colour innerColour, Colour outerColour, int image)
+            : this(transform, extent, radius, feather, innerColour, outerColour)
+        {
+            Image = image;
         }
 
         internal Paint(Colour colour)
@@ -58,6 +66,11 @@ namespace SilkyNvg
         {
             InnerColour.Premultiply(alpha);
             OuterColour.Premultiply(alpha);
+        }
+
+        internal static Paint ForText(int fontAtlas, Paint original)
+        {
+            return new Paint(original.Transform, original.Extent, original.Radius, original.Feather, original.InnerColour, original.OuterColour, fontAtlas);
         }
 
         public static Paint LinearGradient(float sx, float sy, float ex, float ey, Colour icol, Colour ocol)

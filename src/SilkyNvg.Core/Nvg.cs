@@ -23,6 +23,8 @@ namespace SilkyNvg
         internal readonly StateStack stateStack;
         internal readonly PixelRatio pixelRatio;
 
+        internal Action endFrameText;
+
         public FrameMeta FrameMeta { get; internal set; }
 
         private Nvg(GraphicsManager graphicsManager)
@@ -36,7 +38,7 @@ namespace SilkyNvg
 
             if (!graphicsManager.Create())
             {
-                throw new System.InvalidOperationException("Failed to initialize the renderer!");
+                throw new InvalidOperationException("Failed to initialize the renderer!");
             }
         }
 
@@ -65,10 +67,15 @@ namespace SilkyNvg
 
         public void BeginFrame(float windowWidth, float windowHeight, float devicePixelRatio) => BeginFrame(new Vector2D<float>(windowWidth, windowHeight), devicePixelRatio);
 
+        public void CancelFrame()
+        {
+            graphicsManager.Cancel();
+        }
+
         public void EndFrame()
         {
             graphicsManager.Flush();
-            // TODO: Images
+            endFrameText?.Invoke();
         }
 
         #endregion
@@ -149,6 +156,13 @@ namespace SilkyNvg
         }
 
         public Paint RadialGradient(Vector2D<float> c, Vector2D<float> radii, Colour icol, Colour ocol) => RadialGradient(c.X, c.Y, radii.X, radii.Y, icol, ocol);
+        #endregion
+
+        #region Debug
+        public void DebugDumpPathCache()
+        {
+            pathCache.Dump();
+        }
         #endregion
 
     }

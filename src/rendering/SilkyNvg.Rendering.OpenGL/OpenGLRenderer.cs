@@ -122,6 +122,8 @@ namespace SilkyNvg.Rendering.OpenGL
         public int CreateTexture(Texture type, Vector2D<uint> size, ImageFlags imageFlags, byte[] data)
         {
             Textures.Texture texture = new(size, imageFlags, type, data, this);
+            CheckError("creating texture.");
+
             return texture.Id;
         }
 
@@ -139,11 +141,13 @@ namespace SilkyNvg.Rendering.OpenGL
         public bool UpdateTexture(int image, Vector4D<uint> bounds, byte[] data)
         {
             Textures.Texture tex = Textures.Texture.FindTexture(image);
+
             if (tex == null)
             {
                 return false;
             }
             tex.Update(bounds, data);
+            CheckError("updating texture.");
             return true;
         }
 
@@ -162,6 +166,12 @@ namespace SilkyNvg.Rendering.OpenGL
         public void Viewport(Vector2D<float> size, float devicePixelRatio)
         {
             _size = size;
+        }
+
+        public void Cancel()
+        {
+            _vertexCollection.Clear();
+            _callQueue.Clear();
         }
 
         public void Flush()
@@ -207,6 +217,7 @@ namespace SilkyNvg.Rendering.OpenGL
 
                 if (Filter.BoundTexture != 0)
                 {
+                    Filter.BoundTexture = 0;
                     Gl.BindTexture(TextureTarget.Texture2D, 0);
                 }
             }
@@ -285,6 +296,16 @@ namespace SilkyNvg.Rendering.OpenGL
 
                 call = new StrokeCall(paint.Image, renderPaths, uniforms, compositeOperation, this);
             }
+            _callQueue.Add(call);
+        }
+
+        public void Triangles(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, Vertex[] vertices, float fringe)
+        {
+            int offset = _vertexCollection.CurrentsOffset;
+            _vertexCollection.AddVertices(vertices);
+
+            FragUniforms uniforms = new(paint, scissor, fringe);
+            Call call = new TrianglesCall(paint.Image, new Blend(compositeOperation, this), offset, (uint)vertices.Length, uniforms, this);
             _callQueue.Add(call);
         }
 

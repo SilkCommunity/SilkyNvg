@@ -6,3 +6,4 @@
 [assembly: InternalsVisibleTo("SilkyNvg.Transforms", AllInternalsVisible = true)]
 [assembly: InternalsVisibleTo("SilkyNvg.Scissoring", AllInternalsVisible = true)]
 [assembly: InternalsVisibleTo("SilkyNvg.Images", AllInternalsVisible = true)]
+[assembly: InternalsVisibleTo("SilkyNvg.Text", AllInternalsVisible = true)]

@@ -104,6 +104,12 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
             _paintMat = new Matrix3X4<float>(invtransform);
         }
 
+        public FragUniforms(Paint paint, Scissor scissor, float fringe)
+            : this(paint, scissor, 1.0f, fringe, -1.0f)
+        {
+            _type = (int)ShaderType.Img;
+        }
+
         public void LoadToShader(Shader shader, int image)
         {
             shader.LoadMatrix(UniformLoc.ScissorMat, _scissorMat);

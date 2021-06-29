@@ -22,11 +22,15 @@ namespace SilkyNvg.Rendering
 
         void Viewport(Vector2D<float> size, float devicePixelRatio);
 
+        void Cancel();
+
         void Flush();
 
         void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Vector4D<float> bounds, Path[] paths);
 
         void Stroke(Paint strokePaint, CompositeOperationState compositeOperation, Scissor scissor, float fringeWidth, float strokeWidth, Path[] paths);
+
+        void Triangles(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, Vertex[] vertices, float fringeWidth);
 
     }
 }

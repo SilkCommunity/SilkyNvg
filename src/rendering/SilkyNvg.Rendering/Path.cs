@@ -77,9 +77,14 @@ namespace SilkyNvg.Rendering
 
         private void PolyReverse()
         {
-            for (int i = 0; i < _points.Count; i++)
+            int i = 0, j = _points.Count - 1;
+            while (i < j)
             {
-                _points[i] = _points[^i];
+                Point tmp = _points[i];
+                _points[i] = _points[j];
+                _points[j] = tmp;
+                i++;
+                j--;
             }
         }
 
@@ -97,9 +102,15 @@ namespace SilkyNvg.Rendering
             if (_points.Count > 2)
             {
                 float area = Point.PolyArea(_points);
-                if ((Winding == Winding.Ccw && area < 0.0f) || (Winding == Winding.Cw && area > 0.0f))
+                if (Winding == Winding.Ccw && area < 0.0f)
                 {
                     PolyReverse();
+                    p0 = _points[^1];
+                }
+                if (Winding == Winding.Cw && area > 0.0f)
+                {
+                    PolyReverse();
+                    p0 = _points[^1];
                 }
             }
 
@@ -129,7 +140,7 @@ namespace SilkyNvg.Rendering
 
         private void ButtCapEnd(Point p, Vector2D<float> delta, float w, float d, float aa, float u0, float u1)
         {
-            Vector2D<float> pPos = p.Position - delta * d;
+            Vector2D<float> pPos = p.Position + delta * d;
             Vector2D<float> dl = new(delta.Y, -delta.X);
             _stroke.Add(new Vertex(pPos + (dl * w), u0, 1.0f));
             _stroke.Add(new Vertex(pPos - (dl * w), u1, 1.0f));
@@ -264,6 +275,10 @@ namespace SilkyNvg.Rendering
 
                 p0 = p1;
             }
+            if (s > 0)
+            {
+                p1 = _points[e];
+            }
 
             if (loop)
             {
@@ -276,15 +291,15 @@ namespace SilkyNvg.Rendering
                 d = Vector2D.Normalize(d);
                 if (lineCap is LineCap.Butt)
                 {
-                    ButtCapEnd(p0, d, w, -aa * 0.5f, aa, u0, u1);
+                    ButtCapEnd(p1, d, w, -aa * 0.5f, aa, u0, u1);
                 }
                 else if (lineCap is LineCap.Butt or LineCap.Square)
                 {
-                    ButtCapEnd(p0, d, w, w - aa, aa, u0, u1);
+                    ButtCapEnd(p1, d, w, w - aa, aa, u0, u1);
                 }
                 else if (lineCap is LineCap.Round)
                 {
-                    RoundCapEnd(p0, d, w, ncap, u0, u1);
+                    RoundCapEnd(p1, d, w, ncap, u0, u1);
                 }
             }
         }

@@ -175,11 +175,15 @@ namespace SilkyNvg.Rendering.OpenGL.Textures
 
         public unsafe void Update(Vector4D<uint> bounds, byte[] data)
         {
+            Bind();
+
             _gl.PixelStore(PixelStoreParameter.UnpackAlignment, 1);
 
             _gl.PixelStore(PixelStoreParameter.UnpackRowLength, Size.X);
             _gl.PixelStore(PixelStoreParameter.UnpackSkipPixels, bounds.X);
             _gl.PixelStore(PixelStoreParameter.UnpackSkipRows, bounds.Y);
+
+            _gl.GetInteger(GetPName.MaxTextureSize, out int dat);
 
             fixed (byte* d = data)
             {

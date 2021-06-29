@@ -1,8 +1,8 @@
 ﻿using Silk.NET.GLFW;
 using Silk.NET.OpenGL;
 using SilkyNvg;
+using SilkyNvg.Text;
 using SilkyNvg.Graphics;
-using SilkyNvg.Images;
 using SilkyNvg.Paths;
 using SilkyNvg.Rendering.OpenGL;
 using System;
@@ -35,7 +35,6 @@ namespace NvgExample
                 screenshot = true;
             if (key == Keys.P && action == InputAction.Press)
                 premult = !premult;
-
         }
 
         static void Main()
@@ -51,7 +50,8 @@ namespace NvgExample
                 Environment.Exit(-1);
             }
 
-            // TODO: Init graph
+            PerformanceGraph fps = new(PerformanceGraph.GraphRenderStyle.Fps, "Frame Time");
+            PerformanceGraph cpuGraph = new(PerformanceGraph.GraphRenderStyle.Ms, "CPU Time");
 
             glfw.SetErrorCallback(Errorcb);
 
@@ -80,12 +80,9 @@ namespace NvgExample
 
             nvg = Nvg.Create(new OpenGLRenderer(CreateFlags.Antialias | CreateFlags.StencilStrokes | CreateFlags.Debug, gl));
 
-            // TODO: Load demo data
-            int image = nvg.CreateImage("./images/image0.jpg", 0);
+            Demo demo = new(nvg);
 
             glfw.SwapInterval(0);
-
-            // TODO: Init GPU timer
 
             glfw.SetTime(0);
             prevt = glfw.GetTime();
@@ -95,8 +92,6 @@ namespace NvgExample
                 double t = glfw.GetTime();
                 double dt = t - prevt;
                 prevt = t;
-
-                // TODO: Timer
 
                 glfw.GetCursorPos(window, out double mx, out double my);
                 glfw.GetWindowSize(window, out int winWidth, out int winHeight);
@@ -111,36 +106,42 @@ namespace NvgExample
                 }
                 else
                 {
-                    gl.ClearColor(0.3f, 0.3f, 0.3f, 1.0f);
+                    gl.ClearColor(0.3f, 0.3f, 0.32f, 1.0f);
                 }
                 gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
 
                 nvg.BeginFrame(winWidth, winHeight, pxRatio); ;
 
-                // Render all the stuff
+                demo.Render((float)mx, (float)my, winWidth, winHeight, (float)t, blowup);
 
-                nvg.BeginPath();
-                nvg.Ellipse(400, 400, 300, 200);
-                nvg.FillPaint(Paint.RadialGradient(350, 350, 100, 250, Colour.White, Colour.Black));
-                nvg.Fill();
+                fps.Render(5.0f, 5.0f, nvg);
+                cpuGraph.Render(5.0f + 200.0f + 5.0f, 5.0f, nvg);
 
                 nvg.EndFrame();
 
                 cpuTime = glfw.GetTime() - t;
 
-                // TODO: Graph N timer
+                fps.Update((float)dt);
+                cpuGraph.Update((float)cpuTime);
 
-                // TODO: Screenshot
+                if (screenshot)
+                {
+                    screenshot = false;
+                    demo.SaveScreenShot(fbWidth, fbHeight, premult, "dump.png");
+                }
 
                 glfw.SwapBuffers(window);
                 glfw.PollEvents();
             }
 
             nvg.Dispose();
+
+            Console.WriteLine("Average Frame Time: " + fps.GraphAverage * 1000.0f + " ms");
+            Console.WriteLine("          CPU Time: " + cpuGraph.GraphAverage * 1000.0f + " ms");
+
             gl.Dispose();
 
             glfw.Terminate();
-
             glfw.Dispose();
         }
     }

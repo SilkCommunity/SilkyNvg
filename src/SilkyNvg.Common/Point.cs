@@ -34,8 +34,8 @@ namespace SilkyNvg.Common
         {
             List<Vector4D<float>> verts = new();
 
-            Vector2D<float> dl0 = new(other.Position.Y, -other.Position.X);
-            Vector2D<float> dl1 = new(Position.Y, -Position.X);
+            Vector2D<float> dl0 = new(other.Determinant.Y, -other.Determinant.X);
+            Vector2D<float> dl1 = new(Determinant.Y, -Determinant.X);
 
             if (Flags.HasFlag(PointFlags.Left))
             {
@@ -100,7 +100,7 @@ namespace SilkyNvg.Common
             ChooseBevel(Flags.HasFlag(PointFlags.Innerbevel), other, this, lw, out Vector2D<float> l0, out Vector2D<float> l1);
 
             verts.Add(new(l0, lu, 1.0f));
-            verts.Add(new(Position - l0 * rw, ru, 1.0f));
+            verts.Add(new(Position - dl0 * rw, ru, 1.0f));
 
             if (Flags.HasFlag(PointFlags.Bevel))
             {
@@ -112,7 +112,7 @@ namespace SilkyNvg.Common
             }
             else
             {
-                Vector2D<float> r0 = MatrixDeterminant * rw;
+                Vector2D<float> r0 = Position - MatrixDeterminant * rw;
 
                 verts.Add(new(Position, 0.5f, 1.0f));
                 verts.Add(new(Position - dl0 * rw, ru, 1.0f));
@@ -132,7 +132,7 @@ namespace SilkyNvg.Common
         {
             ChooseBevel(Flags.HasFlag(PointFlags.Innerbevel), other, this, -rw, out Vector2D<float> r0, out Vector2D<float> r1);
 
-            verts.Add(new(Position + r0 * lw, lu, 1.0f));
+            verts.Add(new(Position + dl0 * lw, lu, 1.0f));
             verts.Add(new(r0, ru, 1.0f));
 
             if (Flags.HasFlag(PointFlags.Bevel))
@@ -165,8 +165,8 @@ namespace SilkyNvg.Common
         {
             List<Vector4D<float>> verts = new();
 
-            Vector2D<float> dl0 = new(other.Position.Y, -other.Position.X);
-            Vector2D<float> dl1 = new(Position.Y, -Position.X);
+            Vector2D<float> dl0 = new(other.Determinant.Y, -other.Determinant.X);
+            Vector2D<float> dl1 = new(Determinant.Y, -Determinant.X);
 
             if (Flags.HasFlag(PointFlags.Left))
             {
@@ -368,7 +368,7 @@ namespace SilkyNvg.Common
             if (bevel)
             {
                 pos0 = new(p1.Position.X + p0.Determinant.Y * w, p1.Position.Y - p0.Determinant.X * w);
-                pos1 = new(p1.Position.X + p0.Determinant.Y * w, p1.Position.Y - p0.Determinant.X * w);
+                pos1 = new(p1.Position.X + p1.Determinant.Y * w, p1.Position.Y - p1.Determinant.X * w);
             }
             else
             {

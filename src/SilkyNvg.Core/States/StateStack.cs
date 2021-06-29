@@ -37,7 +37,7 @@ namespace SilkyNvg.Core.States
             }
             else if (_states.Count == 0)
             {
-                _states.Push(default);
+                _states.Push(State.Default);
             }
         }
 

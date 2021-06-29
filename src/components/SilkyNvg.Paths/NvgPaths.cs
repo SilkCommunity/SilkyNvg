@@ -10,6 +10,8 @@ namespace SilkyNvg.Paths
     public static class NvgPaths
     {
 
+        private const float KAPPA90 = 0.5522847493f;
+
         public static void BeginPath(this Nvg nvg)
         {
             nvg.instructionQueue.Clear();
@@ -85,8 +87,7 @@ namespace SilkyNvg.Paths
             }
 
             Winding dir;
-            Vector2D<float> valuesC = default;
-            Vector2D<float> valuesA = default;
+            Vector2D<float> valuesC, valuesA;
             if (Maths.Cross(d0, d1) > 0.0f)
             {
                 float cx = p1.X + d0.X * d + d0.Y * radius;
@@ -126,17 +127,88 @@ namespace SilkyNvg.Paths
 
         public static void Arc(this Nvg nvg, Vector2D<float> c, float r, Vector2D<float> a, Winding dir)
         {
-            // FIXME: Implement this!!!!!!!!!!!!!
+            Vector2D<float> pPos = default;
+            Vector2D<float> pTan = default;
+
+            InstructionQueue queue = nvg.instructionQueue;
+
+            bool line = queue.Count > 0;
+
+            float da = a.Y - a.X;
+            if (dir == Winding.Cw)
+            {
+                if (MathF.Abs(da) >= MathF.PI * 2.0f)
+                {
+                    da = MathF.PI * 2.0f;
+                }
+                else
+                {
+                    while (da < 0.0f)
+                    {
+                        da += MathF.PI * 2.0f;
+                    }
+                }
+            }
+            else
+            {
+                if (MathF.Abs(da) >= MathF.PI * 2.0f)
+                {
+                    da = -MathF.PI * 2.0f;
+                }
+                else
+                {
+                    while (da > 0.0f)
+                    {
+                        da -= MathF.PI * 2.0f;
+                    }
+                }
+            }
+
+            int ndivs = Math.Max(1, Math.Min((int)(MathF.Abs(da) / (MathF.PI * 0.5f) + 0.5f), 5));
+            float hda = (da / (float)ndivs) / 2.0f;
+            float kappa = MathF.Abs(4.0f / 3.0f * (1.0f - MathF.Cos(hda)) / MathF.Sin(hda));
+
+            if (dir == Winding.Ccw)
+            {
+                kappa *= -1.0f;
+            }
+
+            for (int i = 0; i <= ndivs; i++)
+            {
+                float alpha = a.X + da * ((float)i / (float)ndivs);
+                Vector2D<float> d = new(MathF.Cos(alpha), MathF.Sin(alpha));
+                Vector2D<float> pos = new(c.X + d.X * r, c.Y + d.Y * r);
+                Vector2D<float> tan = new(-d.Y * r * kappa, d.X * r * kappa);
+
+                if (i == 0)
+                {
+                    if (line)
+                    {
+                        queue.AddLineTo(pos);
+                    }
+                    else
+                    {
+                        queue.AddMoveTo(pos);
+                    }
+                }
+                else
+                {
+                    queue.AddBezierTo(pPos + pTan, pos - tan, pos);
+                }
+
+                pPos = pos;
+                pTan = tan;
+            }
         }
 
-        public static void Arc(this Nvg nvg, float cx, float cy, float r, float ax, float ay, Winding dir)
-            => Arc(nvg, new Vector2D<float>(cx, cy), r, new Vector2D<float>(ax, ay), dir);
+        public static void Arc(this Nvg nvg, float cx, float cy, float r, float a0, float a1, Winding dir)
+            => Arc(nvg, new Vector2D<float>(cx, cy), r, new Vector2D<float>(a0, a1), dir);
 
         public static void Arc(this Nvg nvg, Vector2D<float> c, float r, Vector2D<float> a, Solidity solidity)
             => Arc(nvg, c, r, a, (Winding)solidity);
 
-        public static void Arc(this Nvg nvg, float cx, float cy, float r, float ax, float ay, Solidity solidity)
-            => Arc(nvg, new Vector2D<float>(cx, cy), r, new Vector2D<float>(ax, ay), (Winding)solidity);
+        public static void Arc(this Nvg nvg, float cx, float cy, float r, float a0, float a1, Solidity solidity)
+            => Arc(nvg, new Vector2D<float>(cx, cy), r, new Vector2D<float>(a0, a1), (Winding)solidity);
 
         public static void Rect(this Nvg nvg, Vector2D<float> pos, Vector2D<float> size)
         {
@@ -150,10 +222,64 @@ namespace SilkyNvg.Paths
 
         public static void Rect(this Nvg nvg, float x, float y, float w, float h) => Rect(nvg, new Vector2D<float>(x, y), new Vector2D<float>(w, h));
 
+        public static void RoundedRect(this Nvg nvg, Vector2D<float> pos, Vector2D<float> size, float r)
+        {
+            RoundedRectVarying(nvg, pos, size, r, r, r, r);
+        }
+
+        public static void RoundedRect(this Nvg nvg, float x, float y, float width, float height, float r)
+            => RoundedRect(nvg, new(x, y), new(width, height), r);
+
+        public static void RoundedRectVarying(this Nvg nvg, Vector2D<float> pos, Vector2D<float> size, float radTopLeft, float radTopRight, float radBottomRight, float radBottomLeft)
+        {
+            if (radTopLeft < 0.1f && radTopRight < 0.1f && radBottomRight < 0.1f && radBottomLeft < 0.1f)
+            {
+                Rect(nvg, pos, size);
+            }
+            else
+            {
+                InstructionQueue queue = nvg.instructionQueue;
+
+                float factor = 1 - KAPPA90;
+                Vector2D<float> half = new(MathF.Abs(size.X) * 0.5f, MathF.Abs(size.Y) * 0.5f);
+                Vector2D<float> rBL = new(MathF.Min(radBottomLeft, half.X) * Maths.Sign(size.X), MathF.Min(radBottomLeft, half.Y) * Maths.Sign(size.Y));
+                Vector2D<float> rBR = new(MathF.Min(radBottomRight, half.X) * Maths.Sign(size.X), MathF.Min(radBottomRight, half.Y) * Maths.Sign(size.Y));
+                Vector2D<float> rTR = new(MathF.Min(radTopRight, half.X) * Maths.Sign(size.X), MathF.Min(radTopRight, half.Y) * Maths.Sign(size.Y));
+                Vector2D<float> rTL = new(MathF.Min(radTopLeft, half.X) * Maths.Sign(size.X), MathF.Min(radTopLeft, half.Y) * Maths.Sign(size.Y));
+                queue.AddMoveTo(new(pos.X, pos.Y + rTL.Y));
+                queue.AddLineTo(new(pos.X, pos.Y + size.Y - rBL.Y));
+                queue.AddBezierTo(
+                    new(pos.X, pos.Y + size.Y - rBL.Y * factor),
+                    new(pos.X + rBL.X * factor, pos.Y + size.Y),
+                    new(pos.X + rBL.X, pos.Y + size.Y)
+                );
+                queue.AddLineTo(new(pos.X + size.X - rBR.X, pos.Y + size.Y));
+                queue.AddBezierTo(
+                    new(pos.X + size.X - rBR.X * factor, pos.Y + size.Y),
+                    new(pos.X + size.X, pos.Y + size.Y - rBR.Y * factor),
+                    new(pos.X + size.X, pos.Y + size.Y - rBR.Y)
+                );
+                queue.AddLineTo(new(pos.X + size.X, pos.Y + rTR.Y));
+                queue.AddBezierTo(
+                    new(pos.X + size.X, pos.Y + rTR.Y * factor),
+                    new(pos.X + size.X - rTR.X * factor, pos.Y),
+                    new(pos.X + size.X - rTR.X, pos.Y)
+                );
+                queue.AddLineTo(new(pos.X + rTL.X, pos.Y));
+                queue.AddBezierTo(
+                    new(pos.X + rTL.X * factor, pos.Y),
+                    new(pos.X, pos.Y + rTL.Y * factor),
+                    new(pos.X, pos.Y + rTL.Y)
+                );
+                queue.AddClose();
+            }
+        }
+
+        public static void RoundedRectVarying(this Nvg nvg, float x, float y, float width, float height, float radTopLeft, float radTopRight, float radBottomRight, float radBottomLeft)
+            => RoundedRectVarying(nvg, x, y, width, height, radTopLeft, radTopRight, radBottomRight, radBottomLeft);
+
         public static void Ellipse(this Nvg nvg, Vector2D<float> pos, Vector2D<float> radii)
         {
-            const float KAPPA90 = 0.5522847493f;
-
             InstructionQueue queue = nvg.instructionQueue;
             queue.AddMoveTo(new(pos.X - radii.X, pos.Y));
             queue.AddBezierTo(
@@ -177,6 +303,14 @@ namespace SilkyNvg.Paths
 
         public static void Ellipse(this Nvg nvg, float x, float y, float rx, float ry)
             => Ellipse(nvg, new Vector2D<float>(x, y), new Vector2D<float>(rx, ry));
+
+        public static void Circle(this Nvg nvg, Vector2D<float> centre, float radius)
+        {
+            Ellipse(nvg, centre, new(radius));
+        }
+
+        public static void Circle(this Nvg nvg, float centreX, float centreY, float radius)
+            => Circle(nvg, new(centreX, centreY), radius);
 
         public static void Fill(this Nvg nvg)
         {
@@ -208,10 +342,10 @@ namespace SilkyNvg.Paths
         {
             State state = nvg.stateStack.CurrentState;
             float scale = Maths.GetAverageScale(state.Transform);
-            float strokeWidth = Maths.Clamp(state.StrokeWidth * scale, 0.0f, 1.0f);
+            float strokeWidth = Maths.Clamp(state.StrokeWidth * scale, 0.0f, 200.0f);
             Paint strokePaint = state.Stroke;
 
-            if (strokeWidth > nvg.pixelRatio.FringeWidth)
+            if (strokeWidth < nvg.pixelRatio.FringeWidth)
             {
                 float alpha = Maths.Clamp(strokeWidth / nvg.pixelRatio.FringeWidth, 0.0f, 1.0f);
                 strokePaint.PremultiplyAlpha(alpha * alpha);
