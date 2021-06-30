@@ -5,9 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\components\SilkyNvg.Blending\SilkyNvg.Blending.csproj" />
     <ProjectReference Include="..\components\SilkyNvg.Graphics\SilkyNvg.Graphics.csproj" />
     <ProjectReference Include="..\components\SilkyNvg.Images\SilkyNvg.Images.csproj" />
     <ProjectReference Include="..\components\SilkyNvg.Paths\SilkyNvg.Paths.csproj" />
+    <ProjectReference Include="..\components\SilkyNvg.Scissoring\SilkyNvg.Scissoring.csproj" />
     <ProjectReference Include="..\components\SilkyNvg.Text\SilkyNvg.Text.csproj" />
     <ProjectReference Include="..\components\SilkyNvg.Tools\SilkyNvg.Tools.csproj" />
     <ProjectReference Include="..\components\SilkyNvg.Transforms\SilkyNvg.Transforms.csproj" />

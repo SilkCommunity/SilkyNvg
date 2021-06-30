@@ -6,8 +6,11 @@ namespace SilkyNvg.Scissoring
     public static class NvgScissoring
     {
 
-        public static void Scissor(this Nvg nvg, Vector2D<float> pos, Vector2D<float> size)
+        public static void Scissor(this Nvg nvg, Rectangle<float> rect)
         {
+            Vector2D<float> pos = rect.Origin;
+            Vector2D<float> size = rect.Size;
+
             size.X = MathF.Max(0.0f, size.X);
             size.Y = MathF.Max(0.0f, size.Y);
 
@@ -21,6 +24,9 @@ namespace SilkyNvg.Scissoring
                 size * 0.5f
             );
         }
+
+        public static void Scissor(this Nvg nvg, Vector2D<float> position, Vector2D<float> size)
+            => Scissor(nvg, new Rectangle<float>(position, size));
 
         public static void Scissor(this Nvg nvg, float x, float y, float width, float height)
             => Scissor(nvg, new(x, y), new(width, height));

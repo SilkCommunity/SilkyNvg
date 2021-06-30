@@ -343,7 +343,7 @@ namespace SilkyNvg.Paths
             State state = nvg.stateStack.CurrentState;
             float scale = Maths.GetAverageScale(state.Transform);
             float strokeWidth = Maths.Clamp(state.StrokeWidth * scale, 0.0f, 200.0f);
-            Paint strokePaint = state.Stroke;
+            Paint strokePaint = state.Stroke.Clone();
 
             if (strokeWidth < nvg.pixelRatio.FringeWidth)
             {

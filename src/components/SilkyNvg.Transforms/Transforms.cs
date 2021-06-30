@@ -92,7 +92,7 @@ namespace SilkyNvg.Transforms
             inv = default;
             double invdet = 1.0 / det;
             inv.M11 = (float)(t.M22 * invdet);
-            inv.M22 = (float)(-t.M21 * invdet);
+            inv.M21 = (float)(-t.M21 * invdet);
             inv.M31 = (float)(((double)t.M21 * t.M32 - (double)t.M22 * t.M31) * invdet);
             inv.M12 = (float)(-t.M12 * invdet);
             inv.M22 = (float)(t.M11 * invdet);
@@ -102,11 +102,12 @@ namespace SilkyNvg.Transforms
 
         public static bool TransformInverse(this Nvg _, out Matrix3X2<float> inv, Matrix3X2<float> t) => Inverse(out inv, t);
 
-        public static Vector2D<float> Point(Matrix3X2<float> t, Vector2D<float> p)
+        public static Vector2D<float> Point(Matrix3X2<float> t, Vector2D<float> s)
         {
-            p.X = p.X / t.M11 + p.Y * t.M21 + t.M31;
-            p.Y = p.X * t.M12 + p.Y * t.M22 + t.M32;
-            return p;
+            Vector2D<float> d = default;
+            d.X = s.X * t.M11 + s.Y * t.M21 + t.M31;
+            d.Y = s.X * t.M12 + s.Y * t.M22 + t.M32;
+            return d;
         }
 
         public static Vector2D<float> Point(Matrix3X2<float> t, float x, float y) => Point(t, new Vector2D<float>(x, y));

@@ -43,32 +43,58 @@ namespace SilkyNvg.Core.States
 
         public int FontId { get; set; }
 
+        public void Reset()
+        {
+            Fill = new Paint(Colour.White);
+            Stroke = new Paint(Colour.Black);
+            CompositeOperation = new CompositeOperationState(Blending.CompositeOperation.SourceOver);
+            ShapeAntiAlias = true;
+            StrokeWidth = 1.0f;
+            MiterLimit = 10.0f;
+            LineCap = LineCap.Butt;
+            LineJoin = LineCap.Miter;
+            Alpha = 1.0f;
+            Transform = Matrix3X2<float>.Identity;
+
+            Scissor = new Scissor(new Vector2D<float>(-1.0f));
+
+            FontSize = 16.0f;
+            LetterSpacing = 0.0f;
+            LineHeight = 1.0f;
+            FontBlur = 0.0f;
+            TextAlign = Align.Left | Align.Baseline;
+            FontId = 0;
+        }
+
+        /*public void CopyFrom(State other)
+        {
+            Fill = other.Fill;
+            Stroke = other.Stroke;
+            CompositeOperation = other.CompositeOperation;
+            ShapeAntiAlias = other.ShapeAntiAlias;
+            StrokeWidth = other.StrokeWidth;
+            MiterLimit = other.MiterLimit;
+            LineCap = other.LineCap;
+            LineJoin = other.LineJoin;
+            Alpha = other.Alpha;
+            Transform = other.Transform;
+
+            Scissor = other.Scissor;
+
+            FontSize = other.FontSize;
+            LetterSpacing = other.LetterSpacing;
+            LineHeight = other.LineHeight;
+            FontBlur = other.FontBlur;
+            TextAlign = other.TextAlign;
+            FontId = other.FontId;
+        }*/
+
         public static State Default
         {
             get
             {
                 State state = new();
-
-                state.Fill = new Paint(Colour.White);
-                state.Stroke = new Paint(Colour.Black);
-                state.CompositeOperation = new CompositeOperationState(Blending.CompositeOperation.SourceOver);
-                state.ShapeAntiAlias = true;
-                state.StrokeWidth = 1.0f;
-                state.MiterLimit = 10.0f;
-                state.LineCap = LineCap.Butt;
-                state.LineJoin = LineCap.Miter;
-                state.Alpha = 1.0f;
-                state.Transform = Matrix3X2<float>.Identity;
-
-                state.Scissor = new Scissor(new Vector2D<float>(-1.0f));
-
-                state.FontSize = 16.0f;
-                state.LetterSpacing = 0.0f;
-                state.LineHeight = 1.0f;
-                state.FontBlur = 0.0f;
-                state.TextAlign = Align.Left | Align.Baseline;
-                state.FontId = 0;
-
+                state.Reset();
                 return state;
             }
         }

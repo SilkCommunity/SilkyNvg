@@ -7,7 +7,7 @@ namespace SilkyNvg.Core.States
 
         private const uint MAX_STATES = 32;
 
-        private readonly Stack<State> _states = new();
+        private readonly Stack<State> _states;
 
         public State CurrentState
         {
@@ -21,6 +21,8 @@ namespace SilkyNvg.Core.States
 
         public StateStack()
         {
+            _states = new Stack<State>((int)MAX_STATES);
+
             Save();
             Reset();
         }
@@ -35,7 +37,7 @@ namespace SilkyNvg.Core.States
             {
                 _states.Push(_states.Peek().Clone());
             }
-            else if (_states.Count == 0)
+            else
             {
                 _states.Push(State.Default);
             }
@@ -43,7 +45,7 @@ namespace SilkyNvg.Core.States
 
         public void Reset()
         {
-            CurrentState = State.Default;
+            _states.Peek().Reset();
         }
 
         public void Restore()

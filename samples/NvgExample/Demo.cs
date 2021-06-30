@@ -3,6 +3,7 @@ using SilkyNvg;
 using SilkyNvg.Graphics;
 using SilkyNvg.Images;
 using SilkyNvg.Paths;
+using SilkyNvg.Scissoring;
 using SilkyNvg.Text;
 using SilkyNvg.Transforms;
 using System;
@@ -12,10 +13,283 @@ namespace NvgExample
     public class Demo : IDisposable
     {
 
+        private const int ICON_SEARCH = 0x1F50D;
+        private const int ICON_CIRCLED_CROSS = 0x2716;
+        private const int ICON_CHEVRON_RIGHT = 0xE75E;
+        private const int ICON_CHECK = 0x2713;
+        private const int ICON_LOGIN = 0xE740;
+        private const int ICON_TRASH = 0xE729;
+
         private readonly int _fontNormal, _fontBold, _fontIcons, _fontEmoji;
         private readonly int[] _images = new int[12];
 
         private readonly Nvg _nvg;
+
+        private void DrawWindow(string title, float x, float y, float w, float h)
+        {
+            const float cornerRadius = 3.0f;
+
+            _nvg.Save();
+
+            _nvg.BeginPath();
+            _nvg.RoundedRect(x, y, w, h, cornerRadius);
+            _nvg.FillColour(_nvg.Rgba(28, 30, 34, 192));
+            _nvg.Fill();
+
+            Paint shadowPaint = Paint.BoxGradient(x, y + 2.0f, w, h, cornerRadius * 2.0f, 10.0f, _nvg.Rgba(0, 0, 0, 128), _nvg.Rgba(0, 0, 0, 0));
+            _nvg.BeginPath();
+            _nvg.Rect(x - 10.0f, y - 10.0f, w + 20.0f, h + 30.0f);
+            _nvg.RoundedRect(x, y, w, h, cornerRadius);
+            _nvg.PathWinding(Solidity.Hole);
+            _nvg.FillPaint(shadowPaint);
+            _nvg.Fill();
+
+            Paint headerPaint = _nvg.LinearGradient(x, y, x, y + 15.0f, _nvg.Rgba(255, 255, 255, 8), _nvg.Rgba(0, 0, 0, 16));
+            _nvg.BeginPath();
+            _nvg.RoundedRect(x + 1.0f, y + 1.0f, w - 2.0f, 30.0f, cornerRadius - 1.0f);
+            _nvg.FillPaint(headerPaint);
+            _nvg.Fill();
+            _nvg.BeginPath();
+            _nvg.MoveTo(x + 0.5f, y + 0.5f + 30.0f);
+            _nvg.LineTo(x + 0.5f + w - 1.0f, y + 0.5f + 30.0f);
+            _nvg.StrokeColour(_nvg.Rgba(0, 0, 0, 30));
+            _nvg.Stroke();
+
+            _nvg.FontSize(15.0f);
+            _nvg.FontFace("sans-bold");
+            _nvg.TextAlign(Align.Centre | Align.Middle);
+
+            _nvg.FontBlur(2.0f);
+            _nvg.FillColour(_nvg.Rgba(0, 0, 0, 128));
+            _ = _nvg.Text(x + w / 2.0f, y + 16.0f + 1.0f, title);
+
+            _nvg.FontBlur(0);
+            _nvg.FillColour(_nvg.Rgba(220, 220, 220, 160));
+            _ = _nvg.Text(x + w / 2.0f, y + 16.0f, title);
+
+            _nvg.Restore();
+        }
+
+        private void DrawSearchBox(string text, float x, float y, float w, float h)
+        {
+            float cornerRadius = h / 2.0f - 1.0f;
+
+            Paint bg = _nvg.BoxGradient(x, y + 1.5f, w, h, h / 2.0f, 5.0f, _nvg.Rgba(0, 0, 0, 16), _nvg.Rgba(0, 0, 0, 92));
+            _nvg.BeginPath();
+            _nvg.RoundedRect(x, y, w, h, cornerRadius);
+            _nvg.FillPaint(bg);
+            _nvg.Fill();
+
+            _nvg.FontSize(h * 1.3f);
+            _nvg.FontFace("icons");
+            _nvg.FillColour(_nvg.Rgba(255, 255, 255, 64));
+            _nvg.TextAlign(Align.Centre | Align.Middle);
+            _ = _nvg.Text(x + h * 0.55f, y + h * 0.55f, CpToUTF8(ICON_SEARCH));
+
+            _nvg.FontSize(17.0f);
+            _nvg.FontFace("sans");
+            _nvg.FillColour(_nvg.Rgba(255, 255, 255, 32));
+
+            _nvg.TextAlign(Align.Left | Align.Middle);
+            _ = _nvg.Text(x + h * 1.05f, y + h * 0.5f, text);
+
+            _nvg.FontSize(h * 1.3f);
+            _nvg.FontFace("icons");
+            _nvg.FillColour(_nvg.Rgba(255, 255, 255, 32));
+            _nvg.TextAlign(Align.Centre | Align.Middle);
+            _ = _nvg.Text(x + w - h * 0.55f, y + h * 0.55f, CpToUTF8(ICON_CIRCLED_CROSS));
+        }
+
+        private void DrawDropDown(string text, float x, float y, float w, float h)
+        {
+            const float cornerRadius = 4.0f;
+
+            Paint bg = Paint.LinearGradient(x, y, x, y + h, _nvg.Rgba(255, 255, 255, 16), _nvg.Rgba(0, 0, 0, 16));
+            _nvg.BeginPath();
+            _nvg.RoundedRect(x + 1.0f, y + 1.0f, w - 2.0f, h - 2.0f, cornerRadius - 1.0f);
+            _nvg.FillPaint(bg);
+            _nvg.Fill();
+
+            _nvg.BeginPath();
+            _nvg.RoundedRect(x + 0.5f, y + 0.5f, w - 1.0f, h - 1.0f, cornerRadius - 0.5f);
+            _nvg.StrokeColour(_nvg.Rgba(0, 0, 0, 48));
+            _nvg.Stroke();
+
+            _nvg.FontSize(17.0f);
+            _nvg.FontFace("sans");
+            _nvg.FillColour(_nvg.Rgba(255, 255, 255, 160));
+            _nvg.TextAlign(Align.Left | Align.Middle);
+            _nvg.Text(x + h * 0.3f, y + h * 0.5f, text);
+
+            _nvg.FontSize(h * 1.3f);
+            _nvg.FontFace("icons");
+            _nvg.FillColour(_nvg.Rgba(255, 255, 255, 64));
+            _nvg.TextAlign(Align.Centre | Align.Middle);
+            _nvg.Text(x + w - h * 0.5f, y + h * 0.5f, CpToUTF8(ICON_CHEVRON_RIGHT));
+        }
+
+        private void DrawLable(string text, float x, float y, float h)
+        {
+            _nvg.FontSize(15.0f);
+            _nvg.FontFace("sans");
+            _nvg.FillColour(_nvg.Rgba(255, 255, 255, 128));
+
+            _nvg.TextAlign(Align.Left | Align.Middle);
+            _ = _nvg.Text(x, y + h * 0.5f, text);
+        }
+
+        private void DrawEditBoxBase(float x, float y, float w, float h)
+        {
+            Paint bg = _nvg.BoxGradient(x + 1.0f, y + 1.0f + 1.5f, w - 2.0f, h - 2.0f, 3.0f, 4.0f, _nvg.Rgba(255, 255, 255, 32), _nvg.Rgba(32, 32, 32, 32));
+            _nvg.BeginPath();
+            _nvg.RoundedRect(x + 1.0f, y + 1.0f, w - 2.0f, h - 2.0f, 4.0f - 1.0f);
+            _nvg.FillPaint(bg);
+            _nvg.Fill();
+
+            _nvg.BeginPath();
+            _nvg.RoundedRect(x + 0.5f, y + 0.5f, w - 1.0f, h - 1.0f, 4.0f - 1.0f);
+            _nvg.StrokeColour(_nvg.Rgba(0, 0, 0, 48));
+            _nvg.Stroke();
+        }
+
+        private void DrawEditBox(string text, float x, float y, float w, float h)
+        {
+            DrawEditBoxBase(x, y, w, h);
+
+            _nvg.FontSize(17.0f);
+            _nvg.FontFace("sans");
+            _nvg.FillColour(_nvg.Rgba(255, 255, 255, 64));
+            _nvg.TextAlign(Align.Left | Align.Middle);
+            _nvg.Text(x + h * 0.3f, y + h * 0.5f, text);
+        }
+
+        private void DrawEditBoxNum(string text, string units, float x, float y, float w, float h)
+        {
+            DrawEditBoxBase(x, y, w, h);
+
+            float uw = _nvg.TextBounds(0.0f, 0.0f, units, out _);
+
+            _nvg.FontSize(15.0f);
+            _nvg.FontFace("sans");
+            _nvg.FillColour(_nvg.Rgba(255, 255, 255, 64));
+            _nvg.TextAlign(Align.Right | Align.Middle);
+            _ = _nvg.Text(x + w - h * 0.3f, y + h * 0.5f, units);
+
+            _nvg.FontSize(17.0f);
+            _nvg.FontFace("sans");
+            _nvg.FillColour(_nvg.Rgba(255, 255, 255, 128));
+            _nvg.TextAlign(Align.Right | Align.Middle);
+            _ = _nvg.Text(x + w - uw - h * 0.5f, y + h * 0.5f, text);
+        }
+
+        private void DrawCheckBox(string text, float x, float y, float w, float h)
+        {
+            _nvg.FontSize(15.0f);
+            _nvg.FontFace("sans");
+            _nvg.FillColour(_nvg.Rgba(255, 255, 255, 160));
+
+            _nvg.TextAlign(Align.Left | Align.Middle);
+            _nvg.Text(x + 28.0f, y + h * 0.5f, text);
+
+            Paint bg = Paint.BoxGradient(x + 1.0f, y + (int)(h * 0.5f) - 9 + 1, 18.0f, 18.0f, 3.0f, 3.0f, _nvg.Rgba(0, 0, 0, 32), _nvg.Rgba(0, 0, 0, 92));
+            _nvg.BeginPath();
+            _nvg.RoundedRect(x + 1.0f, y + (int)(h * 0.5f) - 9, 18.0f, 18.0f, 3.0f);
+            _nvg.FillPaint(bg);
+            _nvg.Fill();
+
+            _nvg.FontSize(33.0f);
+            _nvg.FontFace("icons");
+            _nvg.FillColour(_nvg.Rgba(255, 255, 255, 128));
+            _nvg.TextAlign(Align.Centre | Align.Middle);
+            _nvg.Text(x + 9.0f + 2.0f, y + h * 0.5f, CpToUTF8(ICON_CHECK));
+        }
+
+        private void DrawButton(int preIcon, string text, float x, float y, float w, float h, Colour col)
+        {
+            const float cornerRadius = 4.0f;
+            float iw = 0.0f;
+
+            Paint bg = _nvg.LinearGradient(x, y, x, y + h, _nvg.Rgba(255, 255, 255, IsBlack(col) ? (byte)16 : (byte)32), _nvg.Rgba(0, 0, 0, IsBlack(col) ? (byte)16 : (byte)32));
+            _nvg.BeginPath();
+            _nvg.RoundedRect(x + 1.0f, y + 1.0f, w - 2.0f, h - 2.0f, cornerRadius - 1.0f);
+            if (!IsBlack(col))
+            {
+                _nvg.FillColour(col);
+                _nvg.Fill();
+            }
+            _nvg.FillPaint(bg);
+            _nvg.Fill();
+
+            _nvg.BeginPath();
+            _nvg.RoundedRect(x + 0.5f, y + 0.5f, w - 1.0f, h - 1.0f, cornerRadius - 0.5f);
+            _nvg.StrokeColour(_nvg.Rgba(0, 0, 0, 48));
+            _nvg.Stroke();
+
+            _nvg.FontSize(17.0f);
+            _nvg.FontFace("sans-bold");
+            float tw = _nvg.TextBounds(0.0f, 0.0f, text, out _);
+            if (preIcon != 0)
+            {
+                _nvg.FontSize(h * 1.3f);
+                _nvg.FontFace("icons");
+                iw = _nvg.TextBounds(0.0f, 0.0f, CpToUTF8(preIcon), out _);
+                iw += h * 0.15f;
+            }
+
+            if (preIcon != 0)
+            {
+                _nvg.FontSize(h * 1.3f);
+                _nvg.FontFace("icons");
+                _nvg.FillColour(_nvg.Rgba(255, 255, 255, 96));
+                _nvg.TextAlign(Align.Left | Align.Middle);
+                _nvg.Text(x + w * 0.5f - tw * 0.5f - iw * 0.75f, y + h * 0.5f, CpToUTF8(preIcon));
+            }
+
+            _nvg.FontSize(17.0f);
+            _nvg.FontFace("sans-bold");
+            _nvg.TextAlign(Align.Left | Align.Middle);
+            _nvg.FillColour(_nvg.Rgba(0, 0, 0, 160));
+            _nvg.Text(x + w * 0.5f - tw * 0.5f + iw * 0.25f, y + h * 0.5f - 1.0f, text);
+            _nvg.FillColour(_nvg.Rgba(255, 255, 255, 160));
+            _nvg.Text(x + w * 0.5f - tw * 0.5f + iw * 0.25f, y + h * 0.5f, text);
+        }
+
+        private void DrawSlider(float pos, float x, float y, float w, float h)
+        {
+            float cy = y + (int)(h * 0.5f);
+            float kr = (int)(h * 0.25f);
+
+            _nvg.Save();
+
+            Paint bg = _nvg.BoxGradient(x, cy - 2.0f + 1.0f, w, 4.0f, 2.0f, 2.0f, _nvg.Rgba(0, 0, 0, 32), _nvg.Rgba(0, 0, 0, 128));
+            _nvg.BeginPath();
+            _nvg.RoundedRect(x, cy - 2.0f, w, 4.0f, 2.0f);
+            _nvg.FillPaint(bg);
+            _nvg.Fill();
+
+            bg = _nvg.RadialGradient(x + (int)(pos * w), cy + 1.0f, kr - 3.0f, kr + 3.0f, _nvg.Rgba(0, 0, 0, 64), _nvg.Rgba(0, 0, 0, 0));
+            _nvg.BeginPath();
+            _nvg.Rect(x + (int)(pos * w) - kr - 5, cy - kr - 5, kr * 2.0f + 5.0f + 5.0f, kr * 2.0f + 5.0f + 5.0f + 3.0f);
+            _nvg.Circle(x + (int)(pos * w), cy, kr);
+            _nvg.PathWinding(Solidity.Hole);
+            _nvg.FillPaint(bg);
+            _nvg.Fill();
+
+            Paint knob = Paint.LinearGradient(x, cy - kr, x, cy + kr, _nvg.Rgba(255, 255, 255, 16), _nvg.Rgba(0, 0, 0, 16));
+            _nvg.BeginPath();
+            _nvg.Circle(x + (int)(pos * w), cy, kr - 1.0f);
+            _nvg.FillColour(_nvg.Rgba(40, 43, 48, 255));
+            _nvg.Fill();
+            _nvg.FillPaint(knob);
+            _nvg.Fill();
+
+            _nvg.BeginPath();
+            _nvg.Circle(x + (int)(pos * w), cy, kr - 0.5f);
+            _nvg.StrokeColour(_nvg.Rgba(0, 0, 0, 92));
+            _nvg.Stroke();
+
+            _nvg.Restore();
+        }
 
         private void DrawEyes(float x, float y, float w, float h, float mx, float my, float t)
         {
@@ -163,6 +437,145 @@ namespace NvgExample
             }
             _nvg.FillColour(new Colour(220, 220, 220, 255));
             _nvg.Fill();
+        }
+
+        private void DrawSpinner(float cx, float cy, float r, float t)
+        {
+            float a0 = 0.0f + t * 6.0f;
+            float a1 = MathF.PI + t * 6.0f;
+            float r0 = r;
+            float r1 = r * 0.75f;
+
+            _nvg.Save();
+
+            _nvg.BeginPath();
+            _nvg.Arc(cx, cy, r0, a0, a1, Winding.Cw);
+            _nvg.Arc(cx, cy, r1, a1, a0, Winding.Ccw);
+            _nvg.ClosePath();
+            float ax = cx + MathF.Cos(a0) * (r0 + r1) * 0.5f;
+            float ay = cy + MathF.Sin(a0) * (r0 + r1) * 0.5f;
+            float bx = cx + MathF.Cos(a0) * (r0 + r1) * 0.5f;
+            float by = cy + MathF.Sin(a0) * (r0 + r1) * 0.5f;
+            Paint paint = _nvg.LinearGradient(ax, ay, bx, by, _nvg.Rgba(0, 0, 0, 0), _nvg.Rgba(0, 0, 0, 128));
+            _nvg.FillPaint(paint);
+            _nvg.Fill();
+
+            _nvg.Restore();
+        }
+
+        private void DrawThumbnails(float x, float y, float w, float h, int[] images, float t)
+        {
+            const float cornerRadius = 3.0f;
+            const float thumb = 60.0f;
+            const float arry = 30.5f;
+            float stackh = (images.Length / 2) * (thumb + 10.0f) + 10.0f;
+            float u = (1.0f + MathF.Cos(t * 0.5f)) * 0.5f;
+            float u2 = (1.0f - MathF.Cos(t * 0.2f)) * 0.5f;
+
+            _nvg.Save();
+
+            Paint shadowPaint = _nvg.BoxGradient(x, y + 4.0f, w, h, cornerRadius * 2.0f, 20.0f, _nvg.Rgba(0, 0, 0, 128), _nvg.Rgba(0, 0, 0, 0));
+            _nvg.BeginPath();
+            _nvg.Rect(x - 10.0f, y - 10.0f, w + 20.0f, h + 30.0f);
+            _nvg.RoundedRect(x, y, w, h, cornerRadius);
+            _nvg.PathWinding(Solidity.Hole);
+            _nvg.FillPaint(shadowPaint);
+            _nvg.Fill();
+
+            _nvg.BeginPath();
+            _nvg.RoundedRect(x, y, w, h, cornerRadius);
+            _nvg.MoveTo(x - 10.0f, y + arry);
+            _nvg.LineTo(x + 1.0f, y + arry - 11.0f);
+            _nvg.LineTo(x + 1.0f, y + arry + 11.0f);
+            _nvg.FillColour(_nvg.Rgba(200, 200, 200, 255));
+            _nvg.Fill();
+
+            _nvg.Save();
+            _nvg.Scissor(x, y, w, h);
+            _nvg.Translate(0, -(stackh - h) * u);
+
+            float dv = 1.0f / (float)(images.Length - 1);
+
+            for (uint i = 0; i < images.Length; i++)
+            {
+                float iw, ih;
+                float ix, iy;
+                float tx = x + 10.0f;
+                float ty = y + 10.0f;
+                tx += (i % 2) * (thumb + 10.0f);
+                ty += (i / 2) * (thumb + 10.0f);
+                _nvg.ImageSize(images[i], out uint imgW, out uint imgH);
+                if (imgW < imgH)
+                {
+                    iw = thumb;
+                    ih = iw * (float)imgH / (float)imgW;
+                    ix = 0.0f;
+                    iy = -(ih - thumb) * 0.5f;
+                }
+                else
+                {
+                    ih = thumb;
+                    iw = ih * (float)imgW / (float)imgH;
+                    ix = -(iw - thumb) * 0.5f;
+                    iy = 0.0f;
+                }
+
+                float v = i * dv;
+                float a = Clamp((u2 - v) / dv, 0.0f, 1.0f);
+
+                if (a < 1.0f)
+                {
+                    DrawSpinner(tx + thumb / 2.0f, ty + thumb / 2.0f, thumb * 0.25f, t);
+                }
+
+                Paint imgPaint = Paint.ImagePattern(tx + ix, ty + iy, iw, ih, 0.0f / 180.0f * MathF.PI, images[i], a);
+                _nvg.BeginPath();
+                _nvg.RoundedRect(tx, ty, thumb, thumb, 5.0f);
+                _nvg.FillPaint(imgPaint);
+                _nvg.Fill();
+
+                shadowPaint = Paint.BoxGradient(tx - 1.0f, ty, thumb + 2.0f, thumb + 2.0f, 5.0f, 3.0f, _nvg.Rgba(0, 0, 0, 128), _nvg.Rgba(0, 0, 0, 0));
+                _nvg.BeginPath();
+                _nvg.Rect(tx - 5.0f, ty - 5.0f, thumb + 10.0f, thumb + 10.0f);
+                _nvg.RoundedRect(tx, ty, thumb, thumb, 6.0f);
+                _nvg.PathWinding(Solidity.Hole);
+                _nvg.FillPaint(shadowPaint);
+                _nvg.Fill();
+
+                _nvg.BeginPath();
+                _nvg.RoundedRect(tx + 0.5f, ty + 0.5f, thumb - 1.0f, thumb - 1.0f, 4.0f - 0.5f);
+                _nvg.StrokeWidth(1.0f);
+                _nvg.StrokeColour(_nvg.Rgba(255, 255, 255, 192));
+                _nvg.Fill();
+            }
+            _nvg.Restore();
+
+            Paint fadePaint = _nvg.LinearGradient(x, y, x, y + 6.0f, _nvg.Rgba(200, 200, 200, 255), _nvg.Rgba(200, 200, 200, 0));
+            _nvg.BeginPath();
+            _nvg.Rect(x + 4.0f, y, w - 8.0f, 6.0f);
+            _nvg.FillPaint(fadePaint);
+            _nvg.Fill();
+
+            fadePaint = _nvg.LinearGradient(x, y + h, x, y + h - 6.0f, _nvg.Rgba(200, 200, 200, 255), _nvg.Rgba(200, 200, 200, 0));
+            _nvg.BeginPath();
+            _nvg.Rect(x + 4.0f, y + h - 6.0f, w - 8.0f, 6.0f);
+            _nvg.FillPaint(fadePaint);
+            _nvg.Fill();
+
+            shadowPaint = _nvg.BoxGradient(x + w - 12.0f + 1.0f, y + 4.0f + 1.0f, 8.0f, h - 8.0f, 3.0f, 4.0f, _nvg.Rgba(0, 0, 0, 32), _nvg.Rgba(0, 0, 0, 92));
+            _nvg.BeginPath();
+            _nvg.RoundedRect(x + w - 12.0f, y + 4.0f, 8.0f, h - 8.0f, 3.0f);
+            _nvg.FillPaint(shadowPaint);
+            _nvg.Fill();
+
+            float scrollH = (h / stackh) * (h - 8.0f);
+            shadowPaint = _nvg.BoxGradient(x + w - 12.0f - 1.0f, y + 4.0f + (h - 8.0f - scrollH) * u - 1.0f, 8.0f, scrollH, 3.0f, 4.0f, _nvg.Rgba(220, 220, 220, 255), _nvg.Rgba(128, 128, 128, 255));
+            _nvg.BeginPath();
+            _nvg.RoundedRect(x + w - 12.0f + 1.0f, y + 4.0f + 1.0f + (h - 8.0f - scrollH) * u, 8.0f - 2.0f, scrollH - 2.0f, 2.0f);
+            _nvg.FillPaint(shadowPaint);
+            _nvg.Fill();
+
+            _nvg.Restore();
         }
 
         private void DrawColourwheel(float x, float y, float w, float h, float t)
@@ -342,13 +755,13 @@ namespace NvgExample
                 Console.Error.WriteLine("Could not add font regular.");
                 Environment.Exit(-1);
             }
-            _fontBold = _nvg.CreateFont("icons", "./fonts/Roboto-Bold.ttf");
+            _fontBold = _nvg.CreateFont("sans-bold", "./fonts/Roboto-Bold.ttf");
             if (_fontIcons == -1)
             {
                 Console.Error.WriteLine("Could not add font bold.");
                 Environment.Exit(-1);
             }
-            _fontEmoji = _nvg.CreateFont("icons", "./fonts/NotoEmoji-Regular.ttf");
+            _fontEmoji = _nvg.CreateFont("emoji", "./fonts/NotoEmoji-Regular.ttf");
             if (_fontIcons == -1)
             {
                 Console.Error.WriteLine("Could not add font emoji.");
@@ -489,7 +902,7 @@ namespace NvgExample
 
             for (uint i = 0; i < 20; i++)
             {
-                float w = ((float)i + 0.5f) * 0.1f;
+                float w = (i + 0.5f) * 0.1f;
                 _nvg.StrokeWidth(w);
                 _nvg.BeginPath();
                 _nvg.MoveTo(x, y);
@@ -497,6 +910,75 @@ namespace NvgExample
                 _nvg.Stroke();
                 y += 10.0f;
             }
+
+            _nvg.Restore();
+        }
+
+        private void DrawCaps(float x, float y, float width)
+        {
+            const float lineWidth = 8.0f;
+
+            LineCap[] caps =
+            {
+                LineCap.Butt,
+                LineCap.Round,
+                LineCap.Square
+            };
+
+            _nvg.Save();
+
+            _nvg.BeginPath();
+            _nvg.Rect(x - lineWidth / 2.0f, y, width + lineWidth, 40.0f);
+            _nvg.FillColour(_nvg.Rgba(255, 255, 255, 32));
+            _nvg.Fill();
+
+            _nvg.BeginPath();
+            _nvg.Rect(x, y, width, 40.0f);
+            _nvg.FillColour(_nvg.Rgba(255, 255, 255, 32));
+            _nvg.Fill();
+
+            _nvg.StrokeWidth(lineWidth);
+            for (uint i = 0; i < 3; i++)
+            {
+                _nvg.LineCap(caps[i]);
+                _nvg.StrokeColour(Colour.Black);
+                _nvg.BeginPath();
+                _nvg.MoveTo(x, y + i * 10.0f + 5.0f);
+                _nvg.LineTo(x + width, y + i * 10.0f + 5.0f);
+                _nvg.Stroke();
+            }
+
+            _nvg.Restore();
+        }
+
+        private void DrawScissor(float x, float y, float t)
+        {
+            _nvg.Save();
+
+            _nvg.Translate(x, y);
+            _nvg.Rotate(_nvg.DegToRad(5.0f));
+            _nvg.BeginPath();
+            _nvg.Rect(-20.0f, -20.0f, 60.0f, 40.0f);
+            _nvg.FillColour(Colour.Red);
+            _nvg.Fill();
+            _nvg.Scissor(-20.0f, -20.0f, 60.0f, 40.0f);
+
+            _nvg.Translate(40.0f, 0.0f);
+            _nvg.Rotate(t);
+
+            _nvg.Save();
+            _nvg.ResetScissor();
+            _nvg.BeginPath();
+            _nvg.Rect(-20.0f, -10.0f, 60.0f, 30.0f);
+            _nvg.FillColour(_nvg.Rgba(255, 128, 0, 64));
+            _nvg.Fill();
+            _nvg.Restore();
+
+            _nvg.IntersectScissor(-20.0f, -10.0f, 60.0f, 30.0f);
+            _nvg.BeginPath();
+            _nvg.Rect(-20.0f, -10.0f, 60.0f, 30.0f);
+            _nvg.FillColour(_nvg.Rgba(255, 128, 0, 255));
+            _nvg.Fill();
 
             _nvg.Restore();
         }
@@ -510,12 +992,131 @@ namespace NvgExample
 
             DrawLines(120.0f, height - 50.0f, 600.0f, 50.0f, t);
 
-            // DrawWidths(10, 50, 50);
+            DrawWidths(10, 50, 30);
+
+            DrawCaps(10, 300, 30);
+
+            DrawScissor(50.0f, height - 80.0f, t);
+
+            _nvg.Save();
+            if (blowup)
+            {
+                _nvg.Rotate(MathF.Sin(t * 0.3f) * 5.0f / 180.0f * MathF.PI);
+                _nvg.Scale(2.0f, 2.0f);
+            }
+
+            DrawWindow("Widgets 'n' Stuff", 50.0f, 50.0f, 300.0f, 400.0f);
+            float x = 60.0f;
+            float y = 95.0f;
+            DrawSearchBox("Search...", x, y, 280.0f, 25.0f);
+            y += 40.0f;
+            DrawDropDown("Effects:", x, y, 280.0f, 28.0f);
+            float popY = y + 14.0f;
+            y += 45.0f;
+
+            DrawLable("Login", x, y, 20.0f);
+            y += 25.0f;
+            DrawEditBox("Email", x, y, 280.0f, 28.0f);
+            y += 35.0f;
+            DrawEditBox("Password", x, y, 280.0f, 28.0f);
+            y += 38.0f;
+            DrawCheckBox("Remember me", x, y, 140.0f, 28.0f);
+            DrawButton(ICON_LOGIN, "Sign in", x + 138.0f, y, 140.0f, 28.0f, _nvg.Rgba(0, 96, 128, 255));
+            y += 45.0f;
+
+            DrawLable("Diameter", x, y, 20.0f);
+            y += 25.0f;
+            DrawEditBoxNum("123.00", "px", x + 180.0f, y, 100.0f, 28.0f);
+            DrawSlider(0.4f, x, y, 170.0f, 28.0f);
+            y += 55.0f;
+
+            DrawButton(ICON_TRASH, "Delete", x, y, 160.0f, 28.0f, _nvg.Rgba(128, 16, 8, 255));
+            DrawButton(0, "Cancle", x + 170.0f, y, 110.0f, 28.0f, _nvg.Rgba(0, 0, 0, 0));
+
+            DrawThumbnails(365.0f, popY - 30.0f, 160.0f, 300.0f, _images, t);
+
+            _nvg.Restore();
         }
 
         private static float Clamp(float a, float min, float max)
         {
             return (a > min) ? ((a < max) ? a : max) : min;
+        }
+
+        private static string CpToUTF8(int cp)
+        {
+            int n = 0;
+            if (cp < 0x80)
+            {
+                n = 1;
+            }
+            else if (cp < 0x800)
+            {
+                n = 2;
+            }
+            else if (cp < 0x10000)
+            {
+                n = 3;
+            }
+            else if (cp < 0x200000)
+            {
+                n = 4;
+            }
+            else if (cp < 0x4000000)
+            {
+                n = 5;
+            }
+            else if (cp <= 0x7fffffff)
+            {
+                n = 6;
+            }
+
+            char[] str = new char[8];
+            str[n] = '\0';
+
+            switch (n)
+            {
+                case 6:
+                    str[5] = (char)(0x80 | (cp & 0x3f));
+                    cp = cp >> 6;
+                    cp |= 0x4000000;
+                    goto case 5;
+                case 5:
+                    str[4] = (char)(0x80 | (cp & 0x3f));
+                    cp = cp >> 6;
+                    cp |= 0x200000;
+                    goto case 4;
+                case 4:
+                    str[3] = (char)(0x80 | (cp & 0x3f));
+                    cp = cp >> 6;
+                    cp |= 0x10000;
+                    goto case 3;
+                case 3:
+                    str[2] = (char)(0x80 | (cp & 0x3f));
+                    cp = cp >> 6;
+                    cp |= 0x800;
+                    goto case 2;
+                case 2:
+                    str[1] = (char)(0x80 | (cp & 0x3f));
+                    cp = cp >> 6;
+                    cp |= 0xc0;
+                    goto case 1;
+                case 1:
+                    str[0] = (char)cp;
+                    break;
+            }
+
+            string result = "";
+            for (ushort i = 0; str[i] != '\0'; i++)
+            {
+                result += str[i];
+            }
+            return result;
+        }
+
+        private static bool IsBlack(Colour col)
+        {
+            return col.R == 0.0f && col.G == 0.0f && col.B == 0.0f && col.A == 0.0f;
         }
 
         public void SaveScreenShot(float w, float h, bool premult, string name)

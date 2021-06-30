@@ -128,7 +128,7 @@ namespace SilkyNvg.Text
 
             FonsQuad q = new();
 
-            float scale = instance.GetFontScale(); // FIXME: Apply device px ratio!
+            float scale = instance.GetFontScale() * nvg.pixelRatio.DevicePxRatio;
             float invscale = 1.0f / scale;
             bool isFlipped = Maths.IsTransformFlipped(state.Transform);
 
@@ -293,13 +293,13 @@ namespace SilkyNvg.Text
             return width * invscale;
         }
 
-        public static void TextBounds(this Nvg nvg, Vector2D<float> position, string @string, out Rectangle<float> bounds)
+        public static float TextBounds(this Nvg nvg, Vector2D<float> position, string @string, out Rectangle<float> bounds)
             => TextBounds(nvg, position, @string, null, out bounds);
 
-        public static void TextBounds(this Nvg nvg, float x, float y, string @string, string end, out Rectangle<float> bounds)
+        public static float TextBounds(this Nvg nvg, float x, float y, string @string, string end, out Rectangle<float> bounds)
             => TextBounds(nvg, new Vector2D<float>(x, y), @string, end, out bounds);
 
-        public static void TextBounds(this Nvg nvg, float x, float y, string @string, out Rectangle<float> bounds)
+        public static float TextBounds(this Nvg nvg, float x, float y, string @string, out Rectangle<float> bounds)
             => TextBounds(nvg, new Vector2D<float>(x, y), @string, null, out bounds);
 
         public static void TextBoxBounds(this Nvg nvg, Vector2D<float> position, float breakRowWidth, string @string, string end, out Rectangle<float> bounds)

@@ -68,6 +68,11 @@ namespace SilkyNvg
             OuterColour.Premultiply(alpha);
         }
 
+        internal Paint Clone()
+        {
+            return (Paint)MemberwiseClone();
+        }
+
         internal static Paint ForText(int fontAtlas, Paint original)
         {
             return new Paint(original.Transform, original.Extent, original.Radius, original.Feather, original.InnerColour, original.OuterColour, fontAtlas);
