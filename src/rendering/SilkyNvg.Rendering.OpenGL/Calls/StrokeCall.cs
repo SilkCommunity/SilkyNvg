@@ -2,13 +2,14 @@
 using SilkyNvg.Blending;
 using SilkyNvg.Rendering.OpenGL.Blending;
 using SilkyNvg.Rendering.OpenGL.Shaders;
+using System;
 
 namespace SilkyNvg.Rendering.OpenGL.Calls
 {
     internal class StrokeCall : Call
     {
 
-        public StrokeCall(int image, Path[] paths, FragUniforms uniforms, CompositeOperationState op, OpenGLRenderer renderer)
+        public StrokeCall(int image, Span<Path> paths, FragUniforms uniforms, CompositeOperationState op, OpenGLRenderer renderer)
             : base(image, paths, 0, 0, uniforms, new Blend(op, renderer), renderer) { }
 
         public override void Run()

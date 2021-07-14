@@ -129,6 +129,8 @@ namespace SilkyNvg.Text
             paint.PremultiplyAlpha(state.Alpha);
 
             _nvg.graphicsManager.Triangles(paint, state.CompositeOperation, state.Scissor, vertices, _nvg.pixelRatio.FringeWidth);
+
+            _nvg.FrameMeta.Update((uint)vertices.Length / 3, 0, 0, 1);
         }
 
         private void EndFrame()

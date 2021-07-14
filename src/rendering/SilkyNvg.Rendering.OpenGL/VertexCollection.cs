@@ -1,15 +1,18 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace SilkyNvg.Rendering.OpenGL
 {
     internal class VertexCollection
     {
 
-        private readonly List<Vertex> _vertices = new();
+        private const int MAX_VERTICES = 10_000_000;
+
+        private readonly List<Vertex> _vertices = new(MAX_VERTICES);
 
         public int CurrentsOffset => _vertices.Count;
 
-        public Vertex[] Vertices => _vertices.ToArray();
+        public ReadOnlySpan<Vertex> Vertices => _vertices.ToArray();
 
         public VertexCollection()
         {

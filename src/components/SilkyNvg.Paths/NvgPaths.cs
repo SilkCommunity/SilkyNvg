@@ -334,7 +334,7 @@ namespace SilkyNvg.Paths
 
             foreach (Path path in nvg.pathCache.Paths)
             {
-                nvg.FrameMeta.Update(0, 0, (uint)path.Fill.Count - 2, (uint)path.Stroke.Count - 2);
+                nvg.FrameMeta.Update(0, 0, (uint)path.Fill.Count - 2 + (uint)path.Stroke.Count - 2, 2);
             }
         }
 
@@ -366,6 +366,11 @@ namespace SilkyNvg.Paths
             }
 
             nvg.graphicsManager.Stroke(strokePaint, state.CompositeOperation, state.Scissor, nvg.pixelRatio.FringeWidth, strokeWidth, nvg.pathCache.Paths);
+
+            foreach (Path path in nvg.pathCache.Paths)
+            {
+                nvg.FrameMeta.Update(0, (uint)path.Stroke.Count - 2, 0, 1);
+            }
         }
 
     }

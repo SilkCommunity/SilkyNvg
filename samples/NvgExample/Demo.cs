@@ -80,6 +80,12 @@ namespace NvgExample
             _nvg.FillPaint(bg);
             _nvg.Fill();
 
+            _nvg.BeginPath();
+            _nvg.RoundedRect(x + 0.5f, y + 0.5f, w - 1.0f, h - 1.0f, cornerRadius - 0.5f);
+            _nvg.StrokeColour(_nvg.Rgba(0, 0, 0, 48));
+            _nvg.Stroke();
+
+            _nvg.BeginPath();
             _nvg.FontSize(h * 1.3f);
             _nvg.FontFace("icons");
             _nvg.FillColour(_nvg.Rgba(255, 255, 255, 64));
@@ -674,11 +680,11 @@ namespace NvgExample
             _nvg.Restore();
         }
 
-        private void DrawLines(float x, float y, float w, float h, float t)
+        private unsafe void DrawLines(float x, float y, float w, float h, float t)
         {
             float pad = 5.0f;
             float s = w / 9.0f - pad * 2;
-            float[] pts = new float[4 * 2];
+            float* pts = stackalloc float[4 * 2];
             LineCap[] joins = { LineCap.Miter, LineCap.Round, LineCap.Bevel };
             LineCap[] caps = { LineCap.Butt, LineCap.Round, LineCap.Square };
 

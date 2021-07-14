@@ -267,7 +267,7 @@ namespace SilkyNvg.Rendering.OpenGL
         public void Stroke(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, float strokeWidth, Rendering.Path[] paths)
         {
             int offset = _vertexCollection.CurrentsOffset;
-            Path[] renderPaths = new Path[paths.Length];
+            Span<Path> renderPaths = stackalloc Path[paths.Length];
             for (int i = 0; i < paths.Length; i++)
             {
                 if (paths[i].Stroke.Count > 0)

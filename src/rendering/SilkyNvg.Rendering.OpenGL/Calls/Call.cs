@@ -1,5 +1,6 @@
 ﻿using SilkyNvg.Rendering.OpenGL.Blending;
 using SilkyNvg.Rendering.OpenGL.Shaders;
+using System;
 
 namespace SilkyNvg.Rendering.OpenGL.Calls
 {
@@ -15,10 +16,10 @@ namespace SilkyNvg.Rendering.OpenGL.Calls
 
         protected readonly OpenGLRenderer renderer;
 
-        protected Call(int image, Path[] paths, int triangleOffset, uint triangleCount, FragUniforms uniforms, Blend blendFunc, OpenGLRenderer renderer)
+        protected Call(int image, Span<Path> paths, int triangleOffset, uint triangleCount, FragUniforms uniforms, Blend blendFunc, OpenGLRenderer renderer)
         {
             this.image = image;
-            this.paths = paths;
+            this.paths = paths.ToArray();
             this.triangleOffset = triangleOffset;
             this.triangleCount = triangleCount;
             this.uniforms = uniforms;
