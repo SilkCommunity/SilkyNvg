@@ -6,32 +6,46 @@ namespace SilkyNvg.Rendering.OpenGL
     internal class VertexCollection
     {
 
-        private const int MAX_VERTICES = 10_000_000;
+        private Vertex[] _vertices;
+        private int _count;
 
-        private readonly List<Vertex> _vertices = new(MAX_VERTICES);
+        public int CurrentsOffset => _count;
 
-        public int CurrentsOffset => _vertices.Count;
-
-        public ReadOnlySpan<Vertex> Vertices => _vertices.ToArray();
+        public Vertex[] Vertices => _vertices;
 
         public VertexCollection()
         {
+            _vertices = Array.Empty<Vertex>();
+            _count = 0;
+        }
 
+        private void AllocVerts(int n)
+        {
+            if (_count + n > _vertices.Length)
+            {
+                int cverts = Math.Max(_count + n, 4096) + _vertices.Length / 2;
+                Array.Resize(ref _vertices, cverts);
+            }
         }
 
         public void AddVertex(Vertex vertex)
         {
-            _vertices.Add(vertex);
+            AllocVerts(1);
+            _vertices[_count++] = vertex;
         }
 
-        public void AddVertices(IEnumerable<Vertex> vertices)
+        public void AddVertices(ICollection<Vertex> vertices)
         {
-            _vertices.AddRange(vertices);
+            AllocVerts(vertices.Count);
+            foreach (Vertex vertex in vertices)
+            {
+                _vertices[_count++] = vertex;
+            }
         }
 
         public void Clear()
         {
-            _vertices.Clear();
+            _count = 0;
         }
 
     }

@@ -24,9 +24,9 @@ namespace SilkyNvg.Rendering
 
         public uint BevelCount => _bevelCount;
 
-        public IReadOnlyCollection<Vertex> Fill => _fill.ToArray();
+        public ICollection<Vertex> Fill => _fill;
 
-        public IReadOnlyCollection<Vertex> Stroke => _stroke.ToArray();
+        public ICollection<Vertex> Stroke => _stroke;
 
         public bool Convex { get; private set; }
 

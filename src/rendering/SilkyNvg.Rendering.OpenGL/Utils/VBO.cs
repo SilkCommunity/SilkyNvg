@@ -21,7 +21,7 @@ namespace SilkyNvg.Rendering.OpenGL.Utils
             _gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vboID);
         }
 
-        public unsafe void Update(ReadOnlySpan<Vertex> vertices)
+        public unsafe void Update(Vertex[] vertices)
         {
             fixed (void* verts = vertices)
             {

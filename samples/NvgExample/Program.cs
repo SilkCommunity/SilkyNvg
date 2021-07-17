@@ -113,20 +113,8 @@ namespace NvgExample
 
                 demo.Render((float)mx, (float)my, winWidth, winHeight, (float)t, blowup);
 
-                /*string s = "";
-                s += (char)240;
-                s += (char)159;
-                s += (char)148;
-                s += (char)141;
-                nvg.Rotate(MathF.Sin((float)t * 0.3f) * 5.0f / 180.0f * MathF.PI);
-                float scale = 2.0f;
-                nvg.FontFace("icons");
-                nvg.FontSize(25.0f * 1.3f * scale);
-                nvg.TextAlign(Align.Centre | Align.Middle);
-                nvg.Text(73.75f * scale, 108.75f * scale, s);*/
-
-                // fps.Render(5.0f, 5.0f, nvg);
-                // cpuGraph.Render(5.0f + 200.0f + 5.0f, 5.0f, nvg);
+                fps.Render(5.0f, 5.0f, nvg);
+                cpuGraph.Render(5.0f + 200.0f + 5.0f, 5.0f, nvg);
 
                 nvg.EndFrame();
 
