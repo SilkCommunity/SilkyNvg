@@ -11,12 +11,14 @@ namespace SilkyNvg.Core.Paths
     internal class PathCache
     {
 
-        private readonly List<Path> _paths = new();
+        private const uint INIT_PATHS_SIZE = 16;
+
+        private readonly IList<Path> _paths = new List<Path>((int)INIT_PATHS_SIZE);
         private readonly Nvg _nvg;
 
         private Vector4D<float> _bounds;
 
-        public Path[] Paths => _paths.ToArray();
+        public IReadOnlyList<Path> Paths => (IReadOnlyList<Path>)_paths;
 
         public Vector4D<float> Bounds => _bounds;
 

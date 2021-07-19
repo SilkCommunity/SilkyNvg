@@ -4,11 +4,8 @@ using System;
 
 namespace SilkyNvg
 {
-    public class Paint
+    public struct Paint
     {
-
-        private Colour _innerColour;
-        private Colour _outerColour;
 
         public Matrix3X2<float> Transform { get; private set; }
 
@@ -18,13 +15,13 @@ namespace SilkyNvg
 
         public float Feather { get; }
 
-        public ref Colour InnerColour { get => ref _innerColour; }
+        public Colour InnerColour { get; private set; }
 
-        public ref Colour OuterColour { get => ref _outerColour; }
+        public Colour OuterColour { get; private set; }
 
         public int Image { get; }
 
-        public Paint(Matrix3X2<float> transform, Vector2D<float> extent, float radius, float feather, Colour innerColour, Colour outerColour)
+        public Paint(Matrix3X2<float> transform, Vector2D<float> extent, float radius, float feather, Colour innerColour, Colour outerColour, int image)
         {
             Transform = transform;
             Extent = extent;
@@ -32,30 +29,10 @@ namespace SilkyNvg
             Feather = feather;
             InnerColour = innerColour;
             OuterColour = outerColour;
-        }
-        public Paint(Matrix3X2<float> transform, Vector2D<float> extent, float radius, float feather, Colour innerColour, Colour outerColour, int image)
-            : this(transform, extent, radius, feather, innerColour, outerColour)
-        {
             Image = image;
         }
 
-        internal Paint(Colour colour)
-        {
-            Transform = Matrix3X2<float>.Identity;
-            Radius = 0;
-            Feather = 1;
-            InnerColour = colour;
-            OuterColour = colour;
-        }
-
-        internal Paint(Matrix3X2<float> transform, Vector2D<float> extent, int image, Colour innerColour, Colour outerColour)
-        {
-            Transform = transform;
-            Extent = extent;
-            Image = image;
-            InnerColour = innerColour;
-            OuterColour = outerColour;
-        }
+        internal Paint(Colour colour) : this(Matrix3X2<float>.Identity, default, default, default, colour, colour, default) { }
 
         internal void MultiplyTransform(Matrix3X2<float> globalTransform)
         {
@@ -64,13 +41,8 @@ namespace SilkyNvg
 
         internal void PremultiplyAlpha(float alpha)
         {
-            InnerColour.Premultiply(alpha);
-            OuterColour.Premultiply(alpha);
-        }
-
-        internal Paint Clone()
-        {
-            return (Paint)MemberwiseClone();
+            InnerColour = InnerColour.Premultiply(alpha);
+            OuterColour = OuterColour.Premultiply(alpha);
         }
 
         internal static Paint ForText(int fontAtlas, Paint original)
@@ -78,94 +50,81 @@ namespace SilkyNvg
             return new Paint(original.Transform, original.Extent, original.Radius, original.Feather, original.InnerColour, original.OuterColour, fontAtlas);
         }
 
-        public static Paint LinearGradient(float sx, float sy, float ex, float ey, Colour icol, Colour ocol)
+        public static Paint LinearGradient(Vector2D<float> start, Vector2D<float> end, Colour innerColour, Colour outerColour)
         {
             const float large = 1e5f;
 
-            float dx = ex - sx;
-            float dy = ey - sy;
-            float d = MathF.Sqrt(dx * dx + dy * dy);
+            Vector2D<float> delta = end - start;
+            float d = MathF.Sqrt(delta.X * delta.X + delta.Y * delta.Y);
 
             if (d > 0.0001f)
             {
-                dx /= d;
-                dy /= d;
+                delta /= d;
             }
             else
             {
-                dx = 0;
-                dy = 1;
+                delta = new(0, 1);
             }
 
             Matrix3X2<float> transform = new
             (
-                dy, -dx,
-                dx, dy,
-                sx - dx * large, sy - dy * large
+                delta.Y, -delta.X,
+                delta.X, delta.Y,
+                start.X - delta.X * large, start.Y - delta.Y * large
             );
 
-            return new Paint(
-                transform,
-                new Vector2D<float>(large, large + d * 0.5f),
-                0.0f, MathF.Max(1.0f, d),
-                icol, ocol
-            );
+            Vector2D<float> extent = new(large, large + d * 0.5f);
+
+            return new Paint(transform, extent, 0.0f, MathF.Max(1.0f, d), innerColour, outerColour, default);
         }
 
-        public static Paint LinearGradient(Vector2D<float> s, Vector2D<float> e, Colour icol, Colour ocol) => LinearGradient(s.X, s.Y, e.X, e.Y, icol, ocol);
+        public static Paint LinearGradient(float startX, float startY, float endX, float endY, Colour icol, Colour ocol)
+            => LinearGradient(new(startX, startY), new(endX, endY), icol, ocol);
 
-        public static Paint RadialGradient(float cx, float cy, float inr, float outr, Colour icol, Colour ocol)
+        public static Paint RadialGradient(Vector2D<float> centre, float innerRadius, float outerRadius, Colour innerColour, Colour outerColour)
         {
-            float r = (inr + outr) * 0.5f;
-            float f = (outr - inr);
+            float r = (innerRadius + outerRadius) * 0.5f;
+            float f = (outerRadius - innerRadius);
 
             Matrix3X2<float> transform = Matrix3X2<float>.Identity;
-            transform.M31 = cx;
-            transform.M32 = cy;
+            transform.M31 = centre.X;
+            transform.M32 = centre.Y;
 
-            return new Paint(
-                transform,
-                new Vector2D<float>(r),
-                r, MathF.Max(1.0f, f),
-                icol, ocol
-            );
+            Vector2D<float> extent = new(r);
+
+            return new Paint(transform, extent, r, MathF.Max(1.0f, f), innerColour, outerColour, default);
         }
 
-        public static Paint RadialGradient(Vector2D<float> c, Vector2D<float> radii, Colour icol, Colour ocol) => RadialGradient(c.X, c.Y, radii.X, radii.Y, icol, ocol);
+        public static Paint RadialGradient(float centreX, float centreY, float innerRadius, float outerRadius, Colour innerColour, Colour outerColour)
+            => RadialGradient(new(centreX, centreY), innerRadius, outerRadius, innerColour, outerColour);
 
-        public static Paint BoxGradient(float x, float y, float w, float h, float r, float f, Colour icol, Colour ocol)
+        public static Paint BoxGradient(Rectangle<float> bounds, float radius, float feather, Colour innerColour, Colour outerColour)
         {
             Matrix3X2<float> transform = Matrix3X2<float>.Identity;
-            transform.M31 = x + (w * 0.5f);
-            transform.M32 = y + (h * 0.5f);
+            transform.M31 = bounds.Origin.X + (bounds.Size.X * 0.5f);
+            transform.M32 = bounds.Origin.Y + (bounds.Size.Y * 0.5f);
 
-            return new Paint(
-                transform,
-                new Vector2D<float>(w * 0.5f, h * 0.5f),
-                r, MathF.Max(1.0f, f),
-                icol, ocol
-            );
+            Vector2D<float> extent = bounds.Size * 0.5f;
+
+            return new Paint(transform, extent, radius, MathF.Max(1.0f, feather), innerColour, outerColour, default);
         }
 
-        public static Paint BoxGradient(Vector2D<float> pos, Vector2D<float> size, float r, float f, Colour icol, Colour ocol) => BoxGradient(pos.X, pos.Y, size.X, size.Y, r, f, icol, ocol);
+        public static Paint BoxGradient(float x, float y, float width, float height, float radius, float feather, Colour innerColour, Colour outerColour)
+            => BoxGradient(new(new(x, y), new(width, height)), radius, feather, innerColour, outerColour);
 
-        public static Paint ImagePattern(float x, float y, float width, float height, float angle, int image, float alpha)
+        public static Paint ImagePattern(Rectangle<float> bounds, float angle, int image, float alpha)
         {
             Matrix3X2<float> transform = Matrix3X2.CreateRotation(angle);
-            transform.M31 = x;
-            transform.M32 = y;
+            transform.M31 = bounds.Origin.X;
+            transform.M32 = bounds.Origin.Y;
 
-            return new Paint(
-                transform,
-                new Vector2D<float>(width, height),
-                image,
-                new Colour(1.0f, 1.0f, 1.0f, alpha),
-                new Colour(1.0f, 1.0f, 1.0f, alpha)
-            );
+            Vector2D<float> extent = bounds.Size;
+
+            return new Paint(transform, extent, default, default, new Colour(1.0f, 1.0f, 1.0f, alpha), new Colour(1.0f, 1.0f, 1.0f, alpha), image);
         }
 
-        public static Paint ImagePattern(Vector2D<float> pos, Vector2D<float> size, float angle, int image, float alpha)
-            => ImagePattern(pos.X, pos.Y, size.X, size.Y, angle, image, alpha);
+        public static Paint ImagePattern(float x, float y, float width, float height, float angle, int image, float alpha)
+            => ImagePattern(new(new(x, y), new(width, height)), angle, image, alpha);
 
     }
 }

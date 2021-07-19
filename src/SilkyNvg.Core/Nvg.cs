@@ -14,10 +14,10 @@ namespace SilkyNvg
         #region Create / Destroy
         public static Nvg Create(INvgRenderer renderer)
         {
-            return new Nvg(new GraphicsManager(renderer));
+            return new Nvg(renderer);
         }
 
-        internal readonly GraphicsManager graphicsManager;
+        internal readonly INvgRenderer renderer;
         internal readonly InstructionQueue instructionQueue;
         internal readonly PathCache pathCache;
         internal readonly StateStack stateStack;
@@ -27,16 +27,16 @@ namespace SilkyNvg
 
         public FrameMeta FrameMeta { get; internal set; }
 
-        private Nvg(GraphicsManager graphicsManager)
+        private Nvg(INvgRenderer renderer)
         {
-            this.graphicsManager = graphicsManager;
+            this.renderer = renderer;
 
             instructionQueue = new InstructionQueue(this);
             pathCache = new PathCache(this);
             stateStack = new StateStack();
             pixelRatio = new PixelRatio();
 
-            if (!graphicsManager.Create())
+            if (!this.renderer.Create())
             {
                 throw new InvalidOperationException("Failed to initialize the renderer!");
             }
@@ -47,7 +47,7 @@ namespace SilkyNvg
             instructionQueue.Clear();
             pathCache.Clear();
 
-            graphicsManager.Delete();
+            renderer.Dispose();
         }
         #endregion
 
@@ -60,7 +60,7 @@ namespace SilkyNvg
 
             pixelRatio.SetDevicePixelRatio(devicePixelRatio);
 
-            graphicsManager.Viewport(windowSize, devicePixelRatio);
+            renderer.Viewport(windowSize, devicePixelRatio);
 
             FrameMeta = default;
         }
@@ -69,12 +69,12 @@ namespace SilkyNvg
 
         public void CancelFrame()
         {
-            graphicsManager.Cancel();
+            renderer.Cancel();
         }
 
         public void EndFrame()
         {
-            graphicsManager.Flush();
+            renderer.Flush();
             endFrameText?.Invoke();
         }
 

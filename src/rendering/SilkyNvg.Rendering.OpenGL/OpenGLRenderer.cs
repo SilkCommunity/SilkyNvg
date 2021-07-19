@@ -7,6 +7,7 @@ using SilkyNvg.Rendering.OpenGL.Calls;
 using SilkyNvg.Rendering.OpenGL.Shaders;
 using SilkyNvg.Rendering.OpenGL.Utils;
 using System;
+using System.Collections.Generic;
 using Shader = SilkyNvg.Rendering.OpenGL.Shaders.Shader;
 
 namespace SilkyNvg.Rendering.OpenGL
@@ -226,11 +227,11 @@ namespace SilkyNvg.Rendering.OpenGL
             _callQueue.Clear();
         }
 
-        public void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Vector4D<float> bounds, Rendering.Path[] paths)
+        public void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Vector4D<float> bounds, IReadOnlyList<Rendering.Path> paths)
         {
             int offset = _vertexCollection.CurrentsOffset;
-            Path[] renderPaths = new Path[paths.Length];
-            for (int i = 0; i < paths.Length; i++)
+            Path[] renderPaths = new Path[paths.Count];
+            for (int i = 0; i < paths.Count; i++)
             {
                 Rendering.Path path = paths[i];
                 renderPaths[i] = new Path(
@@ -245,7 +246,7 @@ namespace SilkyNvg.Rendering.OpenGL
 
             FragUniforms uniforms = new(paint, scissor, fringe, fringe, -1.0f);
             Call call;
-            if ((paths.Length == 1) && paths[0].Convex) // Convex
+            if ((paths.Count == 1) && paths[0].Convex) // Convex
             {
                 call = new ConvexFillCall(paint.Image, renderPaths, uniforms, compositeOperation, this);
             }
@@ -264,11 +265,11 @@ namespace SilkyNvg.Rendering.OpenGL
             _callQueue.Add(call);
         }
 
-        public void Stroke(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, float strokeWidth, Rendering.Path[] paths)
+        public void Stroke(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, float strokeWidth, IReadOnlyList<Rendering.Path> paths)
         {
             int offset = _vertexCollection.CurrentsOffset;
-            Span<Path> renderPaths = stackalloc Path[paths.Length];
-            for (int i = 0; i < paths.Length; i++)
+            Span<Path> renderPaths = stackalloc Path[paths.Count];
+            for (int i = 0; i < paths.Count; i++)
             {
                 if (paths[i].Stroke.Count > 0)
                 {

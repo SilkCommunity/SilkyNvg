@@ -56,7 +56,7 @@ namespace SilkyNvg.Text
             prams.renderDelete = null;
             Fons = new Fontstash(prams);
 
-            FontImages[0] = _nvg.graphicsManager.CreateTexture(Texture.Alpha, new Vector2D<uint>((uint)prams.width, (uint)prams.height), 0, null);
+            FontImages[0] = _nvg.renderer.CreateTexture(Texture.Alpha, new Vector2D<uint>((uint)prams.width, (uint)prams.height), 0, null);
             FontImageIdx = 0;
         }
 
@@ -78,7 +78,7 @@ namespace SilkyNvg.Text
                     uint y = (uint)dirty[1];
                     uint w = (uint)(dirty[2] - dirty[0]);
                     uint h = (uint)(dirty[3] - dirty[1]);
-                    _nvg.graphicsManager.UpdateTexture(fontImage, new Vector4D<uint>(x, y, w, h), data);
+                    _nvg.renderer.UpdateTexture(fontImage, new Vector4D<uint>(x, y, w, h), data);
                 }
             }
         }
@@ -114,7 +114,7 @@ namespace SilkyNvg.Text
                     size = new Vector2D<uint>(MAX_FONTIMAGE_SIZE);
                 }
 
-                FontImages[FontImageIdx + 1] = _nvg.graphicsManager.CreateTexture(Texture.Alpha, size, 0, null);
+                FontImages[FontImageIdx + 1] = _nvg.renderer.CreateTexture(Texture.Alpha, size, 0, null);
             }
             FontImageIdx++;
             Fons.ResetAtlas((int)size.X, (int)size.Y);
@@ -128,7 +128,7 @@ namespace SilkyNvg.Text
 
             paint.PremultiplyAlpha(state.Alpha);
 
-            _nvg.graphicsManager.Triangles(paint, state.CompositeOperation, state.Scissor, vertices, _nvg.pixelRatio.FringeWidth);
+            _nvg.renderer.Triangles(paint, state.CompositeOperation, state.Scissor, vertices, _nvg.pixelRatio.FringeWidth);
 
             _nvg.FrameMeta.Update((uint)vertices.Length / 3, 0, 0, 1);
         }

@@ -4,7 +4,7 @@ using SilkyNvg.Core.Paths;
 
 namespace SilkyNvg.Core.Instructions
 {
-    internal class LineToInstruction : IInstruction
+    internal struct LineToInstruction : IInstruction
     {
 
         private readonly Vector2D<float> _position;

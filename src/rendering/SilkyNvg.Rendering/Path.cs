@@ -11,10 +11,13 @@ namespace SilkyNvg.Rendering
     public sealed class Path
     {
 
-        private readonly IList<Point> _points = new List<Point>();
+        private const uint INIT_POINTS_SIZE = 128;
+        private const uint INIT_VERTS_SIZE = 256;
 
-        private readonly List<Vertex> _fill = new();
-        private readonly List<Vertex> _stroke = new();
+        private readonly IList<Point> _points = new List<Point>((int)INIT_POINTS_SIZE);
+
+        private readonly IList<Vertex> _fill = new List<Vertex>((int)INIT_VERTS_SIZE);
+        private readonly IList<Vertex> _stroke = new List<Vertex>((int)INIT_VERTS_SIZE);
 
         private readonly PixelRatio _pixelRatio;
         private uint _bevelCount;
@@ -42,17 +45,19 @@ namespace SilkyNvg.Rendering
             _bounds = new(1e6f, 1e6f, -1e6f, -1e6f);
         }
 
-        internal Point LastPoint
+        internal Vector2D<float> LastPoint
         {
             get
             {
                 if (_points.Count > 0)
                 {
-                    return _points[^1];
+                    return _points[^1].Position;
                 }
-                return null;
+                return default;
             }
         }
+
+        internal uint PointCount => (uint)_points.Count;
 
         internal void AddPoint(Vector2D<float> position, PointFlags flags)
         {
@@ -185,8 +190,7 @@ namespace SilkyNvg.Rendering
             Vector2D<float> dl0 = new(p0.Determinant.Y, -p0.Determinant.X);
             Vector2D<float> dl1 = new(p1.Determinant.Y, -p1.Determinant.X);
 
-            Vector4D<float>[] data = p1.JoinBevel(lw, rw, lu, ru, dl0, dl1, p0);
-            _stroke.AddRange(Enumerable.Range(0, data.Length).Select(i => new Vertex(data[i])).ToArray());
+            p1.JoinBevel(lw, rw, lu, ru, dl0, dl1, p0, _stroke);
         }
 
         internal void CalculateJoins(float iw, LineCap lineJoin, float miterLimit)
@@ -258,13 +262,11 @@ namespace SilkyNvg.Rendering
                 {
                     if (lineJoin == LineCap.Round)
                     {
-                        Vector4D<float>[] data = p1.RoundJoin(w, w, u0, u1, ncap, p0);
-                        _stroke.AddRange(Enumerable.Range(0, data.Length).Select(i => new Vertex(data[i])).ToArray());
+                        p1.RoundJoin(w, w, u0, u1, ncap, p0, _stroke);
                     }
                     else
                     {
-                        Vector4D<float>[] data = p1.BevelJoin(w, w, u0, u1, p0);
-                        _stroke.AddRange(Enumerable.Range(0, data.Length).Select(i => new Vertex(data[i])).ToArray());
+                        p1.BevelJoin(w, w, u0, u1, p0, _stroke);
                     }
                 }
                 else
@@ -314,8 +316,7 @@ namespace SilkyNvg.Rendering
                 foreach (Point point in _points)
                 {
                     p1 = point;
-                    Vector2D<float>[] data = Point.Vertex(p0, p1, woff);
-                    _fill.AddRange(Enumerable.Range(0, data.Length).Select(i => new Vertex(data[i], 0.5f, 1.0f)).ToArray());
+                    Point.Vertex(p0, p1, woff, _fill);
 
                     p0 = p1;
                 }

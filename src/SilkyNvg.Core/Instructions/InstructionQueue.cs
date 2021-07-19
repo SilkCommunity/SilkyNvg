@@ -7,9 +7,11 @@ namespace SilkyNvg.Core.Instructions
     internal sealed class InstructionQueue
     {
 
-        private readonly Nvg _nvg;
+        private const uint INIT_INSTRUCTIONS_SIZE = 256;
 
-        private readonly Queue<IInstruction> _instructions = new();
+        private readonly Queue<IInstruction> _instructions = new((int)INIT_INSTRUCTIONS_SIZE);
+
+        private readonly Nvg _nvg;
 
         public Vector2D<float> EndPosition { get; private set; }
 

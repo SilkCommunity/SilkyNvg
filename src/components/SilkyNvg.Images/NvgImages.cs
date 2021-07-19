@@ -45,7 +45,7 @@ namespace SilkyNvg.Images
 
         public static int CreateImageRgba(this Nvg nvg, Vector2D<uint> size, ImageFlags imageFlags, byte[] data)
         {
-            return nvg.graphicsManager.CreateTexture(Texture.Rgba, size, imageFlags, data);
+            return nvg.renderer.CreateTexture(Texture.Rgba, size, imageFlags, data);
         }
 
         public static int CreateImageRgba(this Nvg nvg, uint width, uint height, ImageFlags imageFlags, byte[] data)
@@ -53,13 +53,13 @@ namespace SilkyNvg.Images
 
         public static void UpdateImage(this Nvg nvg, int image, byte[] data)
         {
-            _ = nvg.graphicsManager.GetTextureSize(image, out Vector2D<uint> size);
-            _ = nvg.graphicsManager.UpdateTexture(image, new Vector4D<uint>(0, 0, size.X, size.Y), data);
+            _ = nvg.renderer.GetTextureSize(image, out Vector2D<uint> size);
+            _ = nvg.renderer.UpdateTexture(image, new Vector4D<uint>(0, 0, size.X, size.Y), data);
         }
 
         public static void ImageSize(this Nvg nvg, int image, out Vector2D<uint> size)
         {
-            _ = nvg.graphicsManager.GetTextureSize(image, out size);
+            _ = nvg.renderer.GetTextureSize(image, out size);
         }
 
         public static void ImageSize(this Nvg nvg, int image, out uint width, out uint height)
@@ -71,7 +71,7 @@ namespace SilkyNvg.Images
 
         public static void DeleteImage(this Nvg nvg, int image)
         {
-            _ = nvg.graphicsManager.DeleteTexture(image);
+            _ = nvg.renderer.DeleteTexture(image);
         }
 
     }

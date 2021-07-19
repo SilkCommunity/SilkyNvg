@@ -1,8 +1,9 @@
 ﻿using Silk.NET.Maths;
+using SilkyNvg.Common;
 using System;
 using System.Collections.Generic;
 
-namespace SilkyNvg.Common
+namespace SilkyNvg.Rendering
 {
     internal class Point
     {
@@ -30,10 +31,8 @@ namespace SilkyNvg.Common
             Determinant = determinant;
         }
 
-        public Vector4D<float>[] RoundJoin(float lw, float rw, float lu, float ru, uint ncap, Point other)
+        public void RoundJoin(float lw, float rw, float lu, float ru, uint ncap, Point other, ICollection<Vertex> verts)
         {
-            List<Vector4D<float>> verts = new();
-
             Vector2D<float> dl0 = new(other.Determinant.Y, -other.Determinant.X);
             Vector2D<float> dl1 = new(Determinant.Y, -Determinant.X);
 
@@ -91,11 +90,9 @@ namespace SilkyNvg.Common
                 verts.Add(new(Position + dl1 * rw, lu, 1.0f));
                 verts.Add(new(r1, ru, 1.0f));
             }
-
-            return verts.ToArray();
         }
 
-        private void BevelJoinLeft(float lw, float rw, float lu, float ru, Point other, Vector2D<float> dl0, Vector2D<float> dl1, List<Vector4D<float>> verts)
+        private void BevelJoinLeft(float lw, float rw, float lu, float ru, Point other, Vector2D<float> dl0, Vector2D<float> dl1, ICollection<Vertex> verts)
         {
             ChooseBevel(Flags.HasFlag(PointFlags.Innerbevel), other, this, lw, out Vector2D<float> l0, out Vector2D<float> l1);
 
@@ -128,7 +125,7 @@ namespace SilkyNvg.Common
             verts.Add(new(Position - dl1 * rw, ru, 1.0f));
         }
 
-        private void BevelJoinRight(float lw, float rw, float lu, float ru, Point other, Vector2D<float> dl0, Vector2D<float> dl1, List<Vector4D<float>> verts)
+        private void BevelJoinRight(float lw, float rw, float lu, float ru, Point other, Vector2D<float> dl0, Vector2D<float> dl1, ICollection<Vertex> verts)
         {
             ChooseBevel(Flags.HasFlag(PointFlags.Innerbevel), other, this, -rw, out Vector2D<float> r0, out Vector2D<float> r1);
 
@@ -161,10 +158,8 @@ namespace SilkyNvg.Common
             verts.Add(new(r1, ru, 1.0f));
         }
 
-        public Vector4D<float>[] BevelJoin(float lw, float rw, float lu, float ru, Point other)
+        public void BevelJoin(float lw, float rw, float lu, float ru, Point other, ICollection<Vertex> verts)
         {
-            List<Vector4D<float>> verts = new();
-
             Vector2D<float> dl0 = new(other.Determinant.Y, -other.Determinant.X);
             Vector2D<float> dl1 = new(Determinant.Y, -Determinant.X);
 
@@ -176,14 +171,10 @@ namespace SilkyNvg.Common
             {
                 BevelJoinRight(lw, rw, lu, ru, other, dl0, dl1, verts);
             }
-
-            return verts.ToArray();
         }
 
-        private Vector4D<float>[] JoinBevelLeft(float lw, float rw, float lu, float ru, Vector2D<float> dl0, Vector2D<float> dl1, Point other)
+        private void JoinBevelLeft(float lw, float rw, float lu, float ru, Vector2D<float> dl0, Vector2D<float> dl1, Point other, ICollection<Vertex> verts)
         {
-            List<Vector4D<float>> verts = new();
-
             ChooseBevel(Flags.HasFlag(PointFlags.Innerbevel), other, this, lw, out Vector2D<float> l0, out Vector2D<float> l1);
 
             verts.Add(new(l0, lu, 1));
@@ -213,14 +204,10 @@ namespace SilkyNvg.Common
 
             verts.Add(new(l1, lu, 1.0f));
             verts.Add(new(Position - dl1 * rw, ru, 1.0f));
-
-            return verts.ToArray();
         }
 
-        private Vector4D<float>[] JoinBevelRight(float lw, float rw, float lu, float ru, Vector2D<float> dl0, Vector2D<float> dl1, Point other)
+        private void JoinBevelRight(float lw, float rw, float lu, float ru, Vector2D<float> dl0, Vector2D<float> dl1, Point other, ICollection<Vertex> verts)
         {
-            List<Vector4D<float>> verts = new();
-
             ChooseBevel(Flags.HasFlag(PointFlags.Innerbevel), other, this, -rw, out Vector2D<float> r0, out Vector2D<float> r1);
 
             verts.Add(new(Position + dl0 * lw, lu, 1.0f));
@@ -250,19 +237,17 @@ namespace SilkyNvg.Common
 
             verts.Add(new(Position + dl1 * lw, lu, 1.0f));
             verts.Add(new(r1, ru, 1.0f));
-
-            return verts.ToArray();
         }
 
-        public Vector4D<float>[] JoinBevel(float lw, float rw, float lu, float ru, Vector2D<float> dl0, Vector2D<float> dl1, Point other)
+        public void JoinBevel(float lw, float rw, float lu, float ru, Vector2D<float> dl0, Vector2D<float> dl1, Point other, ICollection<Vertex> verts)
         {
             if (Flags.HasFlag(PointFlags.Left))
             {
-                return JoinBevelLeft(lw, rw, lu, ru, dl0, dl1, other);
+                JoinBevelLeft(lw, rw, lu, ru, dl0, dl1, other, verts);
             }
             else
             {
-                return JoinBevelRight(lw, rw, lu, ru, dl0, dl1, other);
+                JoinBevelRight(lw, rw, lu, ru, dl0, dl1, other, verts);
             }
         }
 
@@ -334,7 +319,7 @@ namespace SilkyNvg.Common
             return area * 0.5f;
         }
 
-        public static Vector2D<float>[] Vertex(Point p0, Point p1, float woff)
+        public static void Vertex(Point p0, Point p1, float woff, ICollection<Vertex> verts)
         {
             if ((p1.Flags & PointFlags.Bevel) != 0)
             {
@@ -344,22 +329,19 @@ namespace SilkyNvg.Common
                 if ((p1.Flags & PointFlags.Left) != 0)
                 {
                     Vector2D<float> l = p1.Position + p1.MatrixDeterminant * woff;
-                    return new Vector2D<float>[] { l };
+                    verts.Add(new(l, 0.5f, 1.0f));
                 }
                 else
                 {
                     Vector2D<float> l0 = (p1.Position + dl0) * woff;
                     Vector2D<float> l1 = (p1.Position + dl1) * woff;
-                    return new Vector2D<float>[]
-                    {
-                        l0,
-                        l1
-                    };
+                    verts.Add(new(l0, 0.5f, 1.0f));
+                    verts.Add(new(l1, 0.5f, 1.0f));
                 }
             }
             else
             {
-                return new Vector2D<float>[] { p1.Position + (p1.MatrixDeterminant * woff) };
+                verts.Add(new(p1.Position + (p1.MatrixDeterminant * woff), 0.5f, 1.0f));
             }
         }
 

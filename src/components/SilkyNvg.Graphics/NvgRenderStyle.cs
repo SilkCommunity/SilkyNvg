@@ -43,8 +43,8 @@ namespace SilkyNvg.Graphics
 
         public static void StrokePaint(this Nvg nvg, Paint paint)
         {
-            nvg.stateStack.CurrentState.Stroke = paint;
             paint.MultiplyTransform(nvg.stateStack.CurrentState.Transform);
+            nvg.stateStack.CurrentState.Stroke = paint;
         }
 
         public static void FillColour(this Nvg nvg, Colour colour)
@@ -54,8 +54,8 @@ namespace SilkyNvg.Graphics
 
         public static void FillPaint(this Nvg nvg, Paint paint)
         {
-            nvg.stateStack.CurrentState.Fill = paint;
             paint.MultiplyTransform(nvg.stateStack.CurrentState.Transform);
+            nvg.stateStack.CurrentState.Fill = paint;
         }
 
     }

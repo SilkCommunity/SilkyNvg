@@ -1,10 +1,9 @@
 ﻿using SilkyNvg.Core.Paths;
 using SilkyNvg.Paths;
-using System;
 
 namespace SilkyNvg.Core.Instructions
 {
-    internal class WindingInstruction : IInstruction
+    internal struct WindingInstruction : IInstruction
     {
 
         private readonly Winding _winding;

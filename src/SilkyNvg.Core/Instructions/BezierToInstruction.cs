@@ -5,7 +5,7 @@ using System;
 
 namespace SilkyNvg.Core.Instructions
 {
-    internal class BezierToInstruction : IInstruction
+    internal struct BezierToInstruction : IInstruction
     {
 
         private const byte MAX_TESSELATION_DEPTH = 10;
@@ -58,10 +58,10 @@ namespace SilkyNvg.Core.Instructions
 
         public void BuildPaths()
         {
-            Point last = _pathCache.LastPath.LastPoint;
-            if (last != null)
+            if (_pathCache.LastPath.PointCount > 0)
             {
-                TesselateBezier(last.Position, _p0, _p1, _p2, 0, PointFlags.Corner);
+                Vector2D<float> last = _pathCache.LastPath.LastPoint;
+                TesselateBezier(last, _p0, _p1, _p2, 0, PointFlags.Corner);
             }
         }
 

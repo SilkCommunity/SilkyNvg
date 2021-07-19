@@ -5,7 +5,7 @@ namespace SilkyNvg
 {
 
     [StructLayout(LayoutKind.Explicit)]
-    public struct Colour
+    public readonly struct Colour
     {
 
         #region Red Colour Constants
@@ -103,7 +103,7 @@ namespace SilkyNvg
         [FieldOffset(0 * 4)] private readonly float _r;
         [FieldOffset(1 * 4)] private readonly float _g;
         [FieldOffset(2 * 4)] private readonly float _b;
-        [FieldOffset(3 * 4)] private float _a;
+        [FieldOffset(3 * 4)] private readonly float _a;
 
         public float R => _r;
 
@@ -198,9 +198,10 @@ namespace SilkyNvg
             return new Colour(r, g, b, _a);
         }
 
-        internal void Premultiply(float alpha)
+        internal Colour Premultiply(float alpha)
         {
-            _a *= alpha;
+            float a = _a * alpha;
+            return new Colour(_r, _g, _b, a);
         }
 
         private static float Hue(float h, float m1, float m2)
