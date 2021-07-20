@@ -1,5 +1,6 @@
 ﻿using Silk.NET.Maths;
 using SilkyNvg.Common;
+using SilkyNvg.Core.Fonts;
 using SilkyNvg.Core.Instructions;
 using SilkyNvg.Core.Paths;
 using SilkyNvg.Core.States;
@@ -22,8 +23,7 @@ namespace SilkyNvg
         internal readonly PathCache pathCache;
         internal readonly StateStack stateStack;
         internal readonly PixelRatio pixelRatio;
-
-        internal Action endFrameText;
+        internal readonly FontManager fontManager;
 
         public FrameMeta FrameMeta { get; internal set; }
 
@@ -38,14 +38,19 @@ namespace SilkyNvg
 
             if (!this.renderer.Create())
             {
+                Dispose();
                 throw new InvalidOperationException("Failed to initialize the renderer!");
             }
+
+            fontManager = new FontManager(this);
         }
 
         public void Dispose()
         {
             instructionQueue.Clear();
             pathCache.Clear();
+
+            fontManager.Dispose();
 
             renderer.Dispose();
         }
@@ -75,7 +80,7 @@ namespace SilkyNvg
         public void EndFrame()
         {
             renderer.Flush();
-            endFrameText?.Invoke();
+            fontManager.Pack();
         }
 
         #endregion

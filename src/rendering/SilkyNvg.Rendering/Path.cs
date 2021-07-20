@@ -4,7 +4,6 @@ using SilkyNvg.Graphics;
 using SilkyNvg.Paths;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace SilkyNvg.Rendering
 {

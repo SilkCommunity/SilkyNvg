@@ -300,13 +300,13 @@ namespace SilkyNvg.Rendering.OpenGL
             _callQueue.Add(call);
         }
 
-        public void Triangles(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, Vertex[] vertices, float fringe)
+        public void Triangles(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, ICollection<Vertex> vertices, float fringe)
         {
             int offset = _vertexCollection.CurrentsOffset;
             _vertexCollection.AddVertices(vertices);
 
             FragUniforms uniforms = new(paint, scissor, fringe);
-            Call call = new TrianglesCall(paint.Image, new Blend(compositeOperation, this), offset, (uint)vertices.Length, uniforms, this);
+            Call call = new TrianglesCall(paint.Image, new Blend(compositeOperation, this), offset, (uint)vertices.Count, uniforms, this);
             _callQueue.Add(call);
         }
 

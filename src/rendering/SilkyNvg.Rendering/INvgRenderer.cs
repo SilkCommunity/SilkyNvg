@@ -31,7 +31,7 @@ namespace SilkyNvg.Rendering
 
         void Stroke(Paint strokePaint, CompositeOperationState compositeOperation, Scissor scissor, float fringeWidth, float strokeWidth, IReadOnlyList<Path> paths);
 
-        void Triangles(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, Vertex[] vertices, float fringeWidth);
+        void Triangles(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, ICollection<Vertex> vertices, float fringeWidth);
 
     }
 }

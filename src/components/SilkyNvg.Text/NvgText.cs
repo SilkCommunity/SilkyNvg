@@ -14,29 +14,25 @@ namespace SilkyNvg.Text
 
         public static int CreateFont(this Nvg nvg, string name, string fileName)
         {
-            FontstashInstance instance = FontstashInstance.GetInstance(nvg);
-            Fontstash fons = instance.Fons;
+            Fontstash fons = nvg.fontManager.Fontstash;
             return fons.AddFont(name, fileName, 0);
         }
 
         public static int CreateFontAtIndex(this Nvg nvg, string name, string fileName, int fontIndex)
         {
-            FontstashInstance instance = FontstashInstance.GetInstance(nvg);
-            Fontstash fons = instance.Fons;
+            Fontstash fons = nvg.fontManager.Fontstash;
             return fons.AddFont(name, fileName, fontIndex);
         }
 
         public static int CreateFontMem(this Nvg nvg, string name, byte[] data, int freeData)
         {
-            FontstashInstance instance = FontstashInstance.GetInstance(nvg);
-            Fontstash fons = instance.Fons;
+            Fontstash fons = nvg.fontManager.Fontstash;
             return fons.AddFontMem(name, data, freeData);
         }
 
         public static int CreateFontMemAtIndex(this Nvg nvg, string name, byte[] data, int freeData, int fontIndex)
         {
-            FontstashInstance instance = FontstashInstance.GetInstance(nvg);
-            Fontstash fons = instance.Fons;
+            Fontstash fons = nvg.fontManager.Fontstash;
             return fons.AddFontMem(name, data, freeData, fontIndex);
         }
 
@@ -47,8 +43,7 @@ namespace SilkyNvg.Text
                 return -1;
             }
 
-            FontstashInstance instance = FontstashInstance.GetInstance(nvg);
-            Fontstash fons = instance.Fons;
+            Fontstash fons = nvg.fontManager.Fontstash;
             return fons.GetFontByName(name);
         }
 
@@ -59,8 +54,7 @@ namespace SilkyNvg.Text
                 return false;
             }
 
-            FontstashInstance instance = FontstashInstance.GetInstance(nvg);
-            Fontstash fons = instance.Fons;
+            Fontstash fons = nvg.fontManager.Fontstash;
             return fons.AddFallbackFont(baseFont, fallbackFont);
         }
 
@@ -71,9 +65,7 @@ namespace SilkyNvg.Text
 
         public static void ResetFallbackFontsId(this Nvg nvg, int baseFont)
         {
-            FontstashInstance instance = FontstashInstance.GetInstance(nvg);
-            Fontstash fons = instance.Fons;
-
+            Fontstash fons = nvg.fontManager.Fontstash;
             fons.ResetFallbackFont(baseFont);
         }
 
@@ -114,21 +106,18 @@ namespace SilkyNvg.Text
 
         public static void FontFace(this Nvg nvg, string font)
         {
-            FontstashInstance instance = FontstashInstance.GetInstance(nvg);
-            Fontstash fons = instance.Fons;
-
+            Fontstash fons = nvg.fontManager.Fontstash;
             nvg.stateStack.CurrentState.FontId = fons.GetFontByName(font);
         }
 
         public static float Text(this Nvg nvg, Vector2D<float> pos, string @string, string end)
         {
-            FontstashInstance instance = FontstashInstance.GetInstance(nvg);
-            Fontstash fons = instance.Fons;
+            Fontstash fons = nvg.fontManager.Fontstash;
             State state = nvg.stateStack.CurrentState;
 
             FonsQuad q = new();
 
-            float scale = instance.GetFontScale() * nvg.pixelRatio.DevicePxRatio;
+            float scale = nvg.fontManager.GetFontScale() * nvg.pixelRatio.DevicePxRatio;
             float invscale = 1.0f / scale;
             bool isFlipped = Maths.IsTransformFlipped(state.Transform);
 
@@ -154,10 +143,10 @@ namespace SilkyNvg.Text
                 {
                     if (vertices.Count != 0)
                     {
-                        instance.RenderText(vertices.ToArray());
+                        nvg.fontManager.RenderText(vertices);
                         vertices.Clear();
                     }
-                    if (!instance.AllocTextAtlas()) // no memory
+                    if (!nvg.fontManager.AllocTextAtlas()) // no memory
                     {
                         break;
                     }
@@ -193,8 +182,8 @@ namespace SilkyNvg.Text
                 vertices.Add(new Vertex(c[2], q.s1, q.t1));
             }
 
-            instance.FlushTextTexture();
-            instance.RenderText(vertices.ToArray());
+            nvg.fontManager.FlushTextTexture();
+            nvg.fontManager.RenderText(vertices.ToArray());
 
             return iter.nextx / scale;
         }
@@ -262,10 +251,9 @@ namespace SilkyNvg.Text
         {
             bounds = default;
 
-            FontstashInstance instance = FontstashInstance.GetInstance(nvg);
-            Fontstash fons = instance.Fons;
+            Fontstash fons = nvg.fontManager.Fontstash;
             State state = nvg.stateStack.CurrentState;
-            float scale = instance.GetFontScale() * nvg.pixelRatio.DevicePxRatio;
+            float scale = nvg.fontManager.GetFontScale() * nvg.pixelRatio.DevicePxRatio;
             float invscale = 1.0f / scale;
 
             if (state.FontId == Fontstash.INVALID)
@@ -304,10 +292,9 @@ namespace SilkyNvg.Text
 
         public static void TextBoxBounds(this Nvg nvg, Vector2D<float> position, float breakRowWidth, string @string, string end, out Rectangle<float> bounds)
         {
-            FontstashInstance instance = FontstashInstance.GetInstance(nvg);
-            Fontstash fons = instance.Fons;
+            Fontstash fons = nvg.fontManager.Fontstash;
             State state = nvg.stateStack.CurrentState;
-            float scale = instance.GetFontScale() * nvg.pixelRatio.DevicePxRatio;
+            float scale = nvg.fontManager.GetFontScale() * nvg.pixelRatio.DevicePxRatio;
             float invscale = 1.0f / scale;
             int nrows = 0;
             Align oldAlign = state.TextAlign;
@@ -385,10 +372,9 @@ namespace SilkyNvg.Text
         {
             positions = null;
 
-            FontstashInstance instance = FontstashInstance.GetInstance(nvg);
-            Fontstash fons = instance.Fons;
+            Fontstash fons = nvg.fontManager.Fontstash;
             State state = nvg.stateStack.CurrentState;
-            float scale = instance.GetFontScale() * nvg.pixelRatio.DevicePxRatio;
+            float scale = nvg.fontManager.GetFontScale() * nvg.pixelRatio.DevicePxRatio;
             float invscale = 1.0f / scale;
             List<GlyphPosition> ps = new(maxRows);
             FonsQuad q = new();
@@ -413,7 +399,7 @@ namespace SilkyNvg.Text
             FonsTextIter prevIter = iter;
             while (fons.TextIterNext(ref iter, ref q))
             {
-                if (iter.prevGlyphIndex < 0 && instance.AllocTextAtlas())
+                if (iter.prevGlyphIndex < 0 && nvg.fontManager.AllocTextAtlas())
                 {
                     iter = prevIter;
                     fons.TextIterNext(ref iter, ref q);
@@ -436,10 +422,9 @@ namespace SilkyNvg.Text
 
         public static void TextMetrics(this Nvg nvg, out float ascender, out float descender, out float lineh)
         {
-            FontstashInstance instance = FontstashInstance.GetInstance(nvg);
-            Fontstash fons = instance.Fons;
+            Fontstash fons = nvg.fontManager.Fontstash;
             State state = nvg.stateStack.CurrentState;
-            float scale = instance.GetFontScale() * nvg.pixelRatio.DevicePxRatio;
+            float scale = nvg.fontManager.GetFontScale() * nvg.pixelRatio.DevicePxRatio;
             float invscale = 1.0f / scale;
 
             if (state.FontId == Fontstash.INVALID)
@@ -464,11 +449,10 @@ namespace SilkyNvg.Text
         {
             rows = null;
 
-            FontstashInstance instance = FontstashInstance.GetInstance(nvg);
-            Fontstash fons = instance.Fons;
+            Fontstash fons = nvg.fontManager.Fontstash;
 
             State state = nvg.stateStack.CurrentState;
-            float scale = instance.GetFontScale() * nvg.pixelRatio.DevicePxRatio;
+            float scale = nvg.fontManager.GetFontScale() * nvg.pixelRatio.DevicePxRatio;
             float invscale = 1.0f / scale;
             FonsQuad q = new();
             List<TextRow> rs = new(maxRows);
@@ -514,7 +498,7 @@ namespace SilkyNvg.Text
             FonsTextIter prevIter = iter;
             while (fons.TextIterNext(ref iter, ref q))
             {
-                if (iter.prevGlyphIndex < 0 && instance.AllocTextAtlas())
+                if (iter.prevGlyphIndex < 0 && nvg.fontManager.AllocTextAtlas())
                 {
                     iter = prevIter;
                     fons.TextIterNext(ref iter, ref q);
