@@ -37,10 +37,8 @@ namespace SilkyNvg.Rendering.OpenGL
         public void AddVertices(ICollection<Vertex> vertices)
         {
             AllocVerts(vertices.Count);
-            foreach (Vertex vertex in vertices)
-            {
-                _vertices[_count++] = vertex;
-            }
+            vertices.CopyTo(_vertices, _count);
+            _count += vertices.Count;
         }
 
         public void Clear()
