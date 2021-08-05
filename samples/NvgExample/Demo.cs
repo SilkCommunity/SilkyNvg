@@ -369,7 +369,7 @@ namespace NvgExample
         {
             float dx = w / 5.0f;
 
-            float[] samples =
+            Span<float> samples = stackalloc float[]
             {
                 (1 + MathF.Sin(t * 1.2345f + MathF.Cos(t * 0.33457f) * 0.44f)) * 0.5f,
                 (1 + MathF.Sin(t * 0.68363f + MathF.Cos(t * 1.3f) * 1.55f)) * 0.5f,
@@ -379,8 +379,8 @@ namespace NvgExample
                 (1 + MathF.Sin(t * 0.345f + MathF.Cos(t * 0.03f) * 0.6f)) * 0.5f
             };
 
-            float[] sx = new float[6];
-            float[] sy = new float[6];
+            Span<float> sx = stackalloc float[6];
+            Span<float> sy = stackalloc float[6];
 
             for (int i = 0; i < 6; i++)
             {

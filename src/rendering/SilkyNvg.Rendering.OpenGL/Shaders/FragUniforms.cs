@@ -1,4 +1,5 @@
-﻿using Silk.NET.Maths;
+﻿
+using Silk.NET.Maths;
 using SilkyNvg.Images;
 using SilkyNvg.Rendering.OpenGL.Utils;
 using System;
@@ -112,19 +113,7 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
 
         public void LoadToShader(Shader shader, int image)
         {
-            shader.LoadMatrix(UniformLoc.ScissorMat, _scissorMat);
-            shader.LoadVector(UniformLoc.ScissorExt, _scissorExt);
-            shader.LoadVector(UniformLoc.ScissorScale, _scissorScale);
-            shader.LoadMatrix(UniformLoc.PaintMat, _paintMat);
-            shader.LoadVector(UniformLoc.Extent, _extent);
-            shader.LoadFloat(UniformLoc.Radius, _radius);
-            shader.LoadFloat(UniformLoc.Feather, _feather);
-            shader.LoadColour(UniformLoc.InnerCol, _innerCol);
-            shader.LoadColour(UniformLoc.OuterCol, _outerCol);
-            shader.LoadFloat(UniformLoc.StrokeMult, _strokeMult);
-            shader.LoadFloat(UniformLoc.StrokeThr, _strokeThr);
-            shader.LoadInt(UniformLoc.TexType, _texType);
-            shader.LoadInt(UniformLoc.Type, _type);
+            shader.UpdateUniformBuffer(this);
 
             Textures.Texture tex = null;
             if (image != 0)

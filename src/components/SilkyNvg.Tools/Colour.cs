@@ -4,6 +4,9 @@ using System.Runtime.InteropServices;
 namespace SilkyNvg
 {
 
+    /// <summary>
+    /// SilkyNvg colours are stored as floats in the ARGB format.
+    /// </summary>
     [StructLayout(LayoutKind.Explicit)]
     public readonly struct Colour
     {
@@ -40,6 +43,82 @@ namespace SilkyNvg
         public static Colour MediumVioletRed { get; } = new(199, 21, 133);
 
         public static Colour PaleVioletRed { get; } = new(219, 112, 147);
+        #endregion
+
+        #region Orange Colour Constants
+        public static Colour Coral { get; } = new Colour(255, 127, 80);
+
+        public static Colour Tomato { get; } = new Colour(255, 99, 71);
+
+        public static Colour OrangeRed { get; } = new Colour(255, 69, 0);
+
+        public static Colour DarkOrange { get; } = new Colour(255, 140, 0);
+
+        public static Colour Orange { get; } = new Colour(255, 165, 0);
+        #endregion
+
+        #region Yellow Colour Constants
+        public static Colour Gold { get; } = new Colour(255, 215, 0);
+
+        public static Colour Yellow { get; } = new Colour(255, 255, 0);
+
+        public static Colour LightYellow { get; } = new Colour(255, 255, 224);
+
+        public static Colour LemonChiffon { get; } = new Colour(255, 250, 205);
+
+        public static Colour LightGoldenrodYellow { get; } = new Colour(250, 250, 210);
+
+        public static Colour PapayaWhip { get; } = new Colour(255, 239, 213);
+
+        public static Colour Moccasin { get; } = new Colour(255, 228, 181);
+
+        public static Colour PeachPuff { get; } = new Colour(255, 218, 185);
+
+        public static Colour PaleGoldenrod { get; } = new Colour(238, 232, 170);
+
+        public static Colour Khaki { get; } = new Colour(240, 230, 140);
+
+        public static Colour DarkKhaki { get; } = new Colour(189, 183, 107);
+        #endregion
+
+        #region Purple Colour Constants
+        public static Colour Lavender { get; } = new Colour(230, 230, 250);
+
+        public static Colour Thistle { get; } = new Colour(216, 191, 216);
+
+        public static Colour Plum { get; } = new Colour(221, 160, 221);
+
+        public static Colour Violet { get; } = new Colour(238, 130, 238);
+
+        public static Colour Orchid { get; } = new Colour(218, 112, 214);
+
+        public static Colour Fuchsia { get; } = new Colour(255, 0, 255);
+
+        public static Colour Magenta { get; } = new Colour(255, 0, 255);
+
+        public static Colour MediumOrchid { get; } = new Colour(186, 85, 211);
+
+        public static Colour MediumPurple { get; } = new Colour(147, 112, 219);
+
+        public static Colour BlueViolet { get; } = new Colour(138, 43, 226);
+
+        public static Colour DarkViolet { get; } = new Colour(148, 0, 211);
+
+        public static Colour DarkOrchid { get; } = new Colour(153, 50, 204);
+
+        public static Colour DarkMagenta { get; } = new Colour(139, 0, 139);
+
+        public static Colour Purple { get; } = new Colour(128, 0, 128);
+
+        public static Colour RebeccaPurple { get; } = new Colour(102, 51, 153);
+
+        public static Colour Indigo { get; } = new Colour(75, 0, 130);
+
+        public static Colour MediumSlateBlue { get; } = new Colour(123, 104, 238);
+
+        public static Colour SlateBlue { get; } = new Colour(107, 90, 205);
+
+        public static Colour DarkSlateBlue { get; } = new Colour(72, 61, 139);
         #endregion
 
         #region White Colour Constants
@@ -100,10 +179,10 @@ namespace SilkyNvg
         public static Colour Black { get; } = new(0, 0, 0);
         #endregion
 
-        [FieldOffset(0 * 4)] private readonly float _r;
-        [FieldOffset(1 * 4)] private readonly float _g;
-        [FieldOffset(2 * 4)] private readonly float _b;
-        [FieldOffset(3 * 4)] private readonly float _a;
+        [FieldOffset(0 * sizeof(float))] private readonly float _r;
+        [FieldOffset(1 * sizeof(float))] private readonly float _g;
+        [FieldOffset(2 * sizeof(float))] private readonly float _b;
+        [FieldOffset(3 * sizeof(float))] private readonly float _a;
 
         public float R => _r;
 

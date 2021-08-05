@@ -2,24 +2,24 @@
 
 in vec2 pass_vertex;
 in vec2 pass_tcoord;
-in vec4 pass_colour;
 
 out vec4 out_Colour;
 
-uniform mat3x4 scissorMat;
-uniform vec2 scissorExt;
-uniform vec2 scissorScale;
-uniform mat3x4 paintMat;
-uniform vec2 extent;
-uniform float radius;
-uniform float feather;
-uniform vec4 innerCol;
-uniform vec4 outerCol;
-uniform float strokeMult;
-uniform float strokeThr;
-
-uniform int texType;
-uniform int type;
+layout (std140) uniform frag {
+	mat3 scissorMat;
+	mat3 paintMat;
+	vec4 innerCol;
+	vec4 outerCol;
+	vec2 scissorExt;
+	vec2 scissorScale;
+	vec2 extent;
+	float radius;
+	float feather;
+	float strokeMult;
+	float strokeThr;
+	int texType;
+	int type;
+};
 
 uniform sampler2D tex;
 

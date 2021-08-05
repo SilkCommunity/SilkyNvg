@@ -108,6 +108,8 @@ namespace SilkyNvg.Rendering.OpenGL
             _vao = new(Gl);
             _vao.Vbo = new(Gl);
 
+            Shader.InitUniformBuffer();
+
             Filter = new StateFilter();
 
             // Dummy tex will always be at index 0.
@@ -268,7 +270,7 @@ namespace SilkyNvg.Rendering.OpenGL
         public void Stroke(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, float strokeWidth, IReadOnlyList<Rendering.Path> paths)
         {
             int offset = _vertexCollection.CurrentsOffset;
-            Span<Path> renderPaths = stackalloc Path[paths.Count];
+            Path[] renderPaths = new Path[paths.Count];
             for (int i = 0; i < paths.Count; i++)
             {
                 if (paths[i].Stroke.Count > 0)

@@ -17,6 +17,8 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
 
         private readonly IDictionary<UniformLoc, int> _loc = new Dictionary<UniformLoc, int>();
 
+        private uint _fragBuffer;
+
         public bool Status { get; }
 
         private void DumpShaderError(uint shader, Silk.NET.OpenGL.ShaderType type)
@@ -34,6 +36,7 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
         public Shader(string name, string vertexShader, string fragmentShader, GL gl)
         {
             _gl = gl;
+            _name = name;
 
             _programmeID = _gl.CreateProgram();
             _vertexShaderID = _gl.CreateShader(Silk.NET.OpenGL.ShaderType.VertexShader);
@@ -93,20 +96,23 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
         public void GetUniforms()
         {
             _loc.Add(UniformLoc.ViewSize, _gl.GetUniformLocation(_programmeID, "viewSize"));
-            _loc.Add(UniformLoc.ScissorMat, _gl.GetUniformLocation(_programmeID, "scissorMat"));
-            _loc.Add(UniformLoc.ScissorExt, _gl.GetUniformLocation(_programmeID, "scissorExt"));
-            _loc.Add(UniformLoc.ScissorScale, _gl.GetUniformLocation(_programmeID, "scissorScale"));
-            _loc.Add(UniformLoc.PaintMat, _gl.GetUniformLocation(_programmeID, "paintMat"));
-            _loc.Add(UniformLoc.Extent, _gl.GetUniformLocation(_programmeID, "extent"));
-            _loc.Add(UniformLoc.Radius, _gl.GetUniformLocation(_programmeID, "radius"));
-            _loc.Add(UniformLoc.Feather, _gl.GetUniformLocation(_programmeID, "feather"));
-            _loc.Add(UniformLoc.InnerCol, _gl.GetUniformLocation(_programmeID, "innerCol"));
-            _loc.Add(UniformLoc.OuterCol, _gl.GetUniformLocation(_programmeID, "outerCol"));
-            _loc.Add(UniformLoc.StrokeMult, _gl.GetUniformLocation(_programmeID, "strokeMult"));
-            _loc.Add(UniformLoc.StrokeThr, _gl.GetUniformLocation(_programmeID, "strokeThr"));
             _loc.Add(UniformLoc.Tex, _gl.GetUniformLocation(_programmeID, "tex"));
-            _loc.Add(UniformLoc.TexType, _gl.GetUniformLocation(_programmeID, "texType"));
-            _loc.Add(UniformLoc.Type, _gl.GetUniformLocation(_programmeID, "type"));
+            _loc.Add(UniformLoc.Frag, (int)_gl.GetUniformBlockIndex(_programmeID, "frag"));
+        }
+
+        public unsafe void InitUniformBuffer()
+        {
+            _fragBuffer = _gl.GenBuffer();
+            _gl.BindBuffer(BufferTargetARB.UniformBuffer, _fragBuffer);
+            _gl.BindBufferBase(BufferTargetARB.UniformBuffer, 0, _fragBuffer);
+            _gl.UniformBlockBinding(_programmeID, (uint)_loc[UniformLoc.Frag], 0);
+            _gl.BindBuffer(BufferTargetARB.UniformBuffer, 0);
+        }
+
+        public unsafe void UpdateUniformBuffer(FragUniforms data)
+        {
+            _gl.BindBuffer(BufferTargetARB.UniformBuffer, _fragBuffer);
+            _gl.BufferData(BufferTargetARB.UniformBuffer, (uint)sizeof(FragUniforms), &data, BufferUsageARB.StreamDraw);
         }
 
         public void Start()

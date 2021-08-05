@@ -2,7 +2,6 @@
 using SilkyNvg.Blending;
 using SilkyNvg.Rendering.OpenGL.Blending;
 using SilkyNvg.Rendering.OpenGL.Shaders;
-using System;
 
 namespace SilkyNvg.Rendering.OpenGL.Calls
 {
@@ -11,7 +10,7 @@ namespace SilkyNvg.Rendering.OpenGL.Calls
 
         private readonly FragUniforms _stencilUniforms;
 
-        public StencilStrokeCall(int image, Span<Path> paths, FragUniforms stencilUniforms, FragUniforms uniforms, CompositeOperationState op, OpenGLRenderer renderer)
+        public StencilStrokeCall(int image, Path[] paths, FragUniforms stencilUniforms, FragUniforms uniforms, CompositeOperationState op, OpenGLRenderer renderer)
             : base(image, paths, 0, 0, uniforms, new Blend(op, renderer), renderer)
         {
             _stencilUniforms = stencilUniforms;

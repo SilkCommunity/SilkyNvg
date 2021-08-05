@@ -41,6 +41,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg.Scissoring", "src\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg.Text", "src\components\SilkyNvg.Text\SilkyNvg.Text.csproj", "{3BE91A0F-E920-471D-BD68-82B94E87E0C7}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg.Rendering.Vulkan", "src\rendering\SilkyNvg.Rendering.Vulkan\SilkyNvg.Rendering.Vulkan.csproj", "{D4F30FE8-56E0-4C58-8526-ED65EF7FAE2D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -103,6 +105,10 @@ Global
 		{3BE91A0F-E920-471D-BD68-82B94E87E0C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3BE91A0F-E920-471D-BD68-82B94E87E0C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3BE91A0F-E920-471D-BD68-82B94E87E0C7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4F30FE8-56E0-4C58-8526-ED65EF7FAE2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4F30FE8-56E0-4C58-8526-ED65EF7FAE2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4F30FE8-56E0-4C58-8526-ED65EF7FAE2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4F30FE8-56E0-4C58-8526-ED65EF7FAE2D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -124,6 +130,7 @@ Global
 		{F905BA2F-B9B1-428C-8184-A36A47BBF2E5} = {E630DC3A-E1F6-4AFC-A8D0-84C92C8B12CB}
 		{7D4C6333-9603-48E8-90B2-22829A80548C} = {E630DC3A-E1F6-4AFC-A8D0-84C92C8B12CB}
 		{3BE91A0F-E920-471D-BD68-82B94E87E0C7} = {E630DC3A-E1F6-4AFC-A8D0-84C92C8B12CB}
+		{D4F30FE8-56E0-4C58-8526-ED65EF7FAE2D} = {8C10A437-CF81-4A46-93A7-E380F60F4F0F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {08FE0BD8-4253-419D-9FBF-7F9671C9AAC2}

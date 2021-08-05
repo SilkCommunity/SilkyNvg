@@ -14,8 +14,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Silk.NET.Glfw" Version="2.4.0" />
-    <PackageReference Include="Silk.NET.OpenGL" Version="2.4.0" />
+    <PackageReference Include="Silk.NET.Maths" Version="2.6.0" />
+    <PackageReference Include="Silk.NET.Glfw" Version="2.6.0" />
+    <PackageReference Include="Silk.NET.OpenGL" Version="2.6.0" />
   </ItemGroup>
 
   <ItemGroup>

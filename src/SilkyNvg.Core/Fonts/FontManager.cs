@@ -43,7 +43,7 @@ namespace SilkyNvg.Core.Fonts
             };
             Fontstash = new Fontstash(fontParams);
 
-            _fontImages[0] = _nvg.renderer.CreateTexture(Rendering.Texture.Alpha, new Vector2D<uint>((uint)fontParams.width, (uint)fontParams.height), 0, null);
+            _fontImages[0] = _nvg.renderer.CreateTexture(Texture.Alpha, new Vector2D<uint>((uint)fontParams.width, (uint)fontParams.height), 0, null);
             if (_fontImages[0] == 0)
             {
                 _nvg.Dispose();

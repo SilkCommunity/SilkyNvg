@@ -50,7 +50,7 @@ namespace SilkyNvg
             instructionQueue.Clear();
             pathCache.Clear();
 
-            fontManager.Dispose();
+            fontManager?.Dispose();
 
             renderer.Dispose();
         }

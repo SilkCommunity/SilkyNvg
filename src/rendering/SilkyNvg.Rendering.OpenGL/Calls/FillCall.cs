@@ -2,7 +2,6 @@
 using SilkyNvg.Blending;
 using SilkyNvg.Rendering.OpenGL.Blending;
 using SilkyNvg.Rendering.OpenGL.Shaders;
-using System;
 
 namespace SilkyNvg.Rendering.OpenGL.Calls
 {
