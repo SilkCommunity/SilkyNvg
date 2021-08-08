@@ -1,12 +1,11 @@
-﻿using Silk.NET.GLFW;
+﻿using NvgExample;
+using Silk.NET.GLFW;
 using Silk.NET.OpenGL;
 using SilkyNvg;
-using SilkyNvg.Graphics;
-using SilkyNvg.Paths;
 using SilkyNvg.Rendering.OpenGL;
 using System;
 
-namespace NvgExample
+namespace OpenGL_Example
 {
     unsafe class Program
     {

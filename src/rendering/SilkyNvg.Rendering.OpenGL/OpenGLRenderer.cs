@@ -122,7 +122,7 @@ namespace SilkyNvg.Rendering.OpenGL
             return true;
         }
 
-        public int CreateTexture(Texture type, Vector2D<uint> size, ImageFlags imageFlags, byte[] data)
+        public int CreateTexture(Texture type, Vector2D<uint> size, ImageFlags imageFlags, ReadOnlySpan<byte> data)
         {
             Textures.Texture texture = new(size, imageFlags, type, data, this);
             CheckError("creating texture.");
@@ -141,7 +141,7 @@ namespace SilkyNvg.Rendering.OpenGL
             return true;
         }
 
-        public bool UpdateTexture(int image, Vector4D<uint> bounds, byte[] data)
+        public bool UpdateTexture(int image, Vector4D<uint> bounds, ReadOnlySpan<byte> data)
         {
             Textures.Texture tex = Textures.Texture.FindTexture(image);
 

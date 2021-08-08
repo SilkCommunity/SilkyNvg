@@ -13,11 +13,11 @@ namespace SilkyNvg.Rendering
 
         bool Create();
 
-        int CreateTexture(Texture type, Vector2D<uint> size, ImageFlags imageFlags, byte[] data);
+        int CreateTexture(Texture type, Vector2D<uint> size, ImageFlags imageFlags, ReadOnlySpan<byte> data);
 
         bool DeleteTexture(int image);
 
-        bool UpdateTexture(int image, Vector4D<uint> bounds, byte[] data);
+        bool UpdateTexture(int image, Vector4D<uint> bounds, ReadOnlySpan<byte> data);
 
         bool GetTextureSize(int image, out Vector2D<uint> size);
 

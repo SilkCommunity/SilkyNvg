@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace SilkyNvg.Rendering.OpenGL.Textures
 {
-    internal class Texture
+    internal class Texture : IDisposable
     {
 
         private static readonly IList<Texture> textures = new List<Texture>();
@@ -25,7 +25,7 @@ namespace SilkyNvg.Rendering.OpenGL.Textures
 
         public Rendering.Texture TextureType { get; }
 
-        public unsafe Texture(Vector2D<uint> size, ImageFlags flags, Rendering.Texture type, byte[] data, OpenGLRenderer renderer)
+        public unsafe Texture(Vector2D<uint> size, ImageFlags flags, Rendering.Texture type, ReadOnlySpan<byte> data, OpenGLRenderer renderer)
         {
             _renderer = renderer;
             _gl = _renderer.Gl;
@@ -70,18 +70,15 @@ namespace SilkyNvg.Rendering.OpenGL.Textures
             _gl.PixelStore(PixelStoreParameter.UnpackSkipRows, 0);
         }
 
-        private unsafe void Load(byte[] data)
+        private unsafe void Load(ReadOnlySpan<byte> data)
         {
-            fixed (byte* d = data)
+            if (TextureType == Rendering.Texture.Rgba)
             {
-                if (TextureType == Rendering.Texture.Rgba)
-                {
-                    _gl.TexImage2D(TextureTarget.Texture2D, 0, (int)InternalFormat.Rgba, Size.X, Size.Y, 0, GLEnum.Rgba, GLEnum.UnsignedByte, d);
-                }
-                else
-                {
-                    _gl.TexImage2D(TextureTarget.Texture2D, 0, (int)InternalFormat.Red, Size.X, Size.Y, 0, GLEnum.Red, GLEnum.UnsignedByte, d);
-                }
+                _gl.TexImage2D(TextureTarget.Texture2D, 0, (int)InternalFormat.Rgba, Size.X, Size.Y, 0, GLEnum.Rgba, GLEnum.UnsignedByte, data);
+            }
+            else
+            {
+                _gl.TexImage2D(TextureTarget.Texture2D, 0, (int)InternalFormat.Red, Size.X, Size.Y, 0, GLEnum.Red, GLEnum.UnsignedByte, data);
             }
         }
 
@@ -173,7 +170,7 @@ namespace SilkyNvg.Rendering.OpenGL.Textures
             }
         }
 
-        public unsafe void Update(Vector4D<uint> bounds, byte[] data)
+        public unsafe void Update(Vector4D<uint> bounds, ReadOnlySpan<byte> data)
         {
             Bind();
 
@@ -185,16 +182,13 @@ namespace SilkyNvg.Rendering.OpenGL.Textures
 
             _gl.GetInteger(GetPName.MaxTextureSize, out int dat);
 
-            fixed (byte* d = data)
+            if (TextureType == Rendering.Texture.Rgba)
             {
-                if (TextureType == Rendering.Texture.Rgba)
-                {
-                    _gl.TexSubImage2D(TextureTarget.Texture2D, 0, (int)bounds.X, (int)bounds.Y, bounds.Z, bounds.W, GLEnum.Rgba, GLEnum.UnsignedByte, d);
-                }
-                else
-                {
-                    _gl.TexSubImage2D(TextureTarget.Texture2D, 0, (int)bounds.X, (int)bounds.Y, bounds.Z, bounds.W, GLEnum.Red, GLEnum.UnsignedByte, d);
-                }
+                _gl.TexSubImage2D(TextureTarget.Texture2D, 0, (int)bounds.X, (int)bounds.Y, bounds.Z, bounds.W, GLEnum.Rgba, GLEnum.UnsignedByte, data);
+            }
+            else
+            {
+                _gl.TexSubImage2D(TextureTarget.Texture2D, 0, (int)bounds.X, (int)bounds.Y, bounds.Z, bounds.W, GLEnum.Red, GLEnum.UnsignedByte, data);
             }
 
             ResetPixelStore();
@@ -212,6 +206,7 @@ namespace SilkyNvg.Rendering.OpenGL.Textures
             {
                 _gl.DeleteTexture(_textureID);
             }
+            textures.Remove(this);
         }
 
         public static Texture FindTexture(int image)
@@ -221,9 +216,10 @@ namespace SilkyNvg.Rendering.OpenGL.Textures
 
         public static void DeleteAll()
         {
-            foreach (Texture tex in textures)
+            int i = textures.Count - 1;
+            while (textures.Count > 0)
             {
-                tex.Dispose();
+                textures[i--].Dispose();
             }
         }
 

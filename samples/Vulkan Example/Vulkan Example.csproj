@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>Vulkan_Example</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\rendering\SilkyNvg.Rendering.Vulkan\SilkyNvg.Rendering.Vulkan.csproj" />
+    <ProjectReference Include="..\..\src\SilkyNvg\SilkyNvg.csproj" />
+    <ProjectReference Include="..\NvgExample\NvgExample.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Silk.NET.Glfw" Version="2.6.0" />
+    <PackageReference Include="Silk.NET.Vulkan" Version="2.6.0" />
+    <PackageReference Include="Silk.NET.Vulkan.Extensions.EXT" Version="2.6.0" />
+    <PackageReference Include="Silk.NET.Vulkan.Extensions.KHR" Version="2.6.0" />
+  </ItemGroup>
+
+</Project>

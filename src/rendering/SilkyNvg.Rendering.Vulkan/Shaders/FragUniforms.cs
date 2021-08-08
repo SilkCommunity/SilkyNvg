@@ -3,8 +3,9 @@ using SilkyNvg.Images;
 using System;
 using System.Runtime.InteropServices;
 
-namespace SilkyNvg.Rendering.OpenGL.Shaders
+namespace SilkyNvg.Rendering.Vulkan.Shaders
 {
+
     [StructLayout(LayoutKind.Sequential)]
     internal struct FragUniforms
     {
@@ -23,12 +24,6 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
         private readonly int _texType;
         private readonly int _type;
 
-        public FragUniforms(float strokeThr, ShaderType type) : this()
-        {
-            _strokeThr = strokeThr;
-            _type = (int)type;
-        }
-
         public FragUniforms(Paint paint, Scissor scissor, float width, float fringe, float strokeThr)
         {
             Matrix3X2<float> invtransform;
@@ -38,7 +33,7 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
 
             if (scissor.Extent.X < -0.5f || scissor.Extent.Y < -0.5f)
             {
-                _scissorMat = new Matrix3X4<float>();
+                _scissorMat = default;
                 _scissorExt = new Vector2D<float>(1.0f);
                 _scissorScale = new Vector2D<float>(1.0f);
             }
@@ -103,30 +98,6 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
             }
 
             _paintMat = new Matrix3X4<float>(invtransform);
-        }
-
-        public FragUniforms(Paint paint, Scissor scissor, float fringe)
-            : this(paint, scissor, 1.0f, fringe, -1.0f)
-        {
-            _type = (int)ShaderType.Img;
-        }
-
-        public void LoadToShader(Shader shader, int image)
-        {
-            shader.UpdateUniformBuffer(this);
-
-            Textures.Texture tex = null;
-            if (image != 0)
-            {
-                tex = Textures.Texture.FindTexture(image);
-            }
-
-            if (tex == null)
-            {
-                tex = Textures.Texture.DummyTex;
-            }
-
-            tex.Bind();
         }
 
     }

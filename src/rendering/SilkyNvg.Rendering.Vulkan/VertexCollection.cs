@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SilkyNvg.Rendering.OpenGL
+namespace SilkyNvg.Rendering.Vulkan
 {
     internal class VertexCollection
     {
@@ -12,6 +12,15 @@ namespace SilkyNvg.Rendering.OpenGL
         public int CurrentsOffset => _count;
 
         public ReadOnlySpan<Vertex> Vertices => _vertices;
+
+        public Vertex this[int index]
+        {
+            set
+            {
+                AllocVerts(1);
+                _vertices[index] = value;
+            }
+        }
 
         public VertexCollection()
         {

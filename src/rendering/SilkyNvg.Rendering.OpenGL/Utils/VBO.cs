@@ -21,12 +21,9 @@ namespace SilkyNvg.Rendering.OpenGL.Utils
             _gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vboID);
         }
 
-        public unsafe void Update(Vertex[] vertices)
+        public unsafe void Update(ReadOnlySpan<Vertex> vertices)
         {
-            fixed (void* verts = vertices)
-            {
-                _gl.BufferData(BufferTargetARB.ArrayBuffer, (uint)(vertices.Length * sizeof(Vertex)), verts, BufferUsageARB.StreamDraw);
-            }
+            _gl.BufferData(BufferTargetARB.ArrayBuffer, (uint)(vertices.Length * sizeof(Vertex)), vertices, BufferUsageARB.StreamDraw);
             _gl.EnableVertexAttribArray(0);
             _gl.EnableVertexAttribArray(1);
             _gl.VertexAttribPointer(0, 2, GLEnum.Float, false, (uint)sizeof(Vertex), (void*)0);
