@@ -21,10 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Silk.NET.Glfw" Version="2.6.0" />
-    <PackageReference Include="Silk.NET.Vulkan" Version="2.6.0" />
-    <PackageReference Include="Silk.NET.Vulkan.Extensions.EXT" Version="2.6.0" />
-    <PackageReference Include="Silk.NET.Vulkan.Extensions.KHR" Version="2.6.0" />
+    <PackageReference Include="Silk.NET.Glfw" Version="2.7.0" />
+    <PackageReference Include="Silk.NET.Vulkan" Version="2.7.0" />
+    <PackageReference Include="Silk.NET.Vulkan.Extensions.EXT" Version="2.7.0" />
+    <PackageReference Include="Silk.NET.Vulkan.Extensions.KHR" Version="2.7.0" />
   </ItemGroup>
 
 </Project>

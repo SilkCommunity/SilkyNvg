@@ -1,12 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Silk.NET.Maths" Version="2.4.0" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\components\SilkyNvg.Tools\SilkyNvg.Tools.csproj" />

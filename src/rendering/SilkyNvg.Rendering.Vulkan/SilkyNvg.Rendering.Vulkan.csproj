@@ -17,8 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Silk.NET.Maths" Version="2.6.0" />
-    <PackageReference Include="Silk.NET.Vulkan" Version="2.6.0" />
+    <PackageReference Include="Silk.NET.Maths" Version="2.7.0" />
+    <PackageReference Include="Silk.NET.Vulkan" Version="2.7.0" />
   </ItemGroup>
 
   <ItemGroup>
