@@ -69,7 +69,7 @@ namespace SilkyNvg.Core.Fonts
                     int y = dirty[1];
                     int w = dirty[2] - dirty[0];
                     int h = dirty[3] - dirty[1];
-                    _nvg.renderer.UpdateTexture(fontImage, new((uint)x, (uint)y, (uint)w, (uint)h), data);
+                    _nvg.renderer.UpdateTexture(fontImage, Rectangle.FromLTRB((uint)x, (uint)y, (uint)w, (uint)h), data);
                 }
             }
         }

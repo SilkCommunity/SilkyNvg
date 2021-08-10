@@ -16,7 +16,7 @@ namespace SilkyNvg.Rendering
 
         public Vector2D<float> MatrixDeterminant { get; private set; }
 
-        public PointFlags Flags { get; set; }
+        public PointFlags Flags { get; internal set; }
 
         public Point(Vector2D<float> position, PointFlags flags)
         {

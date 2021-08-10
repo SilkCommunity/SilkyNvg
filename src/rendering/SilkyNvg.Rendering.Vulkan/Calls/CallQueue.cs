@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace SilkyNvg.Rendering.Vulkan.Calls
 {
@@ -11,11 +12,6 @@ namespace SilkyNvg.Rendering.Vulkan.Calls
 
         public uint Count => (uint)_calls.Count;
 
-        public CallQueue()
-        {
-
-        }
-
         public void Add(Call call)
         {
             _calls.Enqueue(call);
@@ -27,6 +23,11 @@ namespace SilkyNvg.Rendering.Vulkan.Calls
             {
                 _calls.Dequeue().Run();
             }
+        }
+
+        public void Clear()
+        {
+            _calls.Clear();
         }
 
     }

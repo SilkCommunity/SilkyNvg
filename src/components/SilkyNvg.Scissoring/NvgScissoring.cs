@@ -20,58 +20,47 @@ namespace SilkyNvg.Scissoring
             transform.M32 = lastRow.Y;
 
             nvg.stateStack.CurrentState.Scissor = new(
-                Transforms.Transforms.Multiply(transform, nvg.stateStack.CurrentState.Transform),
+                Transforms.NvgTransforms.Multiply(transform, nvg.stateStack.CurrentState.Transform),
                 size * 0.5f
             );
         }
 
-        public static void Scissor(this Nvg nvg, Vector2D<float> position, Vector2D<float> size)
-            => Scissor(nvg, new Rectangle<float>(position, size));
-
         public static void Scissor(this Nvg nvg, float x, float y, float width, float height)
-            => Scissor(nvg, new(x, y), new(width, height));
+            => Scissor(nvg, Rectangle.FromLTRB(x, y, x + width, y + height));
 
-        public static void Scissor(this Nvg nvg, Vector4D<float> rect)
-            => Scissor(nvg, new(rect.X, rect.Y), new(rect.Z, rect.W));
-
-        public static void IntersectScissor(this Nvg nvg, Vector2D<float> pos, Vector2D<float> size)
+        public static void IntersectScissor(this Nvg nvg, Rectangle<float> rect)
         {
-            static Vector4D<float> IsectRects(Vector4D<float> a, Vector4D<float> b)
+            static Rectangle<float> IsectRects(Rectangle<float> a, Rectangle<float> b)
             {
-                float minx = MathF.Max(a.X, b.X);
-                float miny = MathF.Max(a.Y, b.Y);
-                float maxx = MathF.Min(a.X + a.Z, b.X + b.Z);
-                float maxy = MathF.Min(a.Y + a.W, b.Y + b.W);
-                return new Vector4D<float>(minx, miny, MathF.Max(0.0f, maxx - minx), MathF.Max(0.0f, maxy - miny));
+                Vector2D<float> min = Vector2D.Max(a.Origin, b.Origin);
+                Vector2D<float> max = Vector2D.Min(a.Max, b.Max);
+                return new Rectangle<float>(min, Vector2D.Max(new Vector2D<float>(0.0f), max - min));
             }
 
             if (nvg.stateStack.CurrentState.Scissor.Extent.X < 0)
             {
-                Scissor(nvg, pos, size);
+                Scissor(nvg, rect);
                 return;
             }
 
             Matrix3X2<float> ptransform = nvg.stateStack.CurrentState.Scissor.Transform;
             Vector2D<float> e = nvg.stateStack.CurrentState.Scissor.Extent;
 
-            _ = Transforms.Transforms.Inverse(out Matrix3X2<float> invtransform, nvg.stateStack.CurrentState.Transform);
-            ptransform = Transforms.Transforms.Multiply(ptransform, invtransform);
+            _ = Transforms.NvgTransforms.Inverse(out Matrix3X2<float> invtransform, nvg.stateStack.CurrentState.Transform);
+            ptransform = Transforms.NvgTransforms.Multiply(ptransform, invtransform);
 
             Vector2D<float> te = new(
                 e.X * MathF.Abs(ptransform.M11) + e.Y * MathF.Abs(ptransform.M21),
                 e.X * MathF.Abs(ptransform.M12) + e.Y * MathF.Abs(ptransform.M22)
             );
 
-            Vector4D<float> rect = IsectRects(new(ptransform.M31 - te.X, ptransform.M32 - te.Y, te.X * 2.0f, te.Y * 2.0f), new(pos.X, pos.Y, size.X, size.Y));
+            Rectangle<float> r = IsectRects(Rectangle.FromLTRB(ptransform.M31 - te.X, ptransform.M32 - te.Y, te.X * 2.0f, te.Y * 2.0f), rect);
 
-            Scissor(nvg, rect.X, rect.Y, rect.Z, rect.W);
+            Scissor(nvg, r);
         }
 
         public static void IntersectScissor(this Nvg nvg, float x, float y, float width, float height)
-            => IntersectScissor(nvg, new(x, y), new(width, height));
-
-        public static void IntersectScissor(this Nvg nvg, Vector4D<float> rect)
-            => IntersectScissor(nvg, new(rect.X, rect.Y), new(rect.Z, rect.W));
+            => IntersectScissor(nvg, new Rectangle<float>(new Vector2D<float>(x, y), new Vector2D<float>(width, height)));
 
         public static void ResetScissor(this Nvg nvg)
         {

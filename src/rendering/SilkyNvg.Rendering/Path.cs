@@ -212,7 +212,7 @@ namespace SilkyNvg.Rendering
             Convex = nleft == _points.Count;
         }
 
-        public void ExpandStroke(float aa, float u0, float u1, float w, LineCap lineCap, LineCap lineJoin, uint ncap)
+        internal void ExpandStroke(float aa, float u0, float u1, float w, LineCap lineCap, LineCap lineJoin, uint ncap)
         {
             _fill.Clear();
 

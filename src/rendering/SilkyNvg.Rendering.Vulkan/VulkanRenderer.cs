@@ -144,7 +144,7 @@ namespace SilkyNvg.Rendering.Vulkan
             return texture.ID;
         }
 
-        public bool UpdateTexture(int image, Vector4D<uint> bounds, ReadOnlySpan<byte> data)
+        public bool UpdateTexture(int image, Rectangle<uint> bounds, ReadOnlySpan<byte> data)
         {
             Textures.Texture tex = Textures.Texture.FindTexture(image);
             if (tex == null)
@@ -185,7 +185,9 @@ namespace SilkyNvg.Rendering.Vulkan
 
         public void Cancel()
         {
-            throw new NotImplementedException();
+            _vertexCollection.Clear();
+            _callQueue.Clear();
+            Shader.UniformManager.Clear();
         }
 
         public unsafe void Flush()
@@ -206,7 +208,7 @@ namespace SilkyNvg.Rendering.Vulkan
             Shader.UniformManager.Clear();
         }
 
-        public void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Vector4D<float> bounds, IReadOnlyList<Rendering.Path> paths)
+        public void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Rectangle<float> bounds, IReadOnlyList<Rendering.Path> paths)
         {
             int offset = _vertexCollection.CurrentsOffset;
             Path[] renderPaths = new Path[paths.Count];
@@ -244,10 +246,10 @@ namespace SilkyNvg.Rendering.Vulkan
             }
             else // not convex
             {
-                _vertexCollection.AddVertex(new Vertex(bounds.Z, bounds.W, 0.5f, 1.0f));
-                _vertexCollection.AddVertex(new Vertex(bounds.Z, bounds.Y, 0.5f, 1.0f));
-                _vertexCollection.AddVertex(new Vertex(bounds.X, bounds.W, 0.5f, 1.0f));
-                _vertexCollection.AddVertex(new Vertex(bounds.X, bounds.Y, 0.5f, 1.0f));
+                _vertexCollection.AddVertex(new Vertex(bounds.Max, 0.5f, 1.0f));
+                _vertexCollection.AddVertex(new Vertex(bounds.Max.X, bounds.Origin.Y, 0.5f, 1.0f));
+                _vertexCollection.AddVertex(new Vertex(bounds.Origin.X, bounds.Max.Y, 0.5f, 1.0f));
+                _vertexCollection.AddVertex(new Vertex(bounds.Origin, 0.5f, 1.0f));
 
                 FragUniforms stencilUniforms = new(-1.0f, ShaderType.Simple);
                 int uniformOffset = Shader.UniformManager.AddUniform(stencilUniforms);

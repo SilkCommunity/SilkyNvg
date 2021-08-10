@@ -188,7 +188,7 @@ namespace NvgExample
             _ = _nvg.Text(x + w - uw - h * 0.5f, y + h * 0.5f, text);
         }
 
-        private void DrawCheckBox(string text, float x, float y, float w, float h)
+        private void DrawCheckBox(string text, float x, float y, float _, float h)
         {
             _nvg.FontSize(15.0f);
             _nvg.FontFace("sans");
@@ -887,7 +887,7 @@ namespace NvgExample
 
             _nvg.BeginPath();
             _nvg.FillColour(_nvg.Rgba(220, 220, 220, 255));
-            _nvg.RoundedRect(bounds.Origin - new Vector2D<float>(2.0f), bounds.Size + new Vector2D<float>(4.0f), 3.0f);
+            _nvg.RoundedRect(new Rectangle<float>(bounds.Origin - new Vector2D<float>(2.0f), bounds.Size + new Vector2D<float>(4.0f)), 3.0f);
             px = (bounds.Max.X + bounds.Origin.X) / 2.0f;
             _nvg.MoveTo(px, bounds.Origin.Y - 10.0f);
             _nvg.LineTo(px + 7.0f, bounds.Origin.Y + 1.0f);
@@ -1084,27 +1084,27 @@ namespace NvgExample
             {
                 case 6:
                     str[5] = (char)(0x80 | (cp & 0x3f));
-                    cp = cp >> 6;
+                    cp >>= 6;
                     cp |= 0x4000000;
                     goto case 5;
                 case 5:
                     str[4] = (char)(0x80 | (cp & 0x3f));
-                    cp = cp >> 6;
+                    cp >>= 6;
                     cp |= 0x200000;
                     goto case 4;
                 case 4:
                     str[3] = (char)(0x80 | (cp & 0x3f));
-                    cp = cp >> 6;
+                    cp >>= 6;
                     cp |= 0x10000;
                     goto case 3;
                 case 3:
                     str[2] = (char)(0x80 | (cp & 0x3f));
-                    cp = cp >> 6;
+                    cp >>= 6;
                     cp |= 0x800;
                     goto case 2;
                 case 2:
                     str[1] = (char)(0x80 | (cp & 0x3f));
-                    cp = cp >> 6;
+                    cp >>= 6;
                     cp |= 0xc0;
                     goto case 1;
                 case 1:

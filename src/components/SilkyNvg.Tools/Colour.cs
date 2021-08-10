@@ -265,7 +265,7 @@ namespace SilkyNvg
                 1 => _g,
                 2 => _b,
                 3 => _a,
-                _ => throw new System.IndexOutOfRangeException("Maximum index for SilkyNvg.Colour is 4!")
+                _ => throw new System.IndexOutOfRangeException("Maximum index for SilkyNvg.Colour is 3!")
             };
         }
 

@@ -133,7 +133,7 @@ namespace SilkyNvg.Rendering.Vulkan.Textures
 
             if (data != null && data.Length > 0)
             {
-                Update(_renderer.Params.device, new Vector4D<uint>(0, 0, Size.X, Size.Y), data);
+                Update(_renderer.Params.device, Rectangle.FromLTRB((uint)0, (uint)0, Size.X, Size.Y), data);
             }
             else
             {
@@ -145,7 +145,7 @@ namespace SilkyNvg.Rendering.Vulkan.Textures
 
                 ulong textureSize = Size.X * Size.Y * txFormat * sizeof(byte);
                 Span<byte> generatedTexture = stackalloc byte[(int)textureSize];
-                Update(_renderer.Params.device, new Vector4D<uint>(0, 0, Size.X, Size.Y), generatedTexture);
+                Update(_renderer.Params.device, Rectangle.FromLTRB((uint)0, (uint)0, Size.X, Size.Y), generatedTexture);
             }
 
             Init(_renderer.Params.cmdBuffer, _renderer.Queue);
@@ -201,7 +201,7 @@ namespace SilkyNvg.Rendering.Vulkan.Textures
             _ = _renderer.Vk.ResetCommandBuffer(cmdBuffer, 0);
         }
 
-        public unsafe void Update(Device device, Vector4D<uint> bounds, ReadOnlySpan<byte> data)
+        public unsafe void Update(Device device, Rectangle<uint> bounds, ReadOnlySpan<byte> data)
         {
             _renderer.Vk.GetImageMemoryRequirements(device, _image, out MemoryRequirements memReqs);
             ImageSubresource subres = new(ImageAspectFlags.ImageAspectColorBit, 0, 0);
@@ -210,10 +210,10 @@ namespace SilkyNvg.Rendering.Vulkan.Textures
 
             _renderer.Vk.GetImageSubresourceLayout(_renderer.Params.device, _image, subres, out SubresourceLayout layout);
             _renderer.Assert(_renderer.Vk.MapMemory(device, _mem, 0, memReqs.Size, 0, &bindptr));
-            for (uint y = 0; y < bounds.W; y++)
+            for (uint y = 0; y < bounds.Max.Y; y++)
             {
-                ReadOnlySpan<byte> src = data.Slice((int)(((bounds.Y + y) * (Size.X * compSize)) + bounds.X), (int)(bounds.Z * compSize));
-                Span<byte> dest = new((byte*)bindptr + ((bounds.Y + y) * layout.RowPitch) + bounds.X, (int)(bounds.Z * compSize));
+                ReadOnlySpan<byte> src = data.Slice((int)(((bounds.Origin.Y + y) * (Size.X * compSize)) + bounds.Origin.X), (int)(bounds.Max.X * compSize));
+                Span<byte> dest = new((byte*)bindptr + ((bounds.Origin.Y + y) * layout.RowPitch) + bounds.Origin.X, (int)(bounds.Max.X * compSize));
                 src.CopyTo(dest);
             }
 

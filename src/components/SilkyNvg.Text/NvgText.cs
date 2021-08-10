@@ -188,8 +188,8 @@ namespace SilkyNvg.Text
             return iter.nextx / scale;
         }
 
-        public static float Text(this Nvg nvg, Vector2D<float> position, string @string)
-            => Text(nvg, position, @string, null);
+        public static float Text(this Nvg nvg, Vector2D<float> pos, string @string)
+            => Text(nvg, pos, @string, null);
 
         public static float Text(this Nvg nvg, float x, float y, string @string, string end)
             => Text(nvg, new Vector2D<float>(x, y), @string, end);
@@ -197,7 +197,7 @@ namespace SilkyNvg.Text
         public static float Text(this Nvg nvg, float x, float y, string @string)
             => Text(nvg, new Vector2D<float>(x, y), @string, null);
 
-        public static void TextBox(this Nvg nvg, Vector2D<float> position, float breakRowWidth, string @string, string end)
+        public static void TextBox(this Nvg nvg, Vector2D<float> pos, float breakRowWidth, string @string, string end)
         {
             State state = nvg.stateStack.CurrentState;
             int rowCount;
@@ -220,17 +220,17 @@ namespace SilkyNvg.Text
                 {
                     if (hAlign.HasFlag(Align.Left))
                     {
-                        _ = Text(nvg, position, rows[i].Start, rows[i].End.Length > 0 ? rows[i].End : null) ;
+                        _ = Text(nvg, pos, rows[i].Start, rows[i].End.Length > 0 ? rows[i].End : null) ;
                     }
                     else if (hAlign.HasFlag(Align.Centre))
                     {
-                        _ = Text(nvg, position.X + breakRowWidth * 0.5f, position.Y - rows[i].Width * 0.5f, rows[i].Start, rows[i].End.Length > 0 ? rows[i].End : null);
+                        _ = Text(nvg, pos.X + breakRowWidth * 0.5f, pos.Y - rows[i].Width * 0.5f, rows[i].Start, rows[i].End.Length > 0 ? rows[i].End : null);
                     }
                     else if (hAlign.HasFlag(Align.Right))
                     {
-                        _ = Text(nvg, position.X + breakRowWidth - rows[i].Width, position.Y, rows[i].Start, rows[i].End.Length > 0 ? rows[i].End : null);
+                        _ = Text(nvg, pos.X + breakRowWidth - rows[i].Width, pos.Y, rows[i].Start, rows[i].End.Length > 0 ? rows[i].End : null);
                     }
-                    position.Y += lineh * state.LineHeight;
+                    pos.Y += lineh * state.LineHeight;
                 }
                 @string = rows[rowCount - 1].Next;
             }
@@ -238,8 +238,8 @@ namespace SilkyNvg.Text
             state.TextAlign = oldAlign;
         }
 
-        public static void TextBox(this Nvg nvg, Vector2D<float> position, float breakRowWidth, string @string)
-            => TextBox(nvg, position, breakRowWidth, @string, null);
+        public static void TextBox(this Nvg nvg, Vector2D<float> pos, float breakRowWidth, string @string)
+            => TextBox(nvg, pos, breakRowWidth, @string, null);
 
         public static void TextBox(this Nvg nvg, float x, float y, float breakRowWidth, string @string, string end)
             => TextBox(nvg, new Vector2D<float>(x, y), breakRowWidth, @string, end);
@@ -247,7 +247,7 @@ namespace SilkyNvg.Text
         public static void TextBox(this Nvg nvg, float x, float y, float breakRowWidth, string @string)
             => TextBox(nvg, new Vector2D<float>(x, y), breakRowWidth, @string, null);
 
-        public static float TextBounds(this Nvg nvg, Vector2D<float> position, string @string, string end, out Rectangle<float> bounds)
+        public static float TextBounds(this Nvg nvg, Vector2D<float> pos, string @string, string end, out Rectangle<float> bounds)
         {
             bounds = default;
 
@@ -267,10 +267,10 @@ namespace SilkyNvg.Text
             fons.SetAlign((int)state.TextAlign);
             fons.SetFont(state.FontId);
 
-            float width = fons.TextBounds(position.X * scale, position.Y * scale, @string, end, out float[] bs);
+            float width = fons.TextBounds(pos.X * scale, pos.Y * scale, @string, end, out float[] bs);
             if (bs != null)
             {
-                fons.LineBounds(position.Y * scale, out bs[1], out bs[3]);
+                fons.LineBounds(pos.Y * scale, out bs[1], out bs[3]);
                 bounds = new Rectangle<float>()
                 {
                     Origin = new Vector2D<float>(bs[0] * invscale, bs[1] * invscale),
@@ -281,8 +281,8 @@ namespace SilkyNvg.Text
             return width * invscale;
         }
 
-        public static float TextBounds(this Nvg nvg, Vector2D<float> position, string @string, out Rectangle<float> bounds)
-            => TextBounds(nvg, position, @string, null, out bounds);
+        public static float TextBounds(this Nvg nvg, Vector2D<float> pos, string @string, out Rectangle<float> bounds)
+            => TextBounds(nvg, pos, @string, null, out bounds);
 
         public static float TextBounds(this Nvg nvg, float x, float y, string @string, string end, out Rectangle<float> bounds)
             => TextBounds(nvg, new Vector2D<float>(x, y), @string, end, out bounds);
@@ -290,13 +290,13 @@ namespace SilkyNvg.Text
         public static float TextBounds(this Nvg nvg, float x, float y, string @string, out Rectangle<float> bounds)
             => TextBounds(nvg, new Vector2D<float>(x, y), @string, null, out bounds);
 
-        public static void TextBoxBounds(this Nvg nvg, Vector2D<float> position, float breakRowWidth, string @string, string end, out Rectangle<float> bounds)
+        public static void TextBoxBounds(this Nvg nvg, Vector2D<float> pos, float breakRowWidth, string @string, string end, out Rectangle<float> bounds)
         {
             Fontstash fons = nvg.fontManager.Fontstash;
             State state = nvg.stateStack.CurrentState;
             float scale = nvg.fontManager.GetFontScale() * nvg.pixelRatio.DevicePxRatio;
             float invscale = 1.0f / scale;
-            int nrows = 0;
+            int nrows;
             Align oldAlign = state.TextAlign;
             Align hAlign = state.TextAlign & (Align.Left | Align.Centre | Align.Right);
             Align vAlign = state.TextAlign & (Align.Top | Align.Middle | Align.Bottom | Align.Baseline);
@@ -311,8 +311,8 @@ namespace SilkyNvg.Text
 
             state.TextAlign = Align.Left | vAlign;
 
-            float minX = position.X, maxX = position.X;
-            float minY = position.Y, maxY = position.Y;
+            float minX = pos.X, maxX = pos.X;
+            float minY = pos.Y, maxY = pos.Y;
 
             fons.SetSize(state.FontSize * scale);
             fons.SetSpacing(state.LetterSpacing * scale);
@@ -341,15 +341,15 @@ namespace SilkyNvg.Text
                     {
                         dx = breakRowWidth - rows[i].Width;
                     }
-                    rMinX = position.X + rows[i].MinX + dx;
-                    rMaxX = position.X + rows[i].MaxX + dx;
+                    rMinX = pos.X + rows[i].MinX + dx;
+                    rMaxX = pos.X + rows[i].MaxX + dx;
                     minX = MathF.Min(minX, rMinX);
                     maxX = MathF.Max(maxX, rMaxX);
 
-                    minY = MathF.Min(minY, position.Y + rMinY);
-                    maxY = MathF.Max(maxY, position.Y + rMaxY);
+                    minY = MathF.Min(minY, pos.Y + rMinY);
+                    maxY = MathF.Max(maxY, pos.Y + rMaxY);
 
-                    position.Y += lineh * state.LineHeight;
+                    pos.Y += lineh * state.LineHeight;
                 }
                 @string = rows[nrows - 1].Next;
             }
@@ -359,8 +359,8 @@ namespace SilkyNvg.Text
             bounds = new Rectangle<float>(new Vector2D<float>(minX, minY), new Vector2D<float>(maxX, maxY) - new Vector2D<float>(minX, minY));
         }
 
-        public static void TextBoxBounds(this Nvg nvg, Vector2D<float> position, float breakRowWidth, string @string, out Rectangle<float> bounds)
-            => TextBoxBounds(nvg, position, breakRowWidth, @string, null, out bounds);
+        public static void TextBoxBounds(this Nvg nvg, Vector2D<float> pos, float breakRowWidth, string @string, out Rectangle<float> bounds)
+            => TextBoxBounds(nvg, pos, breakRowWidth, @string, null, out bounds);
 
         public static void TextBoxBounds(this Nvg nvg, float x, float y, float breakRowWidth, string @string, string end, out Rectangle<float> bounds)
             => TextBoxBounds(nvg, new Vector2D<float>(x, y), breakRowWidth, @string, end, out bounds);
@@ -368,7 +368,7 @@ namespace SilkyNvg.Text
         public static void TextBoxBounds(this Nvg nvg, float x, float y, float breakRowWidth, string @string, out Rectangle<float> bounds)
             => TextBoxBounds(nvg, new Vector2D<float>(x, y), breakRowWidth, @string, null, out bounds);
 
-        public static int TextGlyphPositions(this Nvg nvg, Vector2D<float> position, string @string, string end, out GlyphPosition[] positions, int maxRows)
+        public static int TextGlyphPositions(this Nvg nvg, Vector2D<float> pos, string @string, string end, out GlyphPosition[] positions, int maxRows)
         {
             positions = null;
 
@@ -395,7 +395,7 @@ namespace SilkyNvg.Text
             fons.SetAlign((int)state.TextAlign);
             fons.SetFont(state.FontId);
 
-            fons.TextIterInit(out FonsTextIter iter, position.X * scale, position.Y * scale, @string, end, FonsGlyphBitmap.Optional);
+            fons.TextIterInit(out FonsTextIter iter, pos.X * scale, pos.Y * scale, @string, end, FonsGlyphBitmap.Optional);
             FonsTextIter prevIter = iter;
             while (fons.TextIterNext(ref iter, ref q))
             {

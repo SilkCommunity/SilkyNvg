@@ -141,7 +141,7 @@ namespace SilkyNvg.Rendering.OpenGL
             return true;
         }
 
-        public bool UpdateTexture(int image, Vector4D<uint> bounds, ReadOnlySpan<byte> data)
+        public bool UpdateTexture(int image, Rectangle<uint> bounds, ReadOnlySpan<byte> data)
         {
             Textures.Texture tex = Textures.Texture.FindTexture(image);
 
@@ -229,7 +229,7 @@ namespace SilkyNvg.Rendering.OpenGL
             _callQueue.Clear();
         }
 
-        public void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Vector4D<float> bounds, IReadOnlyList<Rendering.Path> paths)
+        public void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Rectangle<float> bounds, IReadOnlyList<Rendering.Path> paths)
         {
             int offset = _vertexCollection.CurrentsOffset;
             Path[] renderPaths = new Path[paths.Count];
@@ -254,10 +254,10 @@ namespace SilkyNvg.Rendering.OpenGL
             }
             else
             {
-                _vertexCollection.AddVertex(new Vertex(bounds.Z, bounds.W, 0.5f, 1.0f));
-                _vertexCollection.AddVertex(new Vertex(bounds.Z, bounds.Y, 0.5f, 1.0f));
-                _vertexCollection.AddVertex(new Vertex(bounds.X, bounds.W, 0.5f, 1.0f));
-                _vertexCollection.AddVertex(new Vertex(bounds.X, bounds.Y, 0.5f, 1.0f));
+                _vertexCollection.AddVertex(new Vertex(bounds.Max, 0.5f, 1.0f));
+                _vertexCollection.AddVertex(new Vertex(bounds.Max.X, bounds.Origin.Y, 0.5f, 1.0f));
+                _vertexCollection.AddVertex(new Vertex(bounds.Origin.X, bounds.Max.Y, 0.5f, 1.0f));
+                _vertexCollection.AddVertex(new Vertex(bounds.Origin, 0.5f, 1.0f));
 
                 FragUniforms stencilUniforms = new(-1.0f, Shaders.ShaderType.Simple);
 

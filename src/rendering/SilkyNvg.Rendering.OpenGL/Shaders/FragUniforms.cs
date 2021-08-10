@@ -68,11 +68,11 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
                 {
                     Matrix3X2<float> m1, m2;
                     m1 = Matrix3X2.CreateTranslation(new Vector2D<float>(0.0f, _extent.Y * 0.5f));
-                    m1 = Transforms.Transforms.Multiply(m1, paint.Transform);
+                    m1 = Transforms.NvgTransforms.Multiply(m1, paint.Transform);
                     m2 = Matrix3X2.CreateScale(new Vector2D<float>(1.0f, -1.0f));
-                    m2 = Transforms.Transforms.Multiply(m2, m1);
+                    m2 = Transforms.NvgTransforms.Multiply(m2, m1);
                     m1 = Matrix3X2.CreateTranslation(new Vector2D<float>(0.0f, -_extent.Y * 0.5f));
-                    m1 = Transforms.Transforms.Multiply(m1, m2);
+                    m1 = Transforms.NvgTransforms.Multiply(m1, m2);
                     _ = Matrix3X2.Invert(m1, out invtransform);
                 }
                 else

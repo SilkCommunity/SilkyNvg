@@ -3,6 +3,7 @@ using Silk.NET.Core.Native;
 using Silk.NET.GLFW;
 using Silk.NET.Vulkan;
 using SilkyNvg;
+using SilkyNvg.Paths;
 using SilkyNvg.Rendering.Vulkan;
 using System;
 using System.Diagnostics;
@@ -22,7 +23,6 @@ namespace Vulkan_Example
         static Nvg nvg;
 
         static bool blowup = false;
-        static bool screenshot = false;
         static bool premult = false;
         static bool resizeEvent = false;
 
@@ -32,8 +32,6 @@ namespace Vulkan_Example
                 glfw.SetWindowShouldClose(window, true);
             if (key == Keys.Space && action == InputAction.Press)
                 blowup = !blowup;
-            if (key == Keys.S && action == InputAction.Press)
-                screenshot = true;
             if (key == Keys.P && action == InputAction.Press)
                 premult = !premult;
         }

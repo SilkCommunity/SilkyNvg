@@ -19,7 +19,8 @@
             DstAlpha = dstAlpha;
         }
 
-        public CompositeOperationState(BlendFactor srcFactor, BlendFactor dstFactor) : this(srcFactor, dstFactor, srcFactor, dstFactor) { }
+        public CompositeOperationState(BlendFactor srcFactor, BlendFactor dstFactor)
+            : this(srcFactor, dstFactor, srcFactor, dstFactor) { }
 
         public CompositeOperationState(CompositeOperation op)
         {

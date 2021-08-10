@@ -170,25 +170,23 @@ namespace SilkyNvg.Rendering.OpenGL.Textures
             }
         }
 
-        public unsafe void Update(Vector4D<uint> bounds, ReadOnlySpan<byte> data)
+        public unsafe void Update(Rectangle<uint> bounds, ReadOnlySpan<byte> data)
         {
             Bind();
 
             _gl.PixelStore(PixelStoreParameter.UnpackAlignment, 1);
 
             _gl.PixelStore(PixelStoreParameter.UnpackRowLength, Size.X);
-            _gl.PixelStore(PixelStoreParameter.UnpackSkipPixels, bounds.X);
-            _gl.PixelStore(PixelStoreParameter.UnpackSkipRows, bounds.Y);
-
-            _gl.GetInteger(GetPName.MaxTextureSize, out int dat);
+            _gl.PixelStore(PixelStoreParameter.UnpackSkipPixels, bounds.Origin.X);
+            _gl.PixelStore(PixelStoreParameter.UnpackSkipRows, bounds.Origin.Y);
 
             if (TextureType == Rendering.Texture.Rgba)
             {
-                _gl.TexSubImage2D(TextureTarget.Texture2D, 0, (int)bounds.X, (int)bounds.Y, bounds.Z, bounds.W, GLEnum.Rgba, GLEnum.UnsignedByte, data);
+                _gl.TexSubImage2D(TextureTarget.Texture2D, 0, (int)bounds.Origin.X, (int)bounds.Origin.Y, bounds.Max.X, bounds.Max.Y, GLEnum.Rgba, GLEnum.UnsignedByte, data);
             }
             else
             {
-                _gl.TexSubImage2D(TextureTarget.Texture2D, 0, (int)bounds.X, (int)bounds.Y, bounds.Z, bounds.W, GLEnum.Red, GLEnum.UnsignedByte, data);
+                _gl.TexSubImage2D(TextureTarget.Texture2D, 0, (int)bounds.Origin.X, (int)bounds.Origin.Y, bounds.Max.X, bounds.Max.Y, GLEnum.Red, GLEnum.UnsignedByte, data);
             }
 
             ResetPixelStore();

@@ -15,6 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\rendering\SilkyNvg.Rendering.OpenGL\SilkyNvg.Rendering.OpenGL.csproj" />
     <ProjectReference Include="..\NvgExample\NvgExample.csproj" />
   </ItemGroup>
 

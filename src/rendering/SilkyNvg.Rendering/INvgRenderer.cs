@@ -17,7 +17,7 @@ namespace SilkyNvg.Rendering
 
         bool DeleteTexture(int image);
 
-        bool UpdateTexture(int image, Vector4D<uint> bounds, ReadOnlySpan<byte> data);
+        bool UpdateTexture(int image, Rectangle<uint> bounds, ReadOnlySpan<byte> data);
 
         bool GetTextureSize(int image, out Vector2D<uint> size);
 
@@ -27,7 +27,7 @@ namespace SilkyNvg.Rendering
 
         void Flush();
 
-        void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Vector4D<float> bounds, IReadOnlyList<Path> paths);
+        void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Rectangle<float> bounds, IReadOnlyList<Path> paths);
 
         void Stroke(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, float strokeWidth, IReadOnlyList<Path> paths);
 
