@@ -28,7 +28,6 @@ namespace SilkyNvg.Rendering.Vulkan
 
         private readonly bool _stencilStrokes;
         private readonly bool _debug;
-
         private readonly VertexCollection _vertexCollection;
         private readonly CallQueue _callQueue;
         private readonly PipelineManager _pipelineManager;
@@ -56,6 +55,8 @@ namespace SilkyNvg.Rendering.Vulkan
 
         internal Buffer<Vertex> VertexBuffer => _vertexBuffer;
 
+        internal bool TriangleListFill { get; }
+
         public bool EdgeAntiAlias { get; }
 
         public VulkanRenderer(VulkanRendererParams @params, CreateFlags flags, Queue queue, Vk vk)
@@ -66,6 +67,7 @@ namespace SilkyNvg.Rendering.Vulkan
 
             _stencilStrokes = flags.HasFlag(CreateFlags.StencilStrokes);
             _debug = flags.HasFlag(CreateFlags.Debug);
+            TriangleListFill = flags.HasFlag(CreateFlags.TriangleListFill);
             EdgeAntiAlias = flags.HasFlag(CreateFlags.Antialias);
 
             _view = default;
@@ -133,9 +135,6 @@ namespace SilkyNvg.Rendering.Vulkan
 
             PipelineLayout = CreatePipelineLayout(Shader.DescLayout);
 
-            // Dummy tex will always be at index 0.
-            _ = CreateTexture(Texture.Alpha, new Vector2D<uint>(1, 1), 0, null);
-
             return true;
         }
 
@@ -191,11 +190,6 @@ namespace SilkyNvg.Rendering.Vulkan
 
         public unsafe void Flush()
         {
-            Device device = Params.device;
-            CommandBuffer cmdBuffer = Params.cmdBuffer;
-            RenderPass renderpass = Params.renderpass;
-            AllocationCallbacks* allocator = Params.allocator;
-
             if (_callQueue.HasCalls)
             {
                 Buffer<Vertex>.UpdateBuffer(ref _vertexBuffer, BufferUsageFlags.BufferUsageVertexBufferBit,
@@ -209,7 +203,6 @@ namespace SilkyNvg.Rendering.Vulkan
             }
 
             _vertexCollection.Clear();
-            _callQueue.Clear();
             Shader.UniformManager.Clear();
         }
 
@@ -220,14 +213,22 @@ namespace SilkyNvg.Rendering.Vulkan
             for (int i = 0; i < paths.Count; i++)
             {
                 Rendering.Path path = paths[i];
-                renderPaths[i] = new Path(offset, (path.Fill.Count - 2) * 3, offset + path.Fill.Count, path.Stroke.Count);
+                renderPaths[i] = new Path(offset, TriangleListFill ? ((path.Fill.Count - 2) * 3) : path.Fill.Count, offset + path.Fill.Count, path.Stroke.Count);
 
-                for (int j = 0; j < paths[i].Fill.Count - 2; j++)
+                if (TriangleListFill)
                 {
-                    _vertexCollection.AddVertex(paths[i].Fill[0]);
-                    _vertexCollection.AddVertex(paths[i].Fill[j + 1]);
-                    _vertexCollection.AddVertex(paths[i].Fill[j + 2]);
-                    offset += 3;
+                    for (int j = 0; j < path.Fill.Count - 2; j++)
+                    {
+                        _vertexCollection.AddVertex(path.Fill[0]);
+                        _vertexCollection.AddVertex(path.Fill[j + 1]);
+                        _vertexCollection.AddVertex(path.Fill[j + 2]);
+                        offset += 3;
+                    }
+                }
+                else
+                {
+                    _vertexCollection.AddVertices(path.Fill);
+                    offset += path.Fill.Count;
                 }
 
                 _vertexCollection.AddVertices(path.Stroke);
@@ -236,27 +237,65 @@ namespace SilkyNvg.Rendering.Vulkan
 
             FragUniforms uniforms = new(paint, scissor, fringe, fringe, -1.0f);
             Call call;
-            if ((paths.Count) == 1 && paths[0].Convex) // convex
+            if ((paths.Count == 1) && paths[0].Convex) // convex
             {
                 int uniformOffset = Shader.UniformManager.AddUniform(uniforms);
                 call = new ConvexFillCall(paint.Image, renderPaths, uniformOffset, compositeOperation, this);
             }
             else // not convex
             {
-                call = null;
+                _vertexCollection.AddVertex(new Vertex(bounds.Z, bounds.W, 0.5f, 1.0f));
+                _vertexCollection.AddVertex(new Vertex(bounds.Z, bounds.Y, 0.5f, 1.0f));
+                _vertexCollection.AddVertex(new Vertex(bounds.X, bounds.W, 0.5f, 1.0f));
+                _vertexCollection.AddVertex(new Vertex(bounds.X, bounds.Y, 0.5f, 1.0f));
+
+                FragUniforms stencilUniforms = new(-1.0f, ShaderType.Simple);
+                int uniformOffset = Shader.UniformManager.AddUniform(stencilUniforms);
+                _ = Shader.UniformManager.AddUniform(uniforms);
+
+                call = new FillCall(paint.Image, renderPaths, offset, uniformOffset, compositeOperation, this);
             }
 
             _callQueue.Add(call);
         }
 
-        public void Stroke(Paint strokePaint, CompositeOperationState compositeOperation, Scissor scissor, float fringeWidth, float strokeWidth, IReadOnlyList<SilkyNvg.Rendering.Path> paths)
+        public void Stroke(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, float strokeWidth, IReadOnlyList<Rendering.Path> paths)
         {
-            throw new NotImplementedException();
+            int offset = _vertexCollection.CurrentsOffset;
+            Path[] renderPaths = new Path[paths.Count];
+            for (int i = 0; i < paths.Count; i++)
+            {
+                Rendering.Path path = paths[i];
+                renderPaths[i] = new Path(0, 0, offset, path.Stroke.Count);
+                _vertexCollection.AddVertices(path.Stroke);
+                offset += path.Stroke.Count;
+            }
+
+            FragUniforms uniforms = new(paint, scissor, strokeWidth, fringe, -1.0f);
+            Call call;
+            if (_stencilStrokes)
+            {
+                int uniformOffset = Shader.UniformManager.AddUniform(uniforms);
+                call = new StencilStrokeCall(paint.Image, renderPaths, uniformOffset, compositeOperation, this);
+            }
+            else
+            {
+                int uniformOffset = Shader.UniformManager.AddUniform(uniforms);
+                call = new StrokeCall(paint.Image, renderPaths, uniformOffset, compositeOperation, this);
+            }
+
+            _callQueue.Add(call);
         }
 
         public void Triangles(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, ICollection<Vertex> vertices, float fringeWidth)
         {
-            throw new NotImplementedException();
+            int offset = _vertexCollection.CurrentsOffset;
+            _vertexCollection.AddVertices(vertices);
+
+            FragUniforms uniforms = new(paint, scissor, 1.0f);
+            int uniformOffset = Shader.UniformManager.AddUniform(uniforms);
+            Call call = new TrianglesCall(paint.Image, compositeOperation, offset, (uint)vertices.Count, uniformOffset, this);
+            _callQueue.Add(call);
         }
 
         public unsafe void Dispose()
@@ -271,6 +310,8 @@ namespace SilkyNvg.Rendering.Vulkan
             Shader.Dispose();
 
             Vk.DestroyPipelineLayout(device, PipelineLayout, allocator);
+
+            _pipelineManager.Dispose();
         }
 
     }

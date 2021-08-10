@@ -23,15 +23,10 @@ namespace SilkyNvg.Rendering.Vulkan.Calls
 
         public void Run()
         {
-            foreach (Call call in _calls)
+            while (_calls.Count > 0)
             {
-                call.Run();
+                _calls.Dequeue().Run();
             }
-        }
-
-        public void Clear()
-        {
-            _calls.Clear();
         }
 
     }

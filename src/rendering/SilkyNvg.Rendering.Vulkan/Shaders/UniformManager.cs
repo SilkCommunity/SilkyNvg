@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace SilkyNvg.Rendering.Vulkan.Shaders
 {
@@ -8,42 +9,39 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
 
         private readonly int _fragSize;
 
-        private FragUniforms[] _uniforms;
+        private byte[] _uniforms;
         private int _count;
+        private int _capacity;
 
         public int CurrentsOffset => _count;
 
-        public ReadOnlySpan<FragUniforms> Uniforms => _uniforms;
+        public ReadOnlySpan<byte> Uniforms => _uniforms;
 
         public UniformManager(int fragSize)
         {
             _fragSize = fragSize;
-            _uniforms = Array.Empty<FragUniforms>();
+            _uniforms = Array.Empty<byte>();
             _count = 0;
+            _capacity = 0;
         }
 
-        private int AllocVerts(int n)
+        private int AllocUniforms(int n)
         {
-            if (_count + n > _uniforms.Length)
+            if (_count + n > _capacity)
             {
-                int cverts = Math.Max(_count + n, 128) + _uniforms.Length / 2;
-                Array.Resize(ref _uniforms, cverts);
+                int cuniforms = Math.Max(_count + n, 128) + _uniforms.Length / 2;
+                Array.Resize(ref _uniforms, cuniforms * _fragSize);
+                _capacity = cuniforms;
             }
             return _count * _fragSize;
         }
 
-        public int AddUniform(FragUniforms uniforms)
+        public unsafe int AddUniform(FragUniforms uniforms)
         {
-            int ret = AllocVerts(1);
-            _uniforms[_count++] = uniforms;
-            return ret;
-        }
-
-        public int AddUniforms(ICollection<FragUniforms> uniforms)
-        {
-            int ret = AllocVerts(uniforms.Count);
-            uniforms.CopyTo(_uniforms, _count);
-            _count += uniforms.Count;
+            int ret = AllocUniforms(1);
+            ReadOnlySpan<byte> bytes = new(&uniforms, Marshal.SizeOf(typeof(FragUniforms)));
+            Buffer.BlockCopy(bytes.ToArray(), 0, _uniforms, ret, bytes.Length);
+            _count += 1;
             return ret;
         }
 

@@ -10,12 +10,10 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
     {
 
         private readonly int _align;
-        private readonly int _fragSize;
-
         private readonly VulkanRenderer _renderer;
 
         private Buffer<Vector2D<float>> _vertUniformBuffer;
-        private Buffer<FragUniforms> _fragUniformBuffer;
+        private Buffer<byte> _fragUniformBuffer;
 
         private DescriptorPool _descriptorPool;
         private uint _descriptorPoolCapacity;
@@ -32,6 +30,8 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
 
         public UniformManager UniformManager { get; }
 
+        public int FragSize { get; }
+
         public unsafe Shader(VulkanRenderer renderer)
         {
             _renderer = renderer;
@@ -42,9 +42,9 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
 
             _align = (int)_renderer.GpuProperties.Limits.MinUniformBufferOffsetAlignment;
 
-            _fragSize = sizeof(FragUniforms) + _align - (sizeof(FragUniforms) % _align);
+            FragSize = sizeof(FragUniforms) + _align - (sizeof(FragUniforms) % _align);
 
-            UniformManager = new UniformManager(_fragSize);
+            UniformManager = new UniformManager(FragSize);
             _vertUniformBuffer = default;
             _fragUniformBuffer = default;
             _descriptorPool = default;
@@ -90,7 +90,7 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
         {
             Buffer<Vector2D<float>>.UpdateBuffer(ref _vertUniformBuffer, BufferUsageFlags.BufferUsageUniformBufferBit,
                 MemoryPropertyFlags.MemoryPropertyHostVisibleBit, new(&view, 1), _renderer);
-            Buffer<FragUniforms>.UpdateBuffer(ref _fragUniformBuffer, BufferUsageFlags.BufferUsageUniformBufferBit,
+            Buffer<byte>.UpdateBuffer(ref _fragUniformBuffer, BufferUsageFlags.BufferUsageUniformBufferBit,
                 MemoryPropertyFlags.MemoryPropertyHostVisibleBit, UniformManager.Uniforms, _renderer);
         }
 
@@ -121,7 +121,7 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
             }
             else
             {
-                _renderer.Vk.ResetDescriptorPool(_renderer.Params.device, _descriptorPool, 0);
+                _ = _renderer.Vk.ResetDescriptorPool(_renderer.Params.device, _descriptorPool, 0);
             }
         }
 

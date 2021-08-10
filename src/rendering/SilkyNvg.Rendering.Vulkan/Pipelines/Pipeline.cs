@@ -149,9 +149,9 @@ namespace SilkyNvg.Rendering.Vulkan.Pipelines
             _renderer.Vk.CmdBindPipeline(cmdBuffer, PipelineBindPoint.Graphics, Handle);
         }
 
-        public void Dispose()
+        public unsafe void Dispose()
         {
-            throw new NotImplementedException();
+            _renderer.Vk.DestroyPipeline(_renderer.Params.device, Handle, _renderer.Params.allocator);
         }
 
         private static Silk.NET.Vulkan.BlendFactor BlendFactorToVkBlendFactor(Blending.BlendFactor factor)

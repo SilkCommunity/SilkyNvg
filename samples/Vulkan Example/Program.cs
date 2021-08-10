@@ -3,18 +3,16 @@ using Silk.NET.Core.Native;
 using Silk.NET.GLFW;
 using Silk.NET.Vulkan;
 using SilkyNvg;
-using SilkyNvg.Graphics;
-using SilkyNvg.Paths;
 using SilkyNvg.Rendering.Vulkan;
 using System;
 using System.Diagnostics;
 
 namespace Vulkan_Example
 {
-    unsafe class Program
+    public unsafe class Program
     {
 
-        static void Errorcb(Silk.NET.GLFW.ErrorCode error, string desc)
+        static void Errorcb(ErrorCode error, string desc)
         {
             Console.Error.WriteLine("GLFW error: " + error + Environment.NewLine + desc);
         }
@@ -193,7 +191,7 @@ namespace Vulkan_Example
             glfw.SetTime(0);
 
             vk = VkUtil.Vk;
-            Instance instance = VkUtil.CreateInstance(true, glfw);
+            Instance instance = VkUtil.CreateInstance(false, glfw);
 
             VkNonDispatchableHandle surfaceHandle = new();
             Result res = (Result)glfw.CreateWindowSurface(new VkHandle(instance.Handle), window, null, &surfaceHandle);
@@ -266,15 +264,8 @@ namespace Vulkan_Example
 
                     nvg.BeginFrame(winWidth, winHeight, pxRatio);
 
-                    nvg.BeginPath();
-                    nvg.Rect(50.0f, 50.0f, 100.0f, 25.0f);
-                    nvg.FillColour(Colour.BlueViolet);
-                    nvg.Fill();
-
-                    nvg.BeginPath();
-                    nvg.Circle(50.0f, 100.0f, 25.0f);
-                    nvg.FillColour(Colour.Orange);
-                    nvg.Fill();
+                    demo.Render((float)mx, (float)my, winWidth, winHeight, (float)t, blowup);
+                    fps.Render(5, 5, nvg);
 
                     nvg.EndFrame();
 

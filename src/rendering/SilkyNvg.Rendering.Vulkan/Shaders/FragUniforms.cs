@@ -24,6 +24,12 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
         private readonly int _texType;
         private readonly int _type;
 
+        public FragUniforms(float strokeThr, ShaderType type) : this()
+        {
+            _strokeThr = strokeThr;
+            _type = (int)type;
+        }
+
         public FragUniforms(Paint paint, Scissor scissor, float width, float fringe, float strokeThr)
         {
             Matrix3X2<float> invtransform;
@@ -98,6 +104,12 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
             }
 
             _paintMat = new Matrix3X4<float>(invtransform);
+        }
+
+        public FragUniforms(Paint paint, Scissor scissor, float fringe)
+            : this(paint, scissor, 1.0f, fringe, -1.0f)
+        {
+            _type = (int)ShaderType.Img;
         }
 
     }

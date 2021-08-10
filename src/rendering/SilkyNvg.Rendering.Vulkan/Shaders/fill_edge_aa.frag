@@ -23,6 +23,8 @@ layout (binding = 1) uniform frag {
 	int type;
 };
 
+layout (binding = 2) uniform sampler2D tex;
+
 float sdroundrect(vec2 pt, vec2 ext, float rad) {
 	vec2 ext2 = ext - vec2(rad, rad);
 	vec2 d = abs(pt) - ext2;
@@ -53,10 +55,26 @@ void main(void) {
 		colour *= strokeAlpha * scissor;
 		out_Colour = colour;
 	} else if (type == 1) { // image
+		vec2 pt = (paintMat * vec3(pass_vertex, 1.0)).xy / extent;
+		vec4 colour = texture(tex, pt);
+		if (texType == 1) {
+			colour = vec4(colour.xyz * colour.w, colour.w);
+		} else if (texType == 2) {
+			colour = vec4(colour.x);
+		}
+		colour *= innerCol;
+		colour *= strokeAlpha * scissor;
+		out_Colour = colour;
 	} else if (type == 2) { // stencil
 		out_Colour = vec4(1.0, 1.0, 1.0, 1.0);
 	} else if (type == 3) { // text
+		vec4 colour = texture(tex, pass_tcoord);
+		if (texType == 1) {
+			colour = vec4(colour.xyz * colour.w, colour.w);
+		} else if (texType == 2) {
+			colour = vec4(colour.x);
+		}
+		colour *= scissor;
+		out_Colour = colour * innerCol;
 	}
-
-	out_Colour = outerCol;
 }

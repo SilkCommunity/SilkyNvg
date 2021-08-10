@@ -33,7 +33,10 @@ namespace SilkyNvg.Rendering.Vulkan.Pipelines
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            foreach (Pipeline pipeline in _pipelines.Values)
+            {
+                pipeline.Dispose();
+            }
         }
 
     }

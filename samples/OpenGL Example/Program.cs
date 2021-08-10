@@ -2,6 +2,8 @@
 using Silk.NET.GLFW;
 using Silk.NET.OpenGL;
 using SilkyNvg;
+using SilkyNvg.Graphics;
+using SilkyNvg.Paths;
 using SilkyNvg.Rendering.OpenGL;
 using System;
 
