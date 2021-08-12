@@ -1125,10 +1125,5 @@ namespace NvgExample
             return col.R == 0.0f && col.G == 0.0f && col.B == 0.0f && col.A == 0.0f;
         }
 
-        public void SaveScreenShot(float w, float h, bool premult, string name)
-        {
-
-        }
-
     }
 }
