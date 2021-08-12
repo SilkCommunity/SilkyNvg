@@ -7,3 +7,6 @@
 [submodule "lib/SafeStbImageSharp"]
 	path = lib/SafeStbImageSharp
 	url = https://github.com/StbSharp/SafeStbImageSharp
+[submodule "NanoVG"]
+	path = NanoVG
+	url = https://github.com/memononen/nanovg
