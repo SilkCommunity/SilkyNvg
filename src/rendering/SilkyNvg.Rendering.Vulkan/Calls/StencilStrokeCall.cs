@@ -1,7 +1,6 @@
 ﻿using Silk.NET.Vulkan;
 using SilkyNvg.Blending;
 using SilkyNvg.Rendering.Vulkan.Pipelines;
-using System;
 using System.Runtime.InteropServices;
 
 namespace SilkyNvg.Rendering.Vulkan.Calls

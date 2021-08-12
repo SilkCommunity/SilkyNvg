@@ -68,7 +68,7 @@ namespace SilkyNvg.Rendering.Vulkan
             _stencilStrokes = flags.HasFlag(CreateFlags.StencilStrokes);
             _debug = flags.HasFlag(CreateFlags.Debug);
             TriangleListFill = flags.HasFlag(CreateFlags.TriangleListFill);
-            EdgeAntiAlias = flags.HasFlag(CreateFlags.Antialias);
+            EdgeAntiAlias = flags.HasFlag(CreateFlags.Antialias) & !TriangleListFill;
 
             _view = default;
             _vertexBuffer = default;
@@ -277,7 +277,10 @@ namespace SilkyNvg.Rendering.Vulkan
             Call call;
             if (_stencilStrokes)
             {
+                FragUniforms stencilUniforms = new(paint, scissor, strokeWidth, fringe, 1.0f - 0.5f / 255.0f);
                 int uniformOffset = Shader.UniformManager.AddUniform(uniforms);
+                _ = Shader.UniformManager.AddUniform(stencilUniforms);
+
                 call = new StencilStrokeCall(paint.Image, renderPaths, uniformOffset, compositeOperation, this);
             }
             else

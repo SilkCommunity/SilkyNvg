@@ -7,7 +7,7 @@ layout (location = 1) in vec2 pass_tcoord;
 
 layout (location = 0) out vec4 out_Colour;
 
-layout (binding = 1) uniform frag {
+layout (std140, binding = 1) uniform frag {
 	mat3 scissorMat;
 	mat3 paintMat;
 	vec4 innerCol;

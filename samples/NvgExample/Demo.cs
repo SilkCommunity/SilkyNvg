@@ -995,7 +995,6 @@ namespace NvgExample
             DrawParagraph(width - 450.0f, 50.0f, 150.0f, mx, my);
             DrawGraph(0.0f, height / 2.0f, width, height / 2.0f, t);
             DrawColourwheel(width - 300.0f, height - 300.0f, 250.0f, 250.0f, t);
-
             DrawLines(120.0f, height - 50.0f, 600.0f, 50.0f, t);
 
             DrawWidths(10, 50, 30);

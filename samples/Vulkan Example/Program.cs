@@ -3,7 +3,6 @@ using Silk.NET.Core.Native;
 using Silk.NET.GLFW;
 using Silk.NET.Vulkan;
 using SilkyNvg;
-using SilkyNvg.Paths;
 using SilkyNvg.Rendering.Vulkan;
 using System;
 using System.Diagnostics;

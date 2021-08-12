@@ -12,13 +12,20 @@ then an instance can simply be created like this: `Nvg nvg = Nvg.Create(renderer
 All calls to the render-API must be wrapped between `Nvg.BeginFrame(width, height, pixelRatio);`
 and ``Nvg.EndFrame();``.
 
+The implementations are split up into different components, these being:
+- SilkyNvg.Blending *for global blending*
+- SilkyNvg.Graphics *for render styles*
+- SilkyNvg.Images *for images*
+- SilkyNvg.Paths *for creating and drawing paths*
+- SilkyNvg.Scissoring *for custom scissors*
+- SilkyNvg.Text *for text*
+- SilkyNvg.Transforms *for creating and altering the transform*
+- SilkyNvg *for core methods, such as BeginFrame, DebugDumpCache, Colour and Paint*
+All components are linked to `SilkyNvg.Nvg` via extension methods in their respective namespaces.
+
 ### Renderers
 SilkyNvg provides an OpenGL and a Vulkan render implementation out of the box.
 It is also possible to create a custom render implementation (PRs welcome, if you want to share).
-
-To create a custom render implementation, the renderer class musst implement `SilkyNvg.Rendering.INvgRenderer`.
-This interface contains the following methods and properties:
-
 
 #### OpenGL Renderer
 The [OpenGL renderer](https://github.com/MatijaBrown/SilkyNvg/tree/main/src/rendering/SilkyNvg.Rendering.OpenGL) is highly straightforward to use: In the constructer the API-Object and additional flags
@@ -31,7 +38,11 @@ For additional info, see this [NanoVG Vulkan Renderer](https://github.com/danilw
 
 For further details, see the [NanoVG doc](https://github.com/memononen/nanovg/), as the API and implementations are intentionally kept similar.
 
-> #### INvgRenderer
+#### Custom Renderer Implementations
+To create a custom render implementation, the renderer class musst implement `SilkyNvg.Rendering.INvgRenderer`.
+This interface contains the following methods and properties:
+
+> ##### INvgRenderer
 > - `bool EdgeAntiAlias` Wheather or not antialiasing was enabled when creating the renderer. Used because some renderers might not support > antialiasing.
 > - `bool Create()` Is called when NanoVG is initialized. Initialize the renderer here. Return false if initialization failed, otherwise return true.
 > - `int CreateTexture(Texture type, Vector2D<uint> size, ImageFlags imageFlags, ReadOnlySpan<byte> data)` Is called to create a new image. *type* parameter specifies wheather *data* should be interpreted either as **RGBA** or **Alpha** values. Return handle to the new image.
