@@ -1,0 +1,3 @@
+[submodule "lib/FontStash.NET"]
+	path = lib/FontStash.NET
+	url = https://github.com/MatijaBrown/FontStash.NET
