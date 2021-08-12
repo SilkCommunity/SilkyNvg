@@ -265,7 +265,7 @@ namespace SilkyNvg.Text
             }
 
             nvg.fontManager.FlushTextTexture();
-            nvg.fontManager.RenderText(vertices.ToArray());
+            nvg.fontManager.RenderText(vertices);
 
             return iter.nextx / scale;
         }
@@ -489,14 +489,14 @@ namespace SilkyNvg.Text
         /// </summary>
         public static int TextGlyphPositions(this Nvg nvg, Vector2D<float> pos, string @string, string end, out GlyphPosition[] positions, int maxRows)
         {
-            positions = null;
+            positions = new GlyphPosition[maxRows];
 
             Fontstash fons = nvg.fontManager.Fontstash;
             State state = nvg.stateStack.CurrentState;
             float scale = nvg.fontManager.GetFontScale() * nvg.pixelRatio.DevicePxRatio;
             float invscale = 1.0f / scale;
-            List<GlyphPosition> ps = new(maxRows);
             FonsQuad q = new();
+            int npos = 0;
 
             if (state.FontId == Fontstash.INVALID)
             {
@@ -524,16 +524,14 @@ namespace SilkyNvg.Text
                     fons.TextIterNext(ref iter, ref q);
                 }
                 prevIter = iter;
-                ps.Add(new GlyphPosition(iter.str, iter.x * invscale, MathF.Min(iter.x, q.x0) * invscale, MathF.Max(iter.nextx, q.x1) * invscale));
-                if (ps.Count >= maxRows)
+                positions[npos++] = new GlyphPosition(iter.str, iter.x * invscale, MathF.Min(iter.x, q.x0) * invscale, MathF.Max(iter.nextx, q.x1) * invscale);
+                if (npos >= maxRows)
                 {
-                    positions = ps.ToArray();
-                    return ps.Count;
+                    return npos;
                 }
             }
 
-            positions = ps.ToArray();
-            return ps.Count;
+            return npos;
         }
 
         /// <inheritdoc cref="TextGlyphPositions(Nvg, Vector2D{float}, string, string, out GlyphPosition[], int)"/>
@@ -577,7 +575,7 @@ namespace SilkyNvg.Text
         /// </summary>
         public static int TextBreakLines(this Nvg nvg, string @string, string end, float breakRowWidth, out TextRow[] rows, int maxRows)
         {
-            rows = null;
+            rows = new TextRow[maxRows];
 
             Fontstash fons = nvg.fontManager.Fontstash;
 
@@ -585,7 +583,7 @@ namespace SilkyNvg.Text
             float scale = nvg.fontManager.GetFontScale() * nvg.pixelRatio.DevicePxRatio;
             float invscale = 1.0f / scale;
             FonsQuad q = new();
-            List<TextRow> rs = new(maxRows);
+            int nrows = 0;
             float rowStartX = 0.0f;
             float rowWidth = 0.0f;
             float rowMinX = 0.0f;
@@ -671,7 +669,7 @@ namespace SilkyNvg.Text
 
                 if (type == CodepointType.Newline)
                 {
-                    rs.Add(new TextRow()
+                    rows[nrows++] = new TextRow()
                     {
                         Start = rowStart ?? iter.str,
                         End = rowEnd ?? iter.str,
@@ -679,12 +677,11 @@ namespace SilkyNvg.Text
                         MinX = rowMinX * invscale,
                         MaxX = rowMaxX * invscale,
                         Next = iter.next
-                    });
+                    };
 
-                    if (rs.Count >= maxRows)
+                    if (nrows >= maxRows)
                     {
-                        rows = rs.ToArray();
-                        return rs.Count;
+                        return nrows;
                     }
 
                     breakEnd = rowStart;
@@ -746,7 +743,7 @@ namespace SilkyNvg.Text
                         {
                             if (breakEnd == rowStart)
                             {
-                                rs.Add(new TextRow()
+                                rows[nrows++] = new TextRow()
                                 {
                                     Start = rowStart,
                                     End = iter.str,
@@ -754,12 +751,11 @@ namespace SilkyNvg.Text
                                     MinX = rowMinX * invscale,
                                     MaxX = rowMaxX * invscale,
                                     Next = iter.str
-                                });
+                                };
 
-                                if (rs.Count >= maxRows)
+                                if (nrows >= maxRows)
                                 {
-                                    rows = rs.ToArray();
-                                    return maxRows;
+                                    return nrows;
                                 }
 
                                 rowStartX = iter.x;
@@ -774,7 +770,7 @@ namespace SilkyNvg.Text
                             }
                             else
                             {
-                                rs.Add(new TextRow()
+                                rows[nrows++] = new TextRow()
                                 {
                                     Start = rowStart,
                                     End = breakEnd,
@@ -782,12 +778,11 @@ namespace SilkyNvg.Text
                                     MinX = rowMinX * invscale,
                                     MaxX = breakMaxX * invscale,
                                     Next = wordStart
-                                });
+                                };
 
-                                if (rs.Count >= maxRows)
+                                if (nrows >= maxRows)
                                 {
-                                    rows = rs.ToArray();
-                                    return maxRows;
+                                    return nrows;
                                 }
 
                                 rowStartX = wordStartX;
@@ -811,7 +806,7 @@ namespace SilkyNvg.Text
 
             if (rowStart != null)
             {
-                rs.Add(new TextRow()
+                rows[nrows++] = new TextRow()
                 {
                     Start = rowStart,
                     End = rowEnd,
@@ -819,11 +814,10 @@ namespace SilkyNvg.Text
                     MinX = rowMinX * invscale,
                     MaxX = rowMaxX * invscale,
                     Next = end
-                });
+                };
             }
 
-            rows = rs.ToArray();
-            return rs.Count;
+            return nrows;
         }
 
         /// <summary>
