@@ -23,7 +23,6 @@ namespace Vulkan_Example
         static Nvg nvg;
 
         static bool blowup = false;
-        static bool premult = false;
         static bool resizeEvent = false;
 
         static void Key(WindowHandle* window, Keys key, int _, InputAction action, KeyModifiers __)
@@ -32,8 +31,6 @@ namespace Vulkan_Example
                 glfw.SetWindowShouldClose(window, true);
             if (key == Keys.Space && action == InputAction.Press)
                 blowup = !blowup;
-            if (key == Keys.P && action == InputAction.Press)
-                premult = !premult;
         }
 
         static void PrepareFrame(Device device, CommandBuffer cmdBuffer, ref FrameBuffers fb)

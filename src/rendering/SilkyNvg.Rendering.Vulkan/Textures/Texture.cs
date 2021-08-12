@@ -144,7 +144,7 @@ namespace SilkyNvg.Rendering.Vulkan.Textures
                 }
 
                 ulong textureSize = Size.X * Size.Y * txFormat * sizeof(byte);
-                Span<byte> generatedTexture = stackalloc byte[(int)textureSize];
+                Span<byte> generatedTexture = new byte[(int)textureSize];
                 Update(_renderer.Params.device, Rectangle.FromLTRB((uint)0, (uint)0, Size.X, Size.Y), generatedTexture);
             }
 

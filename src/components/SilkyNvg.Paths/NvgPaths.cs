@@ -7,57 +7,85 @@ using System;
 
 namespace SilkyNvg.Paths
 {
+    /// <summary>
+    /// <para>Drawing a new shape starts with <see cref="BeginPath(Nvg)"/>, it clears all the currently defined paths.
+    /// Then you define one or more paths and sub-paths which descripe the shape. There are functions
+    /// to draw common shapes like rectangles and circles, and lower level step-by-step functions,
+    /// which allow to define a path curve by curve.</para>
+    /// </summary>
     public static class NvgPaths
     {
 
         private const float KAPPA90 = 0.5522847493f;
 
+        /// <summary>
+        /// Clears the current path and sub-paths.
+        /// </summary>
         public static void BeginPath(this Nvg nvg)
         {
             nvg.instructionQueue.Clear();
             nvg.pathCache.Clear();
         }
 
-        public static void MoveTo(this Nvg nvg, Vector2D<float> pos)
+        /// <summary>
+        /// Starts a new sub-path with specified point as first point.
+        /// </summary>
+        public static void MoveTo(this Nvg nvg, Vector2D<float> p)
         {
-            nvg.instructionQueue.AddMoveTo(pos);
+            nvg.instructionQueue.AddMoveTo(p);
         }
 
+        /// <inheritdoc cref="MoveTo(Nvg, Vector2D{float})"/><br/>
         public static void MoveTo(this Nvg nvg, float x, float y)
             => MoveTo(nvg, new Vector2D<float>(x, y));
 
-        public static void LineTo(this Nvg nvg, Vector2D<float> pos)
+        /// <summary>
+        /// Adds line segment from the last point in the path to the specified point.
+        /// </summary>
+        public static void LineTo(this Nvg nvg, Vector2D<float> p)
         {
-            nvg.instructionQueue.AddLineTo(pos);
+            nvg.instructionQueue.AddLineTo(p);
         }
 
+        /// <inheritdoc cref="LineTo(Nvg, Vector2D{float})"/><br/>
         public static void LineTo(this Nvg nvg, float x, float y)
             => LineTo(nvg, new Vector2D<float>(x, y));
 
-        public static void BezierTo(this Nvg nvg, Vector2D<float> cp0, Vector2D<float> cp1, Vector2D<float> pos)
+        /// <summary>
+        /// Adds cubic bezier segment from last point in the path via two control points to the specified point.
+        /// </summary>
+        public static void BezierTo(this Nvg nvg, Vector2D<float> cp0, Vector2D<float> cp1, Vector2D<float> p)
         {
-            nvg.instructionQueue.AddBezierTo(cp0, cp1, pos);
+            nvg.instructionQueue.AddBezierTo(cp0, cp1, p);
         }
 
+        /// <inheritdoc cref="BezierTo(Nvg, Vector2D{float}, Vector2D{float}, Vector2D{float})"/><br/>
         public static void BezierTo(this Nvg nvg, float c0x, float c0y, float c1x, float c1y, float x, float y)
             => BezierTo(nvg, new Vector2D<float>(c0x, c0y), new Vector2D<float>(c1x, c1y), new Vector2D<float>(x, y));
 
-        public static void QuadTo(this Nvg nvg, Vector2D<float> cp, Vector2D<float> pos)
+        /// <summary>
+        /// Adds quadratic bezier segment from last point in the path via a control point to the specified point.
+        /// </summary>
+        public static void QuadTo(this Nvg nvg, Vector2D<float> cp, Vector2D<float> p)
         {
             Vector2D<float> lastPos = nvg.instructionQueue.EndPosition;
             nvg.instructionQueue.AddBezierTo(
                 lastPos + 2.0f / 3.0f * (cp - lastPos),
-                pos + 2.0f / 3.0f * (cp - pos),
-                pos
+                p + 2.0f / 3.0f * (cp - p),
+                p
             );
         }
 
+        /// <inheritdoc cref="QuadTo(Nvg, Vector2D{float}, Vector2D{float})"/><br/>
         public static void QuadTo(this Nvg nvg, float cx, float cy, float x, float y)
             => QuadTo(nvg, new Vector2D<float>(cx, cy), new Vector2D<float>(x, y));
 
-        public static void ArcTo(this Nvg nvg, Vector2D<float> pos1, Vector2D<float> pos2, float radius)
+        /// <summary>
+        /// Adds an arc segment at the corner defined by the last path point and two specified points.
+        /// </summary>
+        public static void ArcTo(this Nvg nvg, Vector2D<float> p1, Vector2D<float> p2, float radius)
         {
-            Vector2D<float> pos0 = nvg.instructionQueue.EndPosition;
+            Vector2D<float> p0 = nvg.instructionQueue.EndPosition;
 
             if (nvg.instructionQueue.Count == 0)
             {
@@ -66,17 +94,17 @@ namespace SilkyNvg.Paths
 
             float distToll = nvg.pixelRatio.DistTol;
 
-            if (Maths.PtEquals(pos0, pos1, distToll) ||
-                Maths.PtEquals(pos1, pos2, distToll) ||
-                Maths.DistPtSeg(pos1, pos0, pos2) < distToll ||
+            if (Maths.PtEquals(p0, p1, distToll) ||
+                Maths.PtEquals(p1, p2, distToll) ||
+                Maths.DistPtSeg(p1, p0, p2) < distToll ||
                 radius < distToll)
             {
-                LineTo(nvg, pos1);
+                LineTo(nvg, p1);
                 return;
             }
 
-            Vector2D<float> d0 = pos0 - pos1;
-            Vector2D<float> d1 = pos2 - pos1;
+            Vector2D<float> d0 = p0 - p1;
+            Vector2D<float> d1 = p2 - p1;
             d0 = Vector2D.Normalize(d0);
             d1 = Vector2D.Normalize(d1);
             float a = MathF.Acos(d0.X * d1.X + d0.Y * d1.Y);
@@ -84,7 +112,7 @@ namespace SilkyNvg.Paths
 
             if (d > 10000.0f)
             {
-                LineTo(nvg, pos1);
+                LineTo(nvg, p1);
                 return;
             }
 
@@ -93,8 +121,8 @@ namespace SilkyNvg.Paths
             float a0, a1;
             if (Maths.Cross(d0, d1) > 0.0f)
             {
-                float cx = pos1.X + d0.X * d + d0.Y * radius;
-                float cy = pos1.Y + d0.Y * d + -d0.X * radius;
+                float cx = p1.X + d0.X * d + d0.Y * radius;
+                float cy = p1.Y + d0.Y * d + -d0.X * radius;
                 a0 = MathF.Atan2(d0.X, -d0.Y);
                 a1 = MathF.Atan2(-d1.X, d1.Y);
                 dir = Winding.Cw;
@@ -102,8 +130,8 @@ namespace SilkyNvg.Paths
             }
             else
             {
-                float cx = pos1.X + d0.X * d + -d0.Y * radius;
-                float cy = pos1.Y + d0.Y * d + d0.X * radius;
+                float cx = p1.X + d0.X * d + -d0.Y * radius;
+                float cy = p1.Y + d0.Y * d + d0.X * radius;
                 a0 = MathF.Atan2(-d0.X, d0.Y);
                 a1 = MathF.Atan2(d1.X, -d1.Y);
                 dir = Winding.Ccw;
@@ -113,22 +141,37 @@ namespace SilkyNvg.Paths
             Arc(nvg, valuesC, radius, a0, a1, dir);
         }
 
+        /// <inheritdoc cref="ArcTo(Nvg, Vector2D{float}, Vector2D{float}, float)"/><br/>
         public static void ArcTo(this Nvg nvg, float x1, float y1, float x2, float y2, float radius)
             => ArcTo(nvg, new Vector2D<float>(x1, y1), new Vector2D<float>(x2, y2), radius);
 
+        /// <summary>
+        /// Closes current sub-path with a line segment.
+        /// </summary>
         public static void ClosePath(this Nvg nvg)
         {
             nvg.instructionQueue.AddClose();
         }
 
+        /// <summary>
+        /// Sets the current sub-path winding, <see cref="Winding"/> and <see cref="Solidity"/>
+        /// </summary>
         public static void PathWinding(this Nvg nvg, Winding dir)
         {
             nvg.instructionQueue.AddWinding(dir);
         }
 
+        /// <inheritdoc cref="PathWinding(Nvg, Winding)"/><br/>
         public static void PathWinding(this Nvg nvg, Solidity sol)
             => PathWinding(nvg, (Winding)sol);
 
+        /// <summary>
+        /// Creates new circle arc shaped sub-path.
+        /// The arc is drawn from angle a0 to a1.
+        /// </summary>
+        /// <param name="c">The arc center.</param>
+        /// <param name="r">The arc radius.</param>
+        /// <param name="dir">The direction the arc is swept in.</param>
         public static void Arc(this Nvg nvg, Vector2D<float> c, float r, float a0, float a1, Winding dir)
         {
             Vector2D<float> pPos = default;
@@ -205,15 +248,28 @@ namespace SilkyNvg.Paths
             }
         }
 
+        /// <summary>
+        /// Creates new circle arc shaped sub-path.
+        /// The arc is drawn from angle a0 to a1.
+        /// </summary>
+        /// <param name="cx">The arc center X-Choordinate.</param>
+        /// <param name="cy">The arc center Y-Choordinate.</param>
+        /// <param name="r">The arc radius.</param>
+        /// <param name="dir">The direction the arc is swept in.</param>
         public static void Arc(this Nvg nvg, float cx, float cy, float r, float a0, float a1, Winding dir)
             => Arc(nvg, new Vector2D<float>(cx, cy), r, a0, a1, dir);
 
+        /// <inheritdoc cref="Arc(Nvg, Vector2D{float}, float, float, float, Winding)"/><br/>
         public static void Arc(this Nvg nvg, Vector2D<float> c, float r, float a0, float a1, Solidity solidity)
             => Arc(nvg, c, r, a0, a1, (Winding)solidity);
 
+        /// <inheritdoc cref="Arc(Nvg, float, float, float, float, float, Winding)"/><br/>
         public static void Arc(this Nvg nvg, float cx, float cy, float r, float a0, float a1, Solidity solidity)
             => Arc(nvg, new Vector2D<float>(cx, cy), r, a0, a1, (Winding)solidity);
 
+        /// <summary>
+        /// Creates a new rectangle shaped sub-path.
+        /// </summary>
         public static void Rect(this Nvg nvg, Rectangle<float> rect)
         {
             InstructionQueue queue = nvg.instructionQueue;
@@ -224,9 +280,33 @@ namespace SilkyNvg.Paths
             queue.AddClose();
         }
 
-        public static void Rect(this Nvg nvg, float x, float y, float w, float h)
-            => Rect(nvg, new Rectangle<float>(new Vector2D<float>(x, y), new Vector2D<float>(w, h)));
+        /// <inheritdoc cref="Rect(Nvg, Rectangle{float})"/>
+        public static void Rect(this Nvg nvg, Vector2D<float> pos, Vector2D<float> size)
+            => Rect(nvg, new Rectangle<float>(pos, size));
 
+        /// <inheritdoc cref="Rect(Nvg, Rectangle{float})"/>
+        public static void Rect(this Nvg nvg, float x, float y, float w, float h)
+            => Rect(nvg, Rectangle.FromLTRB(x, y, x + w, y + h));
+
+        /// <summary>
+        /// Creates a new rounded rectangle shaped sub-path.
+        /// </summary>
+        public static void RoundedRect(this Nvg nvg, Rectangle<float> rect, float r)
+        {
+            RoundedRectVarying(nvg, rect, r, r, r, r);
+        }
+
+        /// <inheritdoc cref="RoundedRect(Nvg, Rectangle{float}, float)"/>
+        public static void RoundedRect(this Nvg nvg, Vector2D<float> pos, Vector2D<float> size, float r)
+            => RoundedRect(nvg, pos, size, r);
+
+        /// <inheritdoc cref="RoundedRect(Nvg, Rectangle{float}, float)"/>
+        public static void RoundedRect(this Nvg nvg, float x, float y, float w, float h, float r)
+            => RoundedRect(nvg, Rectangle.FromLTRB(x, y, x + w, y + h), r);
+
+        /// <summary>
+        /// Creates a new rounded rectangle shaped sub-path with varying radii for each corner.
+        /// </summary>
         public static void RoundedRectVarying(this Nvg nvg, Rectangle<float> rect, float radTopLeft, float radTopRight, float radBottomRight, float radBottomLeft)
         {
             if (radTopLeft < 0.1f && radTopRight < 0.1f && radBottomRight < 0.1f && radBottomLeft < 0.1f)
@@ -272,17 +352,17 @@ namespace SilkyNvg.Paths
             }
         }
 
-        public static void RoundedRectVarying(this Nvg nvg, float x, float y, float width, float height, float radTopLeft, float radTopRight, float radBottomRight, float radBottomLeft)
-            => RoundedRectVarying(nvg, x, y, width, height, radTopLeft, radTopRight, radBottomRight, radBottomLeft);
+        /// <inheritdoc cref="RoundedRectVarying(Nvg, Rectangle{float}, float, float, float, float)"/>
+        public static void RoundedRectVarying(this Nvg nvg, Vector2D<float> pos, Vector2D<float> size, float radTopLeft, float radTopRight, float radBottomRight, float radBottomLeft)
+            => RoundedRectVarying(nvg, new Rectangle<float>(pos, size), radTopLeft, radTopRight, radBottomRight, radBottomLeft);
 
-        public static void RoundedRect(this Nvg nvg, Rectangle<float> rect, float r)
-        {
-            RoundedRectVarying(nvg, rect, r, r, r, r);
-        }
+        /// <inheritdoc cref="RoundedRectVarying(Nvg, Rectangle{float}, float, float, float, float)"/>
+        public static void RoundedRectVarying(this Nvg nvg, float x, float y, float w, float h, float radTopLeft, float radTopRight, float radBottomRight, float radBottomLeft)
+            => RoundedRectVarying(nvg, Rectangle.FromLTRB(x, y, x + w, y + h), radTopLeft, radTopRight, radBottomRight, radBottomLeft);
 
-        public static void RoundedRect(this Nvg nvg, float x, float y, float width, float height, float r)
-            => RoundedRect(nvg, new Rectangle<float>(new Vector2D<float>(x, y), new Vector2D<float>(width, height)), r);
-
+        /// <summary>
+        /// Creates a new ellipse shaped sub-path.
+        /// </summary>
         public static void Ellipse(this Nvg nvg, Vector2D<float> c, float rx, float ry)
         {
             InstructionQueue queue = nvg.instructionQueue;
@@ -306,17 +386,25 @@ namespace SilkyNvg.Paths
             queue.AddClose();
         }
 
+        /// <inheritdoc cref="Ellipse(Nvg, Vector2D{float}, float, float)"/>
         public static void Ellipse(this Nvg nvg, float cx, float cy, float rx, float ry)
             => Ellipse(nvg, new Vector2D<float>(cx, cy), rx, ry);
-
+        
+        /// <summary>
+        /// Creates a new circle shaped sub-path.
+        /// </summary>
         public static void Circle(this Nvg nvg, Vector2D<float> c, float r)
         {
             Ellipse(nvg, c, r, r);
         }
 
+        /// <inheritdoc cref="Circle(Nvg, Vector2D{float}, float)"/>
         public static void Circle(this Nvg nvg, float cx, float cy, float r)
             => Circle(nvg, new Vector2D<float>(cx, cy), r);
 
+        /// <summary>
+        /// Fills the current path with current fill style.
+        /// </summary>
         public static void Fill(this Nvg nvg)
         {
             State state = nvg.stateStack.CurrentState;
@@ -343,6 +431,9 @@ namespace SilkyNvg.Paths
             }
         }
 
+        /// <summary>
+        /// Fills the current path with current stroke style.
+        /// </summary>
         public static void Stroke(this Nvg nvg)
         {
             State state = nvg.stateStack.CurrentState;

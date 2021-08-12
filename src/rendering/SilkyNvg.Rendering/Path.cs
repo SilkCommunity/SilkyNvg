@@ -20,7 +20,7 @@ namespace SilkyNvg.Rendering
 
         private readonly PixelRatio _pixelRatio;
         private uint _bevelCount;
-        private Vector4D<float> _bounds;
+        private Box2D<float> _bounds;
 
         public bool Closed { get; private set; }
 
@@ -34,14 +34,14 @@ namespace SilkyNvg.Rendering
 
         public Winding Winding { get; internal set; }
 
-        internal Vector4D<float> Bounds => _bounds;
+        internal Box2D<float> Bounds => _bounds;
 
         internal Path(Winding winding, PixelRatio pixelRatio)
         {
             Winding = winding;
             _pixelRatio = pixelRatio;
 
-            _bounds = new(1e6f, 1e6f, -1e6f, -1e6f);
+            _bounds = new Box2D<float>(new Vector2D<float>(1e6f, 1e6f), new Vector2D<float>(-1e6f, -1e6f));
         }
 
         internal Vector2D<float> LastPoint
@@ -123,10 +123,10 @@ namespace SilkyNvg.Rendering
                 p1 = point;
                 p0.SetDeterminant(p1);
 
-                _bounds.X = MathF.Min(_bounds.X, p0.Position.X);
-                _bounds.Y = MathF.Min(_bounds.Y, p0.Position.Y);
-                _bounds.Z = MathF.Max(_bounds.Z, p0.Position.X);
-                _bounds.W = MathF.Max(_bounds.W, p0.Position.Y);
+                _bounds.Min.X = MathF.Min(_bounds.Min.X, p0.Position.X);
+                _bounds.Min.Y = MathF.Min(_bounds.Min.Y, p0.Position.Y);
+                _bounds.Max.X = MathF.Max(_bounds.Max.X, p0.Position.X);
+                _bounds.Max.Y = MathF.Max(_bounds.Max.Y, p0.Position.Y);
 
                 p0 = p1;
             }

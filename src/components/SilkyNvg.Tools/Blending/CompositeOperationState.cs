@@ -11,7 +11,7 @@
 
         public BlendFactor DstAlpha { get; }
 
-        public CompositeOperationState(BlendFactor srcRgb, BlendFactor dstRgb, BlendFactor srcAlpha, BlendFactor dstAlpha)
+        internal CompositeOperationState(BlendFactor srcRgb, BlendFactor dstRgb, BlendFactor srcAlpha, BlendFactor dstAlpha)
         {
             SrcRgb = srcRgb;
             DstRgb = dstRgb;
@@ -19,10 +19,10 @@
             DstAlpha = dstAlpha;
         }
 
-        public CompositeOperationState(BlendFactor srcFactor, BlendFactor dstFactor)
+        internal CompositeOperationState(BlendFactor srcFactor, BlendFactor dstFactor)
             : this(srcFactor, dstFactor, srcFactor, dstFactor) { }
 
-        public CompositeOperationState(CompositeOperation op)
+        internal CompositeOperationState(CompositeOperation op)
         {
             BlendFactor srcFactor, dstFactor;
 

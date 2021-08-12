@@ -3,9 +3,17 @@ using System;
 
 namespace SilkyNvg.Scissoring
 {
+    /// <summary>
+    /// <para>Scissoring allows you to clip the rendering into a rectangle. This is useful for various
+    /// user interface cases like rendering text edit or a timeline.</para>
+    /// </summary>
     public static class NvgScissoring
     {
 
+        /// <summary>
+        /// Sets the current scissor rectangle.
+        /// The scissor rectangle is transformed by the current transform.
+        /// </summary>
         public static void Scissor(this Nvg nvg, Rectangle<float> rect)
         {
             Vector2D<float> pos = rect.Origin;
@@ -25,9 +33,23 @@ namespace SilkyNvg.Scissoring
             );
         }
 
+        /// <inheritdoc cref="Scissor(Nvg, Rectangle{float})"/>
+        public static void Scissor(this Nvg nvg, Vector2D<float> pos, Vector2D<float> size)
+            => Scissor(nvg, new Rectangle<float>(pos, size));
+
+
+        /// <inheritdoc cref="Scissor(Nvg, Rectangle{float})"/>
         public static void Scissor(this Nvg nvg, float x, float y, float width, float height)
             => Scissor(nvg, Rectangle.FromLTRB(x, y, x + width, y + height));
 
+        /// <summary>
+        /// <para>Intersects current scissor rectangle with the specified rectangle.
+        /// The scissor rectangle is transformed by the current transform.</para>
+        /// <para>Note: in case the rotation of previous scissor rect differs from
+        /// the current one, the intersection will be done between the specified
+        /// rectangle and the previous scissor rectangle transformed in the current
+        /// transform space. The resulting shape is always a rectangle.</para>
+        /// </summary>
         public static void IntersectScissor(this Nvg nvg, Rectangle<float> rect)
         {
             static Rectangle<float> IsectRects(Rectangle<float> a, Rectangle<float> b)
@@ -59,9 +81,18 @@ namespace SilkyNvg.Scissoring
             Scissor(nvg, r);
         }
 
-        public static void IntersectScissor(this Nvg nvg, float x, float y, float width, float height)
-            => IntersectScissor(nvg, new Rectangle<float>(new Vector2D<float>(x, y), new Vector2D<float>(width, height)));
 
+        /// <inheritdoc cref="IntersectScissor(Nvg, Rectangle{float})"/>
+        public static void IntersectScissor(this Nvg nvg, Vector2D<float> pos, Vector2D<float> size)
+            => IntersectScissor(nvg, new Rectangle<float>(pos, size));
+
+        /// <inheritdoc cref="IntersectScissor(Nvg, Rectangle{float})"/>
+        public static void IntersectScissor(this Nvg nvg, float x, float y, float w, float h)
+            => IntersectScissor(nvg, Rectangle.FromLTRB(x, y, x + w, y + h));
+
+        /// <summary>
+        /// Resets and disables scissoring.
+        /// </summary>
         public static void ResetScissor(this Nvg nvg)
         {
             nvg.stateStack.CurrentState.Scissor = new(new Vector2D<float>(-1.0f));

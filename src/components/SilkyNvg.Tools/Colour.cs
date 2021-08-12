@@ -193,10 +193,19 @@ namespace SilkyNvg
         public float A => _a;
 
         #region Constructors
+        /// <summary>
+        /// From red, green, blue values. Alpha will be set to 255 (1.0f).
+        /// </summary>
         public Colour(byte r, byte g, byte b) : this(r, g, b, 255) { }
 
+        /// <summary>
+        /// From red, green, blue values. Alpha will be set to 1.0f.
+        /// </summary>
         public Colour(float r, float g, float b) : this(r, g, b, 1.0f) { }
 
+        /// <summary>
+        /// From red, green, blue and alpha values.
+        /// </summary>
         public Colour(byte r, byte g, byte b, byte a)
         {
             _r = (float)r / 255.0f;
@@ -205,6 +214,9 @@ namespace SilkyNvg
             _a = (float)a / 255.0f;
         }
 
+        /// <summary>
+        /// From red, green, blue and alpha values.
+        /// </summary>
         public Colour(float r, float g, float b, float a)
         {
             _r = r;
@@ -213,6 +225,9 @@ namespace SilkyNvg
             _a = a;
         }
 
+        /// <summary>
+        /// New colour with different transparency.
+        /// </summary>
         public Colour(Colour c, byte a)
         {
             _r = c.R;
@@ -221,6 +236,9 @@ namespace SilkyNvg
             _a = (float)a / 255.0f;
         }
 
+        /// <summary>
+        /// New colour with different transparency.
+        /// </summary>
         public Colour(Colour c, float a)
         {
             _r = c.R;
@@ -229,6 +247,9 @@ namespace SilkyNvg
             _a = a;
         }
 
+        /// <summary>
+        /// Interpolates from color c0 to c1, and returns resulting colour value.
+        /// </summary>
         public Colour(Colour c0, Colour c1, float u)
         {
             u = Maths.Clamp(u, 0.0f, 1.0f);
@@ -239,6 +260,10 @@ namespace SilkyNvg
             _a = c0.A * oneminusu + c1.A * u;
         }
 
+        /// <summary>
+        /// A new colour value specified by hue, saturation and lightness and alpha.<br/>
+        /// HSL values are all in range [0..1], alpha will be in range [0..255]
+        /// </summary>
         public Colour(float h, float s, float l, byte a)
         {
             h = Maths.Mod(h, 1.0f);
@@ -269,6 +294,9 @@ namespace SilkyNvg
             };
         }
 
+        /// <summary>
+        /// Returns a new colour with premultiplied values.
+        /// </summary>
         public Colour Premult()
         {
             float r = _r * _a;

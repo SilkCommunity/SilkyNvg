@@ -27,7 +27,7 @@ namespace SilkyNvg.Rendering
 
         void Flush();
 
-        void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Rectangle<float> bounds, IReadOnlyList<Path> paths);
+        void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Box2D<float> bounds, IReadOnlyList<Path> paths);
 
         void Stroke(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, float strokeWidth, IReadOnlyList<Path> paths);
 

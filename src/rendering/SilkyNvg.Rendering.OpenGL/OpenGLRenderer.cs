@@ -229,7 +229,7 @@ namespace SilkyNvg.Rendering.OpenGL
             _callQueue.Clear();
         }
 
-        public void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Rectangle<float> bounds, IReadOnlyList<Rendering.Path> paths)
+        public void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Box2D<float> bounds, IReadOnlyList<Rendering.Path> paths)
         {
             int offset = _vertexCollection.CurrentsOffset;
             Path[] renderPaths = new Path[paths.Count];
@@ -255,9 +255,9 @@ namespace SilkyNvg.Rendering.OpenGL
             else
             {
                 _vertexCollection.AddVertex(new Vertex(bounds.Max, 0.5f, 1.0f));
-                _vertexCollection.AddVertex(new Vertex(bounds.Max.X, bounds.Origin.Y, 0.5f, 1.0f));
-                _vertexCollection.AddVertex(new Vertex(bounds.Origin.X, bounds.Max.Y, 0.5f, 1.0f));
-                _vertexCollection.AddVertex(new Vertex(bounds.Origin, 0.5f, 1.0f));
+                _vertexCollection.AddVertex(new Vertex(bounds.Max.X, bounds.Min.Y, 0.5f, 1.0f));
+                _vertexCollection.AddVertex(new Vertex(bounds.Min.X, bounds.Max.Y, 0.5f, 1.0f));
+                _vertexCollection.AddVertex(new Vertex(bounds.Min, 0.5f, 1.0f));
 
                 FragUniforms stencilUniforms = new(-1.0f, Shaders.ShaderType.Simple);
 

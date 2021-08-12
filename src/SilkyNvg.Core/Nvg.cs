@@ -57,6 +57,16 @@ namespace SilkyNvg
         #endregion
 
         #region Frames
+        /// <summary>
+        /// Begin drawing a new frame.<br/>
+        /// Calls to NanoVG drawing API should be wrapped in <see cref="BeginFrame(Vector2D{float}, float)"/> and <see cref="EndFrame()"/>.
+        /// <para><see cref="BeginFrame(Vector2D{float}, float)"/> defines the size of the window to render to in relation currently
+        /// set viewport (i.e. glViewport on GL backends). Device pixel ratio allows to
+        /// control the rendering on Hi-DPI devices.</para>
+        /// <para>For example, GLFW returns two dimension for an opened window: window size and
+        /// frame buffer size. In that case you would set windowWidth / Height to the window size,
+        /// devicePixelRatio to: <c>frameBufferWidth / windowWidth</c>.</para>
+        /// </summary>
         public void BeginFrame(Vector2D<float> windowSize, float devicePixelRatio)
         {
             stateStack.Clear();
@@ -70,53 +80,71 @@ namespace SilkyNvg
             FrameMeta = default;
         }
 
+        /// <inheritdoc cref="BeginFrame(Vector2D{float}, float)"/>
         public void BeginFrame(float windowWidth, float windowHeight, float devicePixelRatio) => BeginFrame(new Vector2D<float>(windowWidth, windowHeight), devicePixelRatio);
 
+        /// <summary>
+        /// Cancels drawing the current frame.
+        /// </summary>
         public void CancelFrame()
         {
             renderer.Cancel();
         }
 
+        /// <summary>
+        /// End drawing flushing remaining render state.
+        /// </summary>
         public void EndFrame()
         {
             renderer.Flush();
             fontManager.Pack();
         }
-
         #endregion
 
         #region Colour Utils
+        /// <inheritdoc cref="Colour(byte, byte, byte)"/>
         public Colour Rgb(byte r, byte g, byte b) => Rgba(r, g, b, 255);
 
+        /// <inheritdoc cref="Colour(float, float, float)"/>
         public Colour RgbF(float r, float g, float b) => RgbaF(r, g, b, 1.0f);
 
+        /// <inheritdoc cref="Colour(byte, byte, byte, byte)"/>
         public Colour Rgba(byte r, byte g, byte b, byte a)
         {
             return new(r, g, b, a);
         }
 
+        /// <inheritdoc cref="Colour(float, float, float, float)"/>
         public Colour RgbaF(float r, float g, float b, float a)
         {
             return new(r, g, b, a);
         }
 
+        /// <inheritdoc cref="Colour(Colour, byte)"/>
         public Colour TransRgba(Colour c, byte a)
         {
             return new(c, a);
         }
 
+        /// <inheritdoc cref="Colour(Colour, float)"/>
         public Colour TransRgbaF(Colour c, float a)
         {
             return new(c, a);
         }
 
+        /// <inheritdoc cref="Colour(Colour, Colour, float)"/>
         public Colour LerpRgba(Colour c0, Colour c1, float u)
         {
             return new(c0, c1, u);
         }
 
+        /// <summary>
+        /// HSL values are all in range [0..1], alpha will be set to 255.
+        /// </summary>
+        /// <returns>Color value specified by hue, saturation and lightness.</returns>
         public Colour Hsl(float h, float s, float l) => Hsla(h, s, l, 255);
 
+        /// <inheritdoc cref="Colour(float, float, float, byte)"/>
         public Colour Hsla (float h, float s, float l, byte a)
         {
             return new(h, s, l, a);
@@ -124,16 +152,26 @@ namespace SilkyNvg
         #endregion
 
         #region State Handling
+        /// <summary>
+        /// Pushes and saves the current render state into a state stack.
+        /// A matchine <see cref="Restore()"/> must be used to restore the state.
+        /// </summary>
         public void Save()
         {
             stateStack.Save();
         }
 
+        /// <summary>
+        /// Pops and restores current render state.
+        /// </summary>
         public void Restore()
         {
             stateStack.Restore();
         }
 
+        /// <summary>
+        /// Resets current render state to default values. Does not affect the render state stack.
+        /// </summary>
         public void Reset()
         {
             stateStack.Reset();
@@ -141,29 +179,42 @@ namespace SilkyNvg
         #endregion
 
         #region Paints
+        /// <inheritdoc cref="Paint.LinearGradient(Vector2D{float}, Vector2D{float}, Colour, Colour)"/>
+        public Paint LinearGradient(Vector2D<float> s, Vector2D<float> e, Colour icol, Colour ocol)
+            => Paint.LinearGradient(s, e, icol, ocol);
+
+
+        /// <inheritdoc cref="Paint.LinearGradient(float, float, float, float, Colour, Colour)"/>
         public Paint LinearGradient(float sx, float sy, float ex, float ey, Colour icol, Colour ocol)
-        {
-            return Paint.LinearGradient(sx, sy, ex, ey, icol, ocol);
-        }
+            => Paint.LinearGradient(sx, sy, ex, ey, icol, ocol);
 
-        public Paint LinearGradient(Vector2D<float> s, Vector2D<float> e, Colour icol, Colour ocol) => LinearGradient(s.X, s.Y, e.X, e.Y, icol, ocol);
+        /// <inheritdoc cref="Paint.BoxGradient(Rectangle{float}, float, float, Colour, Colour)"/>
+        public Paint BoxGradient(Rectangle<float> box, float r, float f, Colour icol, Colour ocol)
+            => Paint.BoxGradient(box, r, f, icol, ocol);
 
+        /// <inheritdoc cref="Paint.BoxGradient(Vector2D{float}, Vector2D{float}, float, float, Colour, Colour)"/>
+        public Paint BoxGradient(Vector2D<float> pos, Vector2D<float> size, float r, float f, Colour icol, Colour ocol)
+            => BoxGradient(pos.X, pos.Y, size.X, size.Y, r, f, icol, ocol);
+
+        /// <inheritdoc cref="Paint.BoxGradient(float, float, float, float, float, float, Colour, Colour)"/>
         public Paint BoxGradient(float x, float y, float w, float h, float r, float f, Colour icol, Colour ocol)
         {
             return Paint.BoxGradient(x, y, w, h, r, f, icol, ocol);
         }
 
-        public Paint BoxGradient(Vector2D<float> pos, Vector2D<float> size, float r, float f, Colour icol, Colour ocol) => BoxGradient(pos.X, pos.Y, size.X, size.Y, r, f, icol, ocol);
+        /// <inheritdoc cref="Paint.RadialGradient(Vector2D{float}, float, float, Colour, Colour)"/>
+        public Paint RadialGradient(Vector2D<float> c, float inr, float outr, Colour icol, Colour ocol)
+            => Paint.RadialGradient(c, inr, outr, icol, ocol);
 
+        /// <inheritdoc cref="Paint.RadialGradient(float, float, float, float, Colour, Colour)"/>
         public Paint RadialGradient(float cx, float cy, float inr, float outr, Colour icol, Colour ocol)
-        {
-            return Paint.RadialGradient(cx, cy, inr, outr, icol, ocol);
-        }
-
-        public Paint RadialGradient(Vector2D<float> c, Vector2D<float> radii, Colour icol, Colour ocol) => RadialGradient(c.X, c.Y, radii.X, radii.Y, icol, ocol);
+            => Paint.RadialGradient(cx, cy, inr, outr, icol, ocol);
         #endregion
 
         #region Debug
+        /// <summary>
+        /// Debug function to dump cached path data.
+        /// </summary>
         public void DebugDumpPathCache()
         {
             pathCache.Dump();
