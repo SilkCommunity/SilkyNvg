@@ -992,7 +992,7 @@ namespace NvgExample
         public void Render(float mx, float my, float width, float height, float t, bool blowup)
         {
             DrawEyes(width - 250.0f, 50.0f, 150.0f, 100.0f, mx, my, t);
-            // DrawParagraph(width - 450.0f, 50.0f, 150.0f, mx, my);
+            DrawParagraph(width - 450.0f, 50.0f, 150.0f, mx, my);
             DrawGraph(0.0f, height / 2.0f, width, height / 2.0f, t);
             DrawColourwheel(width - 300.0f, height - 300.0f, 250.0f, 250.0f, t);
 
