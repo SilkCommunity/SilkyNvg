@@ -1,20 +1,14 @@
 ﻿using Silk.NET.OpenGL;
 using SilkyNvg.Blending;
 using SilkyNvg.Rendering.OpenGL.Blending;
-using SilkyNvg.Rendering.OpenGL.Shaders;
 
 namespace SilkyNvg.Rendering.OpenGL.Calls
 {
     internal class FillCall : Call
     {
 
-        private readonly FragUniforms _stencilUniforms;
-
-        public FillCall(int image, Path[] paths, int triangleOffset, FragUniforms stencilUniforms, FragUniforms uniforms, CompositeOperationState op, OpenGLRenderer renderer)
-            : base(image, paths, triangleOffset, 4, uniforms, new Blend(op, renderer), renderer)
-        {
-            _stencilUniforms = stencilUniforms;
-        }
+        public FillCall(int image, Path[] paths, int triangleOffset, int uniformOffset, CompositeOperationState op, OpenGLRenderer renderer)
+            : base(image, paths, triangleOffset, 4, uniformOffset, new Blend(op, renderer), renderer) { }
 
         public override void Run()
         {
@@ -25,7 +19,7 @@ namespace SilkyNvg.Rendering.OpenGL.Calls
             renderer.StencilFunc(StencilFunction.Always, 0, 0xff);
             gl.ColorMask(false, false, false, false);
 
-            _stencilUniforms.LoadToShader(renderer.Shader, 0);
+            renderer.Shader.SetUniforms(uniformOffset, 0);
             renderer.CheckError("fill simple");
 
             gl.StencilOpSeparate(StencilFaceDirection.Front, StencilOp.Keep, StencilOp.Keep, StencilOp.IncrWrap);
@@ -39,7 +33,7 @@ namespace SilkyNvg.Rendering.OpenGL.Calls
 
             gl.ColorMask(true, true, true, true);
 
-            uniforms.LoadToShader(renderer.Shader, image);
+            renderer.Shader.SetUniforms(uniformOffset + renderer.Shader.FragSize, image);
             renderer.CheckError("fill fill");
 
             if (renderer.EdgeAntiAlias)

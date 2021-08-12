@@ -159,6 +159,7 @@ namespace SilkyNvg.Rendering.OpenGL.Textures
                 _renderer.Filter.BoundTexture = _textureID;
                 _gl.BindTexture(TextureTarget.Texture2D, _textureID);
             }
+            _renderer.CheckError("tex paint tex");
         }
 
         public void Unbind()

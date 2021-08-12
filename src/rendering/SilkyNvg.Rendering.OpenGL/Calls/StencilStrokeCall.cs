@@ -1,20 +1,14 @@
 ﻿using Silk.NET.OpenGL;
 using SilkyNvg.Blending;
 using SilkyNvg.Rendering.OpenGL.Blending;
-using SilkyNvg.Rendering.OpenGL.Shaders;
 
 namespace SilkyNvg.Rendering.OpenGL.Calls
 {
     internal class StencilStrokeCall : Call
     {
 
-        private readonly FragUniforms _stencilUniforms;
-
-        public StencilStrokeCall(int image, Path[] paths, FragUniforms stencilUniforms, FragUniforms uniforms, CompositeOperationState op, OpenGLRenderer renderer)
-            : base(image, paths, 0, 0, uniforms, new Blend(op, renderer), renderer)
-        {
-            _stencilUniforms = stencilUniforms;
-        }
+        public StencilStrokeCall(int image, Path[] paths, int uniformOffset, CompositeOperationState op, OpenGLRenderer renderer)
+            : base(image, paths, 0, 0, uniformOffset, new Blend(op, renderer), renderer) { }
 
         public override void Run()
         {
@@ -26,7 +20,7 @@ namespace SilkyNvg.Rendering.OpenGL.Calls
             // Fill the stroke base without overlap.
             renderer.StencilFunc(StencilFunction.Equal, 0x0, 0xff);
             gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Incr);
-            _stencilUniforms.LoadToShader(renderer.Shader, image);
+            renderer.Shader.SetUniforms(uniformOffset + renderer.Shader.FragSize, image);
             renderer.CheckError("stroke fill 0");
             foreach (Path path in paths)
             {
@@ -34,7 +28,7 @@ namespace SilkyNvg.Rendering.OpenGL.Calls
             }
 
             // Draw anti-aliased pixels.
-            uniforms.LoadToShader(renderer.Shader, image);
+            renderer.Shader.SetUniforms(uniformOffset, image);
             renderer.StencilFunc(StencilFunction.Equal, 0x0, 0xff);
             gl.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Keep);
             foreach (Path path in paths)

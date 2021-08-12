@@ -111,23 +111,5 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
             _type = (int)ShaderType.Img;
         }
 
-        public void LoadToShader(Shader shader, int image)
-        {
-            shader.UpdateUniformBuffer(this);
-
-            Textures.Texture tex = null;
-            if (image != 0)
-            {
-                tex = Textures.Texture.FindTexture(image);
-            }
-
-            if (tex == null)
-            {
-                tex = Textures.Texture.DummyTex;
-            }
-
-            tex.Bind();
-        }
-
     }
 }

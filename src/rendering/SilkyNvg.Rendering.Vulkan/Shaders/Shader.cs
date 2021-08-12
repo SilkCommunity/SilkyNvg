@@ -3,6 +3,7 @@ using Silk.NET.Vulkan;
 using SilkyNvg.Rendering.Vulkan.Utils;
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace SilkyNvg.Rendering.Vulkan.Shaders
 {
@@ -42,7 +43,7 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
 
             _align = (int)_renderer.GpuProperties.Limits.MinUniformBufferOffsetAlignment;
 
-            FragSize = sizeof(FragUniforms) + _align - (sizeof(FragUniforms) % _align);
+            FragSize = Marshal.SizeOf(typeof(FragUniforms)) + _align - (Marshal.SizeOf(typeof(FragUniforms)) % _align);
 
             UniformManager = new UniformManager(FragSize);
             _vertUniformBuffer = default;

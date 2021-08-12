@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace SilkyNvg.Rendering.Vulkan.Shaders
+namespace SilkyNvg.Rendering.OpenGL.Shaders
 {
     internal class UniformManager
     {

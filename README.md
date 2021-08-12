@@ -19,6 +19,18 @@ It is also possible to create a custom render implementation (PRs welcome, if yo
 To create a custom render implementation, the renderer class musst implement `SilkyNvg.Rendering.INvgRenderer`.
 This interface contains the following methods and properties:
 
+
+#### OpenGL Renderer
+The [OpenGL renderer](https://github.com/MatijaBrown/SilkyNvg/tree/main/src/rendering/SilkyNvg.Rendering.OpenGL) is highly straightforward to use: In the constructer the API-Object and additional flags
+have to be specified, the rest is handled internally. See the [NanoVG OpenGL Renderer](https://github.com/memononen/nanovg/tree/077b65e0cf3e22ee4f588783e319b19b0a608065#opengl-state-touched-by-the-backend) for more info.
+
+#### Vulkan Renderer
+The [Vulkan renderer](https://github.com/MatijaBrown/SilkyNvg/tree/main/src/rendering/SilkyNvg.Rendering.Vulkan) requires specifying some more additional information for creation using the `SilkyNvg.Rendering.Vulkan.VulkanRendererParams` struct, such as the current device, custom allocators if
+used, the command buffer to render on and the current render pass. Furthermore, the constructor takes the API object and the queue to be used.
+For additional info, see this [NanoVG Vulkan Renderer](https://github.com/danilw/nanovg_vulkan)
+
+For further details, see the [NanoVG doc](https://github.com/memononen/nanovg/), as the API and implementations are intentionally kept similar.
+
 > #### INvgRenderer
 > - `bool EdgeAntiAlias` Wheather or not antialiasing was enabled when creating the renderer. Used because some renderers might not support > antialiasing.
 > - `bool Create()` Is called when NanoVG is initialized. Initialize the renderer here. Return false if initialization failed, otherwise return true.
@@ -33,14 +45,3 @@ This interface contains the following methods and properties:
 > - `Stroke(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, float strokeWidth, IReadOnlyList<Path> paths)` Is called on ``Nvg.Stroke()``. Signals that the data contained in *paths* should be added to the rendered when flushing.
 > - `Triangles(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, ICollection<Vertex> vertices, float fringeWidth)` Is called when rendering text. Signals that the *vertices* should be added should be added to the rendered when flushing.
 > - `Dispose()` Delete and shut down the renderer.
-
-#### OpenGL Renderer
-The OpenGL renderer is highly straightforward to use: In the constructer the API-Object and additional flags
-have to be specified, the rest is handled internally. See the [NanoVG OpenGL Renderer](https://github.com/memononen/nanovg/tree/077b65e0cf3e22ee4f588783e319b19b0a608065#opengl-state-touched-by-the-backend) for more info.
-
-#### Vulkan Renderer
-The Vulkan renderer requires specifying some additional information for creation, such as the current device, custom allocators if
-used, the command buffer to render on and the current render pass. Furthermore, the constructor takes the API object and the queue to be used.
-For additional info, see this [NanoVG Vulkan Renderer](https://github.com/danilw/nanovg_vulkan)
-
-For further details, see the [NanoVG doc](https://github.com/memononen/nanovg/), as the API and implementations are intentionally kept similar.

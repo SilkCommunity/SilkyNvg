@@ -3,6 +3,7 @@ using Silk.NET.OpenGL;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace SilkyNvg.Rendering.OpenGL.Shaders
 {
@@ -18,6 +19,11 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
         private readonly IDictionary<UniformLoc, int> _loc = new Dictionary<UniformLoc, int>();
 
         private uint _fragBuffer;
+        private int _align;
+
+        public UniformManager UniformManager { get; private set; }
+
+        public int FragSize { get; private set; }
 
         public bool Status { get; }
 
@@ -100,19 +106,37 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
             _loc.Add(UniformLoc.Frag, (int)_gl.GetUniformBlockIndex(_programmeID, "frag"));
         }
 
-        public unsafe void InitUniformBuffer()
+        public void BindUniformBlock()
         {
+            _gl.UniformBlockBinding(_programmeID, (uint)_loc[UniformLoc.Frag], (uint)UniformBindings.FragBinding);
             _fragBuffer = _gl.GenBuffer();
-            _gl.BindBuffer(BufferTargetARB.UniformBuffer, _fragBuffer);
-            _gl.BindBufferBase(BufferTargetARB.UniformBuffer, 0, _fragBuffer);
-            _gl.UniformBlockBinding(_programmeID, (uint)_loc[UniformLoc.Frag], 0);
-            _gl.BindBuffer(BufferTargetARB.UniformBuffer, 0);
+            _gl.GetInteger(GetPName.UniformBufferOffsetAlignment, out _align);
+            FragSize = Marshal.SizeOf(typeof(FragUniforms)) + _align - (Marshal.SizeOf(typeof(FragUniforms)) % _align);
+            UniformManager = new UniformManager(FragSize);
         }
 
-        public unsafe void UpdateUniformBuffer(FragUniforms data)
+        public void BindUniformBuffer()
         {
             _gl.BindBuffer(BufferTargetARB.UniformBuffer, _fragBuffer);
-            _gl.BufferData(BufferTargetARB.UniformBuffer, (uint)sizeof(FragUniforms), &data, BufferUsageARB.StreamDraw);
+        }
+
+        public void UploadUniformData()
+        {
+            BindUniformBuffer();
+            _gl.BufferData(BufferTargetARB.UniformBuffer, (nuint)(UniformManager.CurrentsOffset * FragSize), UniformManager.Uniforms, BufferUsageARB.StreamDraw);
+        }
+
+        public void SetUniforms(int uniformOffset, int image)
+        {
+            _gl.BindBufferRange(BufferTargetARB.UniformBuffer, (uint)UniformBindings.FragBinding, _fragBuffer, uniformOffset, (nuint)Marshal.SizeOf(typeof(FragUniforms)));
+
+            Textures.Texture tex = null;
+            if (image != 0)
+            {
+                tex = Textures.Texture.FindTexture(image);
+            }
+            tex?.Bind();
+            
         }
 
         public void Start()
