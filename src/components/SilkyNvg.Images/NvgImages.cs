@@ -29,8 +29,6 @@ namespace SilkyNvg.Images
             {
                 return 0;
             }
-            StbImage.stbi_set_unpremultiply_on_load(1);
-            StbImage.stbi_convert_iphone_png_to_rgb(1);
             ImageResult result = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
             if (result == null)
             {

@@ -4,3 +4,6 @@
 [submodule "lib/Silk.NET"]
 	path = lib/Silk.NET
 	url = https://github.com/dotnet/Silk.NET
+[submodule "lib/SafeStbImageSharp"]
+	path = lib/SafeStbImageSharp
+	url = https://github.com/StbSharp/SafeStbImageSharp
