@@ -7,6 +7,3 @@
 [submodule "lib/nanovg"]
 	path = lib/nanovg
 	url = https://github.com/memononen/nanovg
-[submodule "packages/FontStash.NET"]
-	path = packages/FontStash.NET
-	url = https://github.com/MatijaBrown/FontStash.NET
