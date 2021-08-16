@@ -1036,7 +1036,7 @@ namespace NvgExample
             y += 55.0f;
 
             DrawButton(ICON_TRASH, "Delete", x, y, 160.0f, 28.0f, _nvg.Rgba(128, 16, 8, 255));
-            DrawButton(0, "Cancle", x + 170.0f, y, 110.0f, 28.0f, _nvg.Rgba(0, 0, 0, 0));
+            DrawButton(0, "Cancel", x + 170.0f, y, 110.0f, 28.0f, _nvg.Rgba(0, 0, 0, 0));
 
             DrawThumbnails(365.0f, popY - 30.0f, 160.0f, 300.0f, _images, t);
 

@@ -1,148 +1,168 @@
 ﻿using NvgExample;
-using Silk.NET.GLFW;
+using Silk.NET.Input;
+using Silk.NET.Maths;
 using Silk.NET.OpenGL;
+using Silk.NET.Windowing;
 using SilkyNvg;
 using SilkyNvg.Rendering.OpenGL;
 using StbImageWriteSharp;
 using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace OpenGL_Example
 {
-    unsafe class Program
+    public class Program
     {
 
-        static void Errorcb(Silk.NET.GLFW.ErrorCode error, string desc)
+        private static void Errorcb(Silk.NET.GLFW.ErrorCode error, string desc)
         {
             Console.Error.WriteLine("GLFW error: " + error + Environment.NewLine + desc);
         }
 
-        static Glfw glfw;
-        static GL gl;
-        static Nvg nvg;
+        private static GL gl;
+        private static Nvg nvg;
 
-        static bool blowup = false;
-        static bool screenshot = false;
-        static bool premult = false;
+        private static bool blowup = false;
+        private static bool screenshot = false;
+        private static bool premult = false;
 
-        static void Key(WindowHandle* window, Keys key, int _, InputAction action, KeyModifiers __)
+        private static double prevTime = 0;
+        private static double cpuTime = 0;
+
+        private static PerformanceGraph frameGraph;
+        private static PerformanceGraph cpuGraph;
+        private static PerformanceGraph gpuGraph;
+
+        private static IWindow window;
+        private static Demo demo;
+
+        private static Stopwatch timer;
+
+        private static float mx, my;
+
+        private static unsafe void KeyDown(IKeyboard _, Key key, int _2)
         {
-            if (key == Keys.Escape && action == InputAction.Press)
-                glfw.SetWindowShouldClose(window, true);
-            if (key == Keys.Space && action == InputAction.Press)
+            if (key == Key.Escape)
+                window.Close();
+            else if (key == Key.Space)
                 blowup = !blowup;
-            if (key == Keys.S && action == InputAction.Press)
+            else if (key == Key.S)
                 screenshot = true;
-            if (key == Keys.P && action == InputAction.Press)
+            else if (key == Key.P)
                 premult = !premult;
+        }
+
+        private static void MouseMove(IMouse _, System.Numerics.Vector2 mousePosition)
+        {
+            mx = mousePosition.X;
+            my = mousePosition.Y;
+        }
+
+        private static void Load()
+        {
+            IInputContext input = window.CreateInput();
+            foreach (IKeyboard keyboard in input.Keyboards)
+            {
+                keyboard.KeyDown += KeyDown;
+            }
+            foreach (IMouse mouse in input.Mice)
+            {
+                mouse.MouseMove += MouseMove;
+            }
+
+            gl = window.CreateOpenGL();
+
+            OpenGLRenderer nvgRenderer = new(CreateFlags.Antialias | CreateFlags.StencilStrokes | CreateFlags.Debug, gl);
+            nvg = Nvg.Create(nvgRenderer);
+
+            demo = new Demo(nvg);
+
+            timer = Stopwatch.StartNew();
+
+            timer.Restart();
+            prevTime = timer.Elapsed.TotalMilliseconds;
+        }
+
+        private static void Render(double _)
+        {
+            double t = timer.Elapsed.TotalSeconds;
+            double dt = t - prevTime;
+            prevTime = t;
+
+            Vector2D<float> winSize = window.Size.As<float>();
+            Vector2D<float> fbSize = window.FramebufferSize.As<float>();
+
+            float pxRatio = fbSize.X / winSize.X;
+
+            gl.Viewport(0, 0, (uint)winSize.X, (uint)winSize.Y);
+            if (premult)
+            {
+                gl.ClearColor(0, 0, 0, 0);
+            }
+            else
+            {
+                gl.ClearColor(0.3f, 0.3f, 0.32f, 1.0f);
+            }
+            gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+
+            nvg.BeginFrame(winSize.As<float>(), pxRatio);
+
+            demo.Render((float)mx, (float)my, winSize.X, winSize.Y, (float)t, blowup);
+
+            frameGraph.Render(5.0f, 5.0f, nvg);
+            cpuGraph.Render(5.0f + 200.0f + 5.0f, 5.0f, nvg);
+
+            nvg.EndFrame();
+
+            cpuTime = timer.Elapsed.TotalSeconds - t;
+
+            frameGraph.Update((float)dt);
+            cpuGraph.Update((float)cpuTime);
+
+            if (screenshot)
+            {
+                screenshot = false;
+                SaveScreenShot((int)fbSize.X, (int)fbSize.Y, premult, "dump.png");
+            }
+        }
+
+        static void Close()
+        {
+            timer.Stop();
+
+            demo.Dispose();
+
+            nvg.Dispose();
+
+            Console.WriteLine("Average Frame Time: " + frameGraph.GraphAverage * 1000.0f + " ms");
+            Console.WriteLine("        CPU Time: " + cpuGraph.GraphAverage * 1000.0f + " ms");
+
+            gl.Dispose();
         }
 
         static void Main()
         {
-            glfw = Glfw.GetApi();
-            WindowHandle* window;
+            frameGraph = new PerformanceGraph(PerformanceGraph.GraphRenderStyle.Fps, "Frame Time");
+            cpuGraph = new PerformanceGraph(PerformanceGraph.GraphRenderStyle.Ms, "CPU Time");
+            gpuGraph = new PerformanceGraph(PerformanceGraph.GraphRenderStyle.Ms, "GPU Time");
 
-            double prevt = 0, cpuTime = 0;
+            WindowOptions windowOptions = WindowOptions.Default;
+            windowOptions.FramesPerSecond = -1;
+            windowOptions.ShouldSwapAutomatically = true;
+            windowOptions.Size = new Vector2D<int>(1000, 600);
+            windowOptions.Title = "SilkyNvg";
+            windowOptions.VSync = false;
+            windowOptions.PreferredDepthBufferBits = 24;
+            windowOptions.PreferredStencilBufferBits = 8;
 
-            if (!glfw.Init())
-            {
-                Console.Error.WriteLine("Failed to init GLFW.");
-                Environment.Exit(-1);
-            }
+            window = Window.Create(windowOptions);
+            window.Load += Load;
+            window.Render += Render;
+            window.Closing += Close;
+            window.Run();
 
-            PerformanceGraph fps = new(PerformanceGraph.GraphRenderStyle.Fps, "Frame Time");
-            PerformanceGraph cpuGraph = new(PerformanceGraph.GraphRenderStyle.Ms, "CPU Time");
-
-            glfw.SetErrorCallback(Errorcb);
-
-            glfw.WindowHint(WindowHintInt.ContextVersionMajor, 3);
-            glfw.WindowHint(WindowHintInt.ContextVersionMinor, 2);
-            glfw.WindowHint(WindowHintBool.OpenGLForwardCompat, true);
-            glfw.WindowHint(WindowHintOpenGlProfile.OpenGlProfile, OpenGlProfile.Core);
-
-            glfw.WindowHint(WindowHintBool.OpenGLDebugContext, true);
-
-            glfw.WindowHint(WindowHintInt.Samples, 4);
-
-            window = glfw.CreateWindow(1000, 600, "SilkyNvg", null, null);
-            if (window == null)
-            {
-                glfw.Terminate();
-                Environment.Exit(-1);
-            }
-
-            glfw.SetKeyCallback(window, Key);
-
-            glfw.MakeContextCurrent(window);
-
-            gl = GL.GetApi(new GlfwContext(glfw, window));
-            _ = gl.GetError();
-
-            nvg = Nvg.Create(new OpenGLRenderer(CreateFlags.Antialias | CreateFlags.StencilStrokes | CreateFlags.Debug, gl));
-
-            Demo demo = new(nvg);
-
-            glfw.SwapInterval(0);
-
-            glfw.SetTime(0);
-            prevt = glfw.GetTime();
-
-            while (!glfw.WindowShouldClose(window))
-            {
-                double t = glfw.GetTime();
-                double dt = t - prevt;
-                prevt = t;
-
-                glfw.GetCursorPos(window, out double mx, out double my);
-                glfw.GetWindowSize(window, out int winWidth, out int winHeight);
-                glfw.GetFramebufferSize(window, out int fbWidth, out int fbHeight);
-
-                float pxRatio = (float)fbWidth / (float)winWidth;
-
-                gl.Viewport(0, 0, (uint)winWidth, (uint)winHeight);
-                if (premult)
-                {
-                    gl.ClearColor(0, 0, 0, 0);
-                }
-                else
-                {
-                    gl.ClearColor(0.3f, 0.3f, 0.32f, 1.0f);
-                }
-                gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
-
-                nvg.BeginFrame(winWidth, winHeight, pxRatio);
-
-                demo.Render((float)mx, (float)my, winWidth, winHeight, (float)t, blowup);
-
-                fps.Render(5.0f, 5.0f, nvg);
-                cpuGraph.Render(5.0f + 200.0f + 5.0f, 5.0f, nvg);
-
-                nvg.EndFrame();
-
-                cpuTime = glfw.GetTime() - t;
-
-                fps.Update((float)dt);
-                cpuGraph.Update((float)cpuTime);
-
-                if (screenshot)
-                {
-                    screenshot = false;
-                    SaveScreenShot((int)fbWidth, (int)fbHeight, premult, "dump.png");
-                }
-
-                glfw.SwapBuffers(window);
-                glfw.PollEvents();
-            }
-
-            nvg.Dispose();
-
-            Console.WriteLine("Average Frame Time: " + fps.GraphAverage * 1000.0f + " ms");
-            Console.WriteLine("          CPU Time: " + cpuGraph.GraphAverage * 1000.0f + " ms");
-
-            gl.Dispose();
-
-            glfw.Terminate();
-            glfw.Dispose();
+            window.Dispose();
         }
 
         static void UnpremultiplyAlpha(Span<byte> image, int w, int h, int stride)
