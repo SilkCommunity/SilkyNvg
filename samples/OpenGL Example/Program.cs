@@ -15,11 +15,6 @@ namespace OpenGL_Example
     public class Program
     {
 
-        private static void Errorcb(Silk.NET.GLFW.ErrorCode error, string desc)
-        {
-            Console.Error.WriteLine("GLFW error: " + error + Environment.NewLine + desc);
-        }
-
         private static GL gl;
         private static Nvg nvg;
 
@@ -32,7 +27,6 @@ namespace OpenGL_Example
 
         private static PerformanceGraph frameGraph;
         private static PerformanceGraph cpuGraph;
-        private static PerformanceGraph gpuGraph;
 
         private static IWindow window;
         private static Demo demo;
@@ -81,6 +75,7 @@ namespace OpenGL_Example
             timer = Stopwatch.StartNew();
 
             timer.Restart();
+
             prevTime = timer.Elapsed.TotalMilliseconds;
         }
 
@@ -127,7 +122,7 @@ namespace OpenGL_Example
             }
         }
 
-        static void Close()
+        private static void Close()
         {
             timer.Stop();
 
@@ -145,7 +140,6 @@ namespace OpenGL_Example
         {
             frameGraph = new PerformanceGraph(PerformanceGraph.GraphRenderStyle.Fps, "Frame Time");
             cpuGraph = new PerformanceGraph(PerformanceGraph.GraphRenderStyle.Ms, "CPU Time");
-            gpuGraph = new PerformanceGraph(PerformanceGraph.GraphRenderStyle.Ms, "GPU Time");
 
             WindowOptions windowOptions = WindowOptions.Default;
             windowOptions.FramesPerSecond = -1;
@@ -165,7 +159,7 @@ namespace OpenGL_Example
             window.Dispose();
         }
 
-        static void UnpremultiplyAlpha(Span<byte> image, int w, int h, int stride)
+        private static void UnpremultiplyAlpha(Span<byte> image, int w, int h, int stride)
         {
             for (int y = 0; y < h; y++)
             {
@@ -236,7 +230,7 @@ namespace OpenGL_Example
             }
         }
 
-        static void SetAlpha(Span<byte> image, int w, int h, int stride, byte a)
+        private static void SetAlpha(Span<byte> image, int w, int h, int stride, byte a)
         {
             for (int y = 0; y < h; y++)
             {
@@ -248,7 +242,7 @@ namespace OpenGL_Example
             }
         }
 
-        static void FlipHorizontally(Span<byte> image, int w, int h, int stride)
+        private static void FlipHorizontally(Span<byte> image, int w, int h, int stride)
         {
             int i = 0;
             int j = h - 1;
@@ -267,7 +261,7 @@ namespace OpenGL_Example
             }
         }
 
-        static void SaveScreenShot(int w, int h, bool premult, string name)
+        private static void SaveScreenShot(int w, int h, bool premult, string name)
         {
             Span<byte> image = new byte[w * h * 4];
             gl.ReadPixels(0, 0, (uint)w, (uint)h, GLEnum.Rgba, GLEnum.UnsignedByte, image);

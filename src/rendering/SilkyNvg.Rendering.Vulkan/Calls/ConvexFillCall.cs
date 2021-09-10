@@ -1,57 +1,59 @@
 ﻿using Silk.NET.Vulkan;
-using SilkyNvg.Blending;
 using SilkyNvg.Rendering.Vulkan.Pipelines;
-using System.Runtime.InteropServices;
+using System.Collections.Generic;
 
 namespace SilkyNvg.Rendering.Vulkan.Calls
 {
     internal class ConvexFillCall : Call
     {
 
-        public ConvexFillCall(int image, Path[] paths, int uniformOffset, CompositeOperationState op, VulkanRenderer renderer)
-            : base(image, paths, default, default, uniformOffset, op, renderer) { }
+        private static readonly IDictionary<Blending.CompositeOperationState, Pipelines.Pipeline> _fillPipelines = new Dictionary<Blending.CompositeOperationState, Pipelines.Pipeline>();
+        private static readonly IDictionary<Blending.CompositeOperationState, Pipelines.Pipeline> _antiAliasPipelines = new Dictionary<Blending.CompositeOperationState, Pipelines.Pipeline>();
 
-        public override unsafe void Run()
+        public static Pipelines.Pipeline GetRenderPipeline(Blending.CompositeOperationState compositeOperation)
         {
-            Device device = renderer.Params.device;
-            CommandBuffer cmdBuffer = renderer.Params.cmdBuffer;
+            if (!_fillPipelines.TryGetValue(compositeOperation, out _))
+            {
+                PipelineData data = new()
+                {
+                    Topology = PrimitiveTopology.TriangleFan,
+                    CompositeOperation = compositeOperation
+                };
+                _fillPipelines.Add(compositeOperation, new Pipelines.Pipeline(data));
+            }
+            return _fillPipelines[compositeOperation];
+        }
+
+        public static Pipelines.Pipeline GetAntiAliasPipeline(Blending.CompositeOperationState compositeOperation)
+        {
+            if (!_antiAliasPipelines.TryGetValue(compositeOperation, out _))
+            {
+                PipelineData data = new()
+                {
+                    Topology = PrimitiveTopology.TriangleStrip,
+                    CompositeOperation = compositeOperation
+                };
+                _antiAliasPipelines.Add(compositeOperation, new Pipelines.Pipeline(data));
+            }
+            return _antiAliasPipelines[compositeOperation];
+        }
+
+        public ConvexFillCall(int image, Path[] paths, int uniformOffset, Blending.CompositeOperationState compositeOperation)
+            : base(image, paths, 0, 0, uniformOffset, GetRenderPipeline(compositeOperation), GetAntiAliasPipeline(compositeOperation)) { }
+
+        public override void Run(CommandBuffer cmd)
+        {
             Vk vk = renderer.Vk;
 
-            PipelineKey pipelineKey = new(false, false, false, renderer.EdgeAntiAlias,
-                renderer.TriangleListFill ? PrimitiveTopology.TriangleList : PrimitiveTopology.TriangleFan, compositeOperation);
-            _ = renderer.BindPipeline(cmdBuffer, pipelineKey);
-
-            DescriptorSetLayout layout = renderer.Shader.DescLayout;
-            DescriptorSetAllocateInfo* allocInfo = stackalloc DescriptorSetAllocateInfo[1]
-            {
-                new DescriptorSetAllocateInfo(StructureType.DescriptorSetAllocateInfo, null, renderer.Shader.DescPool, 1, &layout)
-            };
-
-            renderer.Assert(vk.AllocateDescriptorSets(device, allocInfo, out DescriptorSet descSet));
-            renderer.Shader.SetUniforms(descSet, uniformOffset, image);
-
-            vk.CmdBindDescriptorSets(cmdBuffer, PipelineBindPoint.Graphics, renderer.PipelineLayout, 0, 1, &descSet, null);
-
+            vk.CmdBindPipeline(cmd, PipelineBindPoint.Graphics, renderPipeline.Handle);
             foreach (Path path in paths)
             {
-                ulong offset = (ulong)(path.FillOffset * Marshal.SizeOf(typeof(Vertex)));
-                Buffer buffer = renderer.VertexBuffer.Handle;
-                vk.CmdBindVertexBuffers(cmdBuffer, 0, 1, buffer, offset);
-                vk.CmdDraw(cmdBuffer, path.FillCount, 1, 0, 0);
+                vk.CmdDraw(cmd, path.FillCount, 1, path.FillOffset, 0);
             }
-
-            if (renderer.EdgeAntiAlias)
+            vk.CmdBindPipeline(cmd, PipelineBindPoint.Graphics, antiAliasPipeline.Handle);
+            foreach (Path path in paths)
             {
-                pipelineKey = new(false, false, false, renderer.EdgeAntiAlias, PrimitiveTopology.TriangleStrip, compositeOperation);
-                _ = renderer.BindPipeline(cmdBuffer, pipelineKey);
-
-                foreach (Path path in paths)
-                {
-                    ulong offset = (ulong)(path.StrokeOffset * Marshal.SizeOf(typeof(Vertex)));
-                    Buffer buffer = renderer.VertexBuffer.Handle;
-                    vk.CmdBindVertexBuffers(cmdBuffer, 0, 1, buffer, offset);
-                    vk.CmdDraw(cmdBuffer, path.StrokeCount, 1, 0, 0);
-                }
+                vk.CmdDraw(cmd, path.StrokeCount, 1, path.StrokeOffset, 0);
             }
         }
 

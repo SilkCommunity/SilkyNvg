@@ -1,6 +1,8 @@
-#version 400
-#extension GL_ARB_separate_shader_objects  : enable
-#extension GL_ARB_shading_language_420pack : enable
+#version 450
+
+out gl_PerVertex {
+	vec4 gl_Position;
+};
 
 layout (location = 0) in vec2 vertex;
 layout (location = 1) in vec2 tcoord;
@@ -8,7 +10,7 @@ layout (location = 1) in vec2 tcoord;
 layout (location = 0) out vec2 pass_vertex;
 layout (location = 1) out vec2 pass_tcoord;
 
-layout (binding = 0) uniform buffer {
+layout (binding = 0) uniform VertexUniforms {
 	vec2 viewSize;
 };
 

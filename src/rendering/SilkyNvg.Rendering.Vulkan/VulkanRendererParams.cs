@@ -1,26 +1,25 @@
 ﻿using Silk.NET.Vulkan;
+using System;
 
 namespace SilkyNvg.Rendering.Vulkan
 {
-    public unsafe struct VulkanRendererParams
+    public struct VulkanRendererParams
     {
 
-        public PhysicalDevice gpu;
-        public Device device;
-        public RenderPass renderpass;
-        public CommandBuffer cmdBuffer;
+        public PhysicalDevice PhysicalDevice;
+        public Device Device;
+        public IntPtr AllocationCallbacks;
 
-        public AllocationCallbacks* allocator;
+        public CommandBuffer InitialCommandBuffer;
 
-        public VulkanRendererParams(PhysicalDevice gpu, Device device, RenderPass renderpass, CommandBuffer cmdBuffer, AllocationCallbacks? allocator = null)
-        {
-            this.gpu = gpu;
-            this.device = device;
-            this.renderpass = renderpass;
-            this.cmdBuffer = cmdBuffer;
-            AllocationCallbacks allc = (AllocationCallbacks)allocator;
-            this.allocator = &allc;
-        }
+        public uint FrameCount;
+        public bool AdvanceFrameIndexAutomatically;
+
+        public RenderPass RenderPass;
+        public uint SubpassIndex;
+
+        public uint ImageTransitionQueueFamily;
+        public uint ImageTransitionQueueFamilyIndex;
 
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+﻿using Silk.NET.Vulkan;
 using System.Collections.Generic;
 
 namespace SilkyNvg.Rendering.Vulkan.Calls
@@ -10,18 +10,21 @@ namespace SilkyNvg.Rendering.Vulkan.Calls
 
         public bool HasCalls => _calls.Count > 0;
 
-        public uint Count => (uint)_calls.Count;
+        public CallQueue()
+        {
+
+        }
 
         public void Add(Call call)
         {
             _calls.Enqueue(call);
         }
 
-        public void Run()
+        public void Run(CommandBuffer cmd)
         {
-            while (_calls.Count > 0)
+            foreach (Call call in _calls)
             {
-                _calls.Dequeue().Run();
+                call.Run(cmd);
             }
         }
 

@@ -14,7 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Silk.NET.Maths" Version="2.7.0" />
+    <PackageReference Include="Silk.NET.Maths" Version="2.8.0" />
   </ItemGroup>
 
   <ItemGroup>

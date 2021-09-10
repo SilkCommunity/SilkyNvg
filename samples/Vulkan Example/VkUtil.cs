@@ -1,222 +1,318 @@
-﻿using Silk.NET.Core.Native;
-using Silk.NET.GLFW;
+﻿using Silk.NET.Core;
+using Silk.NET.Core.Contexts;
+using Silk.NET.Core.Native;
 using Silk.NET.Vulkan;
-using Silk.NET.Vulkan.Extensions.EXT;
 using Silk.NET.Vulkan.Extensions.KHR;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Vulkan_Example
 {
-    public static unsafe class VkUtil
+    public static class VkUtil
     {
 
-        public static Vk Vk { get; }
-
-        static VkUtil()
-        {
-            Vk = Vk.GetApi();
-        }
-
-        public static ExtDebugReport ExtDebugReport { get; private set; }
+        public static Vk Vk { get; set; }
 
         public static KhrSurface KhrSurface { get; private set; }
 
         public static KhrSwapchain KhrSwapchain { get; private set; }
 
-        public static void InitExtensions(Instance instance, Device device)
+        public static void AssertVulkan(Result result)
         {
-            Vk.TryGetInstanceExtension(instance, out ExtDebugReport extDebugReport);
-            ExtDebugReport = extDebugReport;
-
-            Vk.TryGetInstanceExtension(instance, out KhrSurface khrSurface);
-            KhrSurface = khrSurface;
-
-            Vk.TryGetDeviceExtension(instance, device, out KhrSwapchain khrSwapchain);
-            KhrSwapchain = khrSwapchain;
+            if (result != Result.Success)
+            {
+                StackFrame frame = new(1);
+                Console.Error.WriteLine("Vulkan function failed with result " + result + " in method " + frame.GetMethod().Name
+                    + " in class " + frame.GetMethod().DeclaringType.FullName + " at line " + frame.GetFileLineNumber() + ".");
+                Environment.Exit((int)result);
+            }
         }
 
-        public static Instance CreateInstance(bool enableDebugLayer, Glfw glfw)
+        #region Instance
+        private static unsafe void CheckInstanceExtensionsPresent(byte** enabledInstanceExtensions, int enabledInstanceExtensionCount)
+        {
+            uint instanceExtensionCount = 0;
+            AssertVulkan(Vk.EnumerateInstanceExtensionProperties((byte*)null, ref instanceExtensionCount, null));
+            Span<ExtensionProperties> properties = stackalloc ExtensionProperties[(int)instanceExtensionCount];
+            AssertVulkan(Vk.EnumerateInstanceExtensionProperties((byte*)null, ref instanceExtensionCount, ref properties[0]));
+            List<string> names = new();
+            foreach (ExtensionProperties prop in properties)
+            {
+                names.Add(SilkMarshal.PtrToString((nint)prop.ExtensionName));
+            }
+            for (int i = 0; i < enabledInstanceExtensionCount; i++)
+            {
+                string name = SilkMarshal.PtrToString((nint)enabledInstanceExtensions[i]);
+                if (!names.Contains(name))
+                {
+                    Console.Error.WriteLine("WARNING: Extension not present! Name: '" + name + "'");
+                }
+            }
+        }
+
+        private static unsafe void CheckInstanceLayersPresent(string[] enabledInstanceLayers)
+        {
+            uint instanceLayerCount = 0;
+            AssertVulkan(Vk.EnumerateInstanceLayerProperties(ref instanceLayerCount, null));
+            Span<LayerProperties> props = stackalloc LayerProperties[(int)instanceLayerCount];
+            AssertVulkan(Vk.EnumerateInstanceLayerProperties(ref instanceLayerCount, ref props[0]));
+            List<string> names = new();
+            foreach (LayerProperties prop in props)
+            {
+                names.Add(SilkMarshal.PtrToString((nint)prop.LayerName));
+            }
+            foreach (string layer in enabledInstanceLayers)
+            {
+                if (!names.Contains(layer))
+                {
+                    Console.Error.WriteLine("WARNING: Layer not present! Name: '" + layer + "'");
+                }
+            }
+        }
+
+        public static unsafe Instance CreateInstance(string[] instanceLayers, string[] instanceExtensions, IVkSurface windowSurface)
         {
             ApplicationInfo appInfo = new()
             {
                 SType = StructureType.ApplicationInfo,
 
-                PApplicationName = (byte*)SilkMarshal.StringToPtr("SilkyNvg"),
-                ApplicationVersion = 1,
-                PEngineName = (byte*)SilkMarshal.StringToPtr("SilkyNvg"),
-                EngineVersion = 1,
+                PApplicationName = (byte*)SilkMarshal.StringToPtr("SilkyNvg-Vulkan-Example"),
+                ApplicationVersion = Vk.MakeVersion(1, 0, 0),
+                PEngineName = (byte*)SilkMarshal.StringToPtr("SilkyNvg (Renderer: Vulkan)"),
+                EngineVersion = Vk.MakeVersion(1, 0, 0),
                 ApiVersion = Vk.Version12
             };
 
-            byte** appendExtensions = stackalloc byte*[]
+            byte** windowExtensionsPtr = windowSurface.GetRequiredExtensions(out uint windowExtensionCount);
+            byte** instanceExtensionsPtr = (byte**)SilkMarshal.StringArrayToPtr(instanceExtensions);
+            byte** extensions = stackalloc byte*[(int)windowExtensionCount + instanceExtensions.Length];
+            int i = 0;
+            for (; i < windowExtensionCount; i++)
             {
-                (byte*)SilkMarshal.StringToPtr(ExtDebugReport.ExtensionName),
-                (byte*)SilkMarshal.StringToPtr(KhrSurface.ExtensionName),
-            };
-            uint appendExtensionsCount = 1;
-            if (!enableDebugLayer)
-            {
-                appendExtensionsCount = 0;
+                extensions[i] = windowExtensionsPtr[i];
             }
-
-            byte** glfwExtensions = glfw.GetRequiredInstanceExtensions(out uint extensionsCount);
-
-            byte** extensions = stackalloc byte*[(int)(extensionsCount + appendExtensionsCount)];
-
-            for (uint i = 0; i < extensionsCount; i++)
+            for (; i < windowExtensionCount + instanceExtensions.Length; i++)
             {
-                extensions[i] = glfwExtensions[i];
+                extensions[i] = instanceExtensionsPtr[i];
             }
-            for (uint i = 0; i < appendExtensionsCount; i++)
-            {
-                extensions[extensionsCount++] = appendExtensions[i];
-            }
+            CheckInstanceExtensionsPresent(extensions, (int)windowExtensionCount + instanceExtensions.Length);
 
-            InstanceCreateInfo instInfo = new()
-            {
-                SType = StructureType.InstanceCreateInfo,
+            CheckInstanceLayersPresent(instanceLayers);
+            byte** layers = (byte**)SilkMarshal.StringArrayToPtr(instanceLayers);
 
-                PApplicationInfo = &appInfo,
-                EnabledExtensionCount = extensionsCount,
-                PpEnabledExtensionNames = extensions
-            };
+            InstanceCreateInfo instanceCreateInfo = VkInit.InstanceCreateInfo(appInfo, layers,
+                (uint)instanceLayers.Length, extensions, windowExtensionCount);
 
-            if (enableDebugLayer)
-            {
-                uint layerCount = 0;
-                Vk.EnumerateInstanceLayerProperties(ref layerCount, null);
-                LayerProperties* layerProp = stackalloc LayerProperties[(int)layerCount];
-                Vk.EnumerateInstanceLayerProperties(ref layerCount, layerProp);
-                Console.Write("supported layers: ");
-                for (uint i = 0; i < layerCount; i++)
-                {
-                    Console.Write(SilkMarshal.PtrToString((nint)layerProp[i].LayerName) + " ,");
-                }
-                Console.Write(Environment.NewLine);
-
-                byte** instanceValidationLayers = stackalloc byte*[]
-                {
-                    (byte*)SilkMarshal.StringToPtr("VK_LAYER_KHRONOS_validation")
-                };
-                uint instanceValidationLayerCount = 1;
-                instInfo.EnabledLayerCount = instanceValidationLayerCount;
-                instInfo.PpEnabledLayerNames = instanceValidationLayers;
-            }
-
-            Result res = Vk.CreateInstance(instInfo, null, out Instance inst);
-
-            if (res == Result.ErrorIncompatibleDriver)
-            {
-                Console.Error.WriteLine("cannot find a compatible Vulkan ICD!");
-                Environment.Exit(-1);
-            }
-            else if (res != Result.Success)
-            {
-                switch (res)
-                {
-                    case Result.ErrorOutOfHostMemory:
-                        Console.Error.WriteLine("VK_ERROR_OUT_OF_HOST_MEMORY");
-                        break;
-                    case Result.ErrorOutOfDeviceMemory:
-                        Console.Error.WriteLine("VK_ERROR_OUT_OF_DEVICE_MEMORY");
-                        break;
-                    case Result.ErrorInitializationFailed:
-                        Console.Error.WriteLine("VK_ERROR_INITIALIZATION_FAILED");
-                        break;
-                    case Result.ErrorLayerNotPresent:
-                        Console.Error.WriteLine("VK_ERROR_LAYER_NOT_PRESENT");
-                        break;
-                    case Result.ErrorExtensionNotPresent:
-                        Console.Error.WriteLine("VK_ERROR_EXTENSION_NOT_PRESENT");
-                        break;
-                    default:
-                        Console.Error.WriteLine("uknown error " + res);
-                        break;
-                }
-                Environment.Exit(-1);
-            }
-
-            return inst;
+            AssertVulkan(Vk.CreateInstance(instanceCreateInfo, null, out Instance instance));
+            return instance;
         }
 
-        public static CommandBuffer CreateCmdBuffer(Device device, CommandPool cmdPool)
+        public static void GetInstanceExtensions()
         {
-            CommandBufferAllocateInfo cmd = new()
+            Instance instance = Vk.CurrentInstance.Value;
+
+            if (!Vk.TryGetInstanceExtension(instance, out KhrSurface khrSurface))
             {
-                SType = StructureType.CommandBufferAllocateInfo,
-
-                CommandPool = cmdPool,
-                Level = CommandBufferLevel.Primary,
-                CommandBufferCount = 1
-            };
-
-            Result res = Vk.AllocateCommandBuffers(device, cmd, out CommandBuffer cmdBuffer);
-            Debug.Assert(res == Result.Success);
-            return cmdBuffer;
+                throw new Exception();
+            }
+            KhrSurface = khrSurface;
         }
+        #endregion
 
-        public static RenderPass CreateRenderPass(Device device, Format colourFormat, Format depthFormat)
+        #region Device and PhyiscalDevice
+        private static unsafe bool CheckDeviceExtensionsPresent(string[] deviceExtensions, PhysicalDevice physicalDevice)
         {
-            AttachmentDescription* attachments = stackalloc AttachmentDescription[2]
+            uint deviceExtensionCount = 0;
+            AssertVulkan(Vk.EnumerateDeviceExtensionProperties(physicalDevice, (byte*)null, ref deviceExtensionCount, null));
+            Span<ExtensionProperties> props = stackalloc ExtensionProperties[(int)deviceExtensionCount];
+            AssertVulkan(Vk.EnumerateDeviceExtensionProperties(physicalDevice, (byte*)null, ref deviceExtensionCount, ref props[0]));
+            List<string> names = new();
+            foreach (ExtensionProperties prop in props)
             {
-                new AttachmentDescription()
+                names.Add(SilkMarshal.PtrToString((nint)prop.ExtensionName));
+            }
+            foreach (string extension in deviceExtensions)
+            {
+                if (!names.Contains(extension))
                 {
-                    Format = colourFormat,
-                    Samples = SampleCountFlags.SampleCount1Bit,
-                    LoadOp = AttachmentLoadOp.Clear,
-                    StoreOp = AttachmentStoreOp.Store,
-                    StencilLoadOp = AttachmentLoadOp.Clear,
-                    StencilStoreOp = AttachmentStoreOp.DontCare,
-                    InitialLayout = ImageLayout.Undefined,
-                    FinalLayout = ImageLayout.ColorAttachmentOptimal
-                },
-
-                new AttachmentDescription()
-                {
-                    Format = depthFormat,
-                    Samples = SampleCountFlags.SampleCount1Bit,
-                    LoadOp = AttachmentLoadOp.Clear,
-                    StoreOp = AttachmentStoreOp.DontCare,
-                    StencilLoadOp = AttachmentLoadOp.Clear,
-                    StencilStoreOp = AttachmentStoreOp.DontCare,
-                    InitialLayout = ImageLayout.Undefined,
-                    FinalLayout = ImageLayout.DepthStencilAttachmentOptimal
+                    Console.Error.WriteLine("WARNING: Extension not present. Name: " + extension + ".");
+                    return false;
                 }
-            };
-
-            AttachmentReference colourReference = new(0, ImageLayout.ColorAttachmentOptimal);
-
-            AttachmentReference depthReference = new(1, ImageLayout.DepthStencilAttachmentOptimal);
-
-            SubpassDescription subpass = new()
-            {
-                PipelineBindPoint = PipelineBindPoint.Graphics,
-                InputAttachmentCount = 0,
-                PInputAttachments = null,
-                ColorAttachmentCount = 1,
-                PColorAttachments = &colourReference,
-                PResolveAttachments = null,
-                PDepthStencilAttachment = &depthReference,
-                PreserveAttachmentCount = 0,
-                PPreserveAttachments = null
-            };
-
-            RenderPassCreateInfo rpInfo = new()
-            {
-                SType = StructureType.RenderPassCreateInfo,
-
-                AttachmentCount = 2,
-                PAttachments = attachments,
-                SubpassCount = 1,
-                PSubpasses = &subpass
-            };
-
-            Result res = Vk.CreateRenderPass(device, rpInfo, null, out RenderPass renderPass);
-            Debug.Assert(res == Result.Success);
-
-            return renderPass;
+            }
+            return true;
         }
+
+        private static unsafe bool FindQueueFamilyIndices(PhysicalDevice physicalDevice, SurfaceKHR surface, out uint? graphicsQueueFamily, out uint? presentQueueFamily)
+        {
+            graphicsQueueFamily = presentQueueFamily = null;
+
+            uint queueFamilyCount = 0;
+            Vk.GetPhysicalDeviceQueueFamilyProperties(physicalDevice, ref queueFamilyCount, null);
+            Span<QueueFamilyProperties> props = stackalloc QueueFamilyProperties[(int)queueFamilyCount];
+            Vk.GetPhysicalDeviceQueueFamilyProperties(physicalDevice, ref queueFamilyCount, out props[0]);
+
+            for (int i = 0; i < queueFamilyCount; i++)
+            {
+                QueueFamilyProperties prop = props[i];
+                if (prop.QueueFlags.HasFlag(QueueFlags.QueueGraphicsBit) && !graphicsQueueFamily.HasValue)
+                {
+                    graphicsQueueFamily = (uint)i;
+                }
+
+                AssertVulkan(KhrSurface.GetPhysicalDeviceSurfaceSupport(physicalDevice, (uint)i, surface, out Bool32 supported));
+                if (supported && !presentQueueFamily.HasValue)
+                {
+                    presentQueueFamily = (uint)i;
+                }
+
+                if (graphicsQueueFamily.HasValue && presentQueueFamily.HasValue)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static unsafe bool CheckSwapchainSupported(PhysicalDevice physicalDevice, SurfaceKHR surface, out (SurfaceCapabilitiesKHR, SurfaceFormatKHR[], PresentModeKHR[]) swapchainData)
+        {
+            swapchainData = default;
+
+            AssertVulkan(KhrSurface.GetPhysicalDeviceSurfaceCapabilities(physicalDevice, surface, out swapchainData.Item1));
+
+            uint surfaceFormatCount = 0;
+            KhrSurface.GetPhysicalDeviceSurfaceFormats(physicalDevice, surface, ref surfaceFormatCount, null);
+            if (surfaceFormatCount < 1)
+            {
+                return false;
+            }
+            swapchainData.Item2 = new SurfaceFormatKHR[surfaceFormatCount];
+            AssertVulkan(KhrSurface.GetPhysicalDeviceSurfaceFormats(physicalDevice, surface, ref surfaceFormatCount, out swapchainData.Item2[0]));
+
+            uint presentModeCount = 0;
+            AssertVulkan(KhrSurface.GetPhysicalDeviceSurfacePresentModes(physicalDevice, surface, ref presentModeCount, null));
+            if (presentModeCount == 0)
+            {
+                return false;
+            }
+            swapchainData.Item3 = new PresentModeKHR[presentModeCount];
+            AssertVulkan(KhrSurface.GetPhysicalDeviceSurfacePresentModes(physicalDevice, surface, ref presentModeCount, out swapchainData.Item3[0]));
+
+            return true;
+        }
+
+        private static uint GetPhysicalDeviceScore(PhysicalDevice physicalDevice, string[] deviceExtensions, SurfaceKHR surface,
+            out uint graphicsQueueFamily, out uint presentQueuFamily, out (SurfaceCapabilitiesKHR, SurfaceFormatKHR[], PresentModeKHR[]) swapchainData)
+        {
+            graphicsQueueFamily = presentQueuFamily = 0;
+            swapchainData = default;
+
+            Vk.GetPhysicalDeviceProperties(physicalDevice, out PhysicalDeviceProperties properties);
+
+            uint score = uint.MinValue;
+
+            // Extension Presence
+            if (!CheckDeviceExtensionsPresent(deviceExtensions, physicalDevice))
+            {
+                return score;
+            }
+
+            // Queue Families
+            if (!FindQueueFamilyIndices(physicalDevice, surface, out uint? gQueueFamily, out uint? pQueueFamily))
+            {
+                return score;
+            }
+            graphicsQueueFamily = gQueueFamily.Value;
+            presentQueuFamily = pQueueFamily.Value;
+
+            // Swapchain Data
+            if (!CheckSwapchainSupported(physicalDevice, surface, out swapchainData))
+            {
+                return score;
+            }
+
+            score = 0; // if it has the queue families, it is a valid GPU. Rate depending on non-essential stuff now.
+
+            // Add Score depending on type now.
+            uint[] gpuTypeScores =
+            {
+                5, // Use Other if exists. (If Other exists, most likely want to use it).
+                2, // Use Integrated GPU only if nothing else is available.
+                3, // Discrete GPU is standard and should be used rather than Integrated GPU or CPU.
+                4, // If Virtual GPU Exists, most likely want to use it.
+                1 // Use CPU only if nothing else is available.
+            };
+            score += gpuTypeScores[(int)properties.DeviceType];
+
+            return score;
+        }
+
+        public static unsafe PhysicalDevice PickPhysicalDevice(string[] deviceExtensions, SurfaceKHR surface, out uint graphicsQueueFamily,
+            out uint presentQueueFamily, out (SurfaceCapabilitiesKHR, SurfaceFormatKHR[], PresentModeKHR[]) swapchainData)
+        {
+            Instance instance = Vk.CurrentInstance.Value;
+
+            graphicsQueueFamily = presentQueueFamily = 0;
+            swapchainData = default;
+
+            uint physicalDeviceCount = 0;
+            AssertVulkan(Vk.EnumeratePhysicalDevices(instance, ref physicalDeviceCount, null));
+            Span<PhysicalDevice> physicalDevices = stackalloc PhysicalDevice[(int)physicalDeviceCount];
+            AssertVulkan(Vk.EnumeratePhysicalDevices(instance, ref physicalDeviceCount, ref physicalDevices[0]));
+
+            PhysicalDevice bestPhysicalDevice = default;
+            uint bestPhysicalDeviceScore = uint.MinValue;
+
+            foreach (PhysicalDevice physicalDevice in physicalDevices)
+            {
+                uint score;
+                if ((score = GetPhysicalDeviceScore(physicalDevice, deviceExtensions, surface, out graphicsQueueFamily, out presentQueueFamily, out swapchainData)) > bestPhysicalDeviceScore)
+                {
+                    bestPhysicalDevice = physicalDevice;
+                    bestPhysicalDeviceScore = score;
+                }
+            }
+
+            if (bestPhysicalDeviceScore < 0)
+            {
+                throw new Exception("No suitable physical device found.");
+            }
+
+            return bestPhysicalDevice;
+        }
+
+        public static unsafe Device CreateDevice(string[] deviceExtensions, PhysicalDevice physicalDevice, uint graphicsQueueFamily, uint presentQueueFamily)
+        {
+            DeviceCreateInfo deviceCreateInfo;
+            if (graphicsQueueFamily == presentQueueFamily)
+            {
+                DeviceQueueCreateInfo queueCreateInfo = VkInit.QueueCreateInfo(graphicsQueueFamily, 2, 1.0f, 1.0f);
+                deviceCreateInfo = VkInit.DeviceCreateInfo(deviceExtensions, queueCreateInfo);
+            }
+            else
+            {
+                DeviceQueueCreateInfo graphicsQueueCreateInfo = VkInit.QueueCreateInfo(graphicsQueueFamily, 1, 1.0f);
+                DeviceQueueCreateInfo presentQueueCreateInfo = VkInit.QueueCreateInfo(presentQueueFamily, 1, 1.0f);
+                deviceCreateInfo = VkInit.DeviceCreateInfo(deviceExtensions, graphicsQueueCreateInfo, presentQueueCreateInfo);
+            }
+
+            AssertVulkan(Vk.CreateDevice(physicalDevice, deviceCreateInfo, null, out Device device));
+            return device;
+        }
+
+        public static void GetDeviceExtensions()
+        {
+            Instance instance = Vk.CurrentInstance.Value;
+            Device device = Vk.CurrentDevice.Value;
+
+            if (!Vk.TryGetDeviceExtension(instance, device, out KhrSwapchain khrSwapchain))
+            {
+                throw new Exception();
+            }
+            KhrSwapchain = khrSwapchain;
+        }
+        #endregion
 
     }
 }

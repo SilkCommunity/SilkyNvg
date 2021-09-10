@@ -3,19 +3,19 @@
     internal struct Path
     {
 
-        public int FillOffset { get; }
+        public uint FillOffset { get; }
 
         public uint FillCount { get; }
 
-        public int StrokeOffset { get; }
+        public uint StrokeOffset { get; }
 
         public uint StrokeCount { get; }
 
         public Path(int fillOffset, int fillCount, int strokeOffset, int strokeCount)
         {
-            FillOffset = fillOffset;
+            FillOffset = (uint)fillOffset;
             FillCount = (uint)fillCount;
-            StrokeOffset = strokeOffset;
+            StrokeOffset = (uint)strokeOffset;
             StrokeCount = (uint)strokeCount;
         }
 

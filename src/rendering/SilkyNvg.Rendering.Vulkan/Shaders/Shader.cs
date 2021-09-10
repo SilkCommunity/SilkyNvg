@@ -1,210 +1,115 @@
-﻿using Silk.NET.Maths;
+﻿using Silk.NET.Core.Native;
 using Silk.NET.Vulkan;
-using SilkyNvg.Rendering.Vulkan.Utils;
 using System;
 using System.IO;
-using System.Runtime.InteropServices;
 
 namespace SilkyNvg.Rendering.Vulkan.Shaders
 {
     internal class Shader : IDisposable
     {
 
-        private readonly int _align;
         private readonly VulkanRenderer _renderer;
+        private readonly string _name;
 
-        private Buffer<Vector2D<float>> _vertUniformBuffer;
-        private Buffer<byte> _fragUniformBuffer;
+        private readonly ShaderModule _vertexShaderModule;
+        private readonly ShaderModule _fragmentShaderModule;
 
-        private DescriptorPool _descriptorPool;
-        private uint _descriptorPoolCapacity;
+        private PipelineLayout _layout;
 
-        public DescriptorPool DescPool => _descriptorPool;
+        public PipelineShaderStageCreateInfo VertexShaderStage { get; }
 
-        public DescriptorSetLayout DescLayout { get; }
+        public PipelineShaderStageCreateInfo FragmentShaderStage { get; }
 
-        public ShaderModule VertShader { get; }
+        public PipelineLayout Layout => _layout;
 
-        public ShaderModule FragShader { get; }
+        public bool Status { get; private set; }
 
-        public ShaderModule FragShaderAA { get; }
-
-        public UniformManager UniformManager { get; }
-
-        public int FragSize { get; }
-
-        public unsafe Shader(VulkanRenderer renderer)
+        public Shader(string name, string vertexFile, string fragmentFile)
         {
-            _renderer = renderer;
+            Status = true;
 
-            VertShader = CreateShaderModule("fill.vert");
-            FragShader = CreateShaderModule("fill.frag");
-            FragShaderAA = CreateShaderModule("fill_edge_aa.frag");
+            _renderer = VulkanRenderer.Instance;
+            _name = name;
 
-            _align = (int)_renderer.GpuProperties.Limits.MinUniformBufferOffsetAlignment;
+            _vertexShaderModule = LoadShader(vertexFile);
+            _fragmentShaderModule = LoadShader(fragmentFile);
 
-            FragSize = Marshal.SizeOf(typeof(FragUniforms)) + _align - (Marshal.SizeOf(typeof(FragUniforms)) % _align);
+            VertexShaderStage = ShaderStageCreateInfo(_vertexShaderModule, ShaderStageFlags.ShaderStageVertexBit);
+            FragmentShaderStage = ShaderStageCreateInfo(_fragmentShaderModule, ShaderStageFlags.ShaderStageFragmentBit);
 
-            UniformManager = new UniformManager(FragSize);
-            _vertUniformBuffer = default;
-            _fragUniformBuffer = default;
-            _descriptorPool = default;
-            _descriptorPoolCapacity = 0;
-
-            DescLayout = CreateDescriptorSetLayout();
+            if (Status == false)
+            {
+                return;
+            }
         }
 
-        private unsafe ShaderModule CreateShaderModule(string fileName)
+        private unsafe ShaderModule LoadShader(string file)
         {
-            byte[] code = File.ReadAllBytes("./Shaders/" + fileName + ".spv");
-            ShaderModuleCreateInfo moduleCreateInfo = new()
+            Device device = _renderer.Params.Device;
+            AllocationCallbacks* allocator = (AllocationCallbacks*)_renderer.Params.AllocationCallbacks.ToPointer();
+            Vk vk = _renderer.Vk;
+
+            byte[] data = File.ReadAllBytes("Shaders/nanovg_" + file + ".spv");
+
+            ShaderModuleCreateInfo shaderModuleCreateInfo = new()
             {
                 SType = StructureType.ShaderModuleCreateInfo,
 
-                CodeSize = (nuint)code.Length
+                CodeSize = (nuint)(data.Length * sizeof(byte))
             };
-            fixed (byte* ptr = code)
+            fixed (byte* ptr = &data[0])
             {
-                moduleCreateInfo.PCode = (uint*)ptr;
+                shaderModuleCreateInfo.PCode = (uint*)ptr;
             }
 
-            _renderer.Assert(_renderer.Vk.CreateShaderModule(_renderer.Params.device, moduleCreateInfo, _renderer.Params.allocator, out ShaderModule module));
+            if (vk.CreateShaderModule(device, shaderModuleCreateInfo, allocator, out ShaderModule module) != Result.Success)
+            {
+                Status = false;
+            }
             return module;
         }
 
-        private unsafe DescriptorSetLayout CreateDescriptorSetLayout()
+        public unsafe void CreatePipelineLayout()
         {
-            DescriptorSetLayoutBinding* layoutBindings = stackalloc DescriptorSetLayoutBinding[3]
+            Device device = _renderer.Params.Device;
+            AllocationCallbacks* allocator = (AllocationCallbacks*)_renderer.Params.AllocationCallbacks.ToPointer();
+            Vk vk = _renderer.Vk;
+
+            PipelineLayoutCreateInfo pipelineLayoutCreateInfo = new()
             {
-                new DescriptorSetLayoutBinding(0, DescriptorType.UniformBuffer, 1, ShaderStageFlags.ShaderStageVertexBit, null),
-                new DescriptorSetLayoutBinding(1, DescriptorType.UniformBuffer, 1, ShaderStageFlags.ShaderStageFragmentBit, null),
-                new DescriptorSetLayoutBinding(2, DescriptorType.CombinedImageSampler, 1, ShaderStageFlags.ShaderStageFragmentBit, null)
+                SType = StructureType.PipelineLayoutCreateInfo,
+
+                SetLayoutCount = 0,
+                PSetLayouts = null,
+                PushConstantRangeCount = 0,
+                PPushConstantRanges = null
             };
-
-            DescriptorSetLayoutCreateInfo descriptorLayout = new(StructureType.DescriptorSetLayoutCreateInfo, null, 0, 3, layoutBindings);
-
-            _renderer.Assert(_renderer.Vk.CreateDescriptorSetLayout(_renderer.Params.device, descriptorLayout, _renderer.Params.allocator, out DescriptorSetLayout descLayout));
-            return descLayout;
-        }
-
-        public unsafe void UpdateBuffers(Vector2D<float> view)
-        {
-            Buffer<Vector2D<float>>.UpdateBuffer(ref _vertUniformBuffer, BufferUsageFlags.BufferUsageUniformBufferBit,
-                MemoryPropertyFlags.MemoryPropertyHostVisibleBit, new(&view, 1), _renderer);
-            Buffer<byte>.UpdateBuffer(ref _fragUniformBuffer, BufferUsageFlags.BufferUsageUniformBufferBit,
-                MemoryPropertyFlags.MemoryPropertyHostVisibleBit, UniformManager.Uniforms, _renderer);
-        }
-
-        private unsafe DescriptorPool CreateDescriptorPool(Device device, uint count, AllocationCallbacks* allocator)
-        {
-            DescriptorPoolSize* typeCount = stackalloc DescriptorPoolSize[3]
-            {
-                new DescriptorPoolSize(DescriptorType.InputAttachment, 2 * count),
-                new DescriptorPoolSize(DescriptorType.UniformBuffer, 4 * count),
-                new DescriptorPoolSize(DescriptorType.CombinedImageSampler, 2 * count)
-            };
-
-            DescriptorPoolCreateInfo descriptorPool = new(StructureType.DescriptorPoolCreateInfo, null, 0, count * 2, 3, typeCount);
-            _renderer.Assert(_renderer.Vk.CreateDescriptorPool(device, descriptorPool, allocator, out DescriptorPool descPool));
-            return descPool;
-        }
-
-        public unsafe void ValidateDescriptorPool(uint count)
-        {
-            if (count > _descriptorPoolCapacity)
-            {
-                if (_descriptorPool.Handle != 0)
-                {
-                    _renderer.Vk.DestroyDescriptorPool(_renderer.Params.device, _descriptorPool, _renderer.Params.allocator);
-                }
-                _descriptorPool = CreateDescriptorPool(_renderer.Params.device, count, _renderer.Params.allocator);
-                _descriptorPoolCapacity = count;
-            }
-            else
-            {
-                _ = _renderer.Vk.ResetDescriptorPool(_renderer.Params.device, _descriptorPool, 0);
-            }
-        }
-
-        public unsafe void SetUniforms(DescriptorSet descSet, int uniformOffset, int image)
-        {
-            Device device = _renderer.Params.device;
-
-            WriteDescriptorSet* writes = stackalloc WriteDescriptorSet[3];
-
-            DescriptorBufferInfo vertUniformBufferInfo = new()
-            {
-                Buffer = _vertUniformBuffer.Handle,
-                Offset = 0,
-                Range = (ulong)sizeof(Vector2D<float>) // view size is Vector2D
-            };
-
-            writes[0] = new(StructureType.WriteDescriptorSet)
-            {
-                DstSet = descSet,
-                DescriptorCount = 1,
-                DescriptorType = DescriptorType.UniformBuffer,
-                PBufferInfo = &vertUniformBufferInfo,
-                DstArrayElement = 0,
-                DstBinding = 0
-            };
-
-            DescriptorBufferInfo uniformBufferInfo = new()
-            {
-                Buffer = _fragUniformBuffer.Handle,
-                Offset = (ulong)uniformOffset,
-                Range = (ulong)sizeof(FragUniforms)
-            };
-
-            writes[1] = new(StructureType.WriteDescriptorSet)
-            {
-                DstSet = descSet,
-                DescriptorCount = 1,
-                DescriptorType = DescriptorType.UniformBuffer,
-                PBufferInfo = &uniformBufferInfo,
-                DstBinding = 1
-            };
-
-            Textures.Texture tex;
-            if (image != 0)
-            {
-                tex = Textures.Texture.FindTexture(image);
-            }
-            else
-            {
-                tex = Textures.Texture.FindTexture(1);
-            }
-
-            DescriptorImageInfo imageInfo = new()
-            {
-                ImageLayout = tex.ImageLayout,
-                ImageView = tex.View,
-                Sampler = tex.Sampler
-            };
-
-            writes[2] = new(StructureType.WriteDescriptorSet)
-            {
-                DstSet = descSet,
-                DstBinding = 2,
-                DescriptorCount = 1,
-                DescriptorType = DescriptorType.CombinedImageSampler,
-                PImageInfo = &imageInfo
-            };
-
-            _renderer.Vk.UpdateDescriptorSets(device, 3, writes, null);
+            _renderer.AssertVulkan(vk.CreatePipelineLayout(device, pipelineLayoutCreateInfo, allocator, out _layout));
         }
 
         public unsafe void Dispose()
         {
-            _vertUniformBuffer.Dispose();
-            _fragUniformBuffer.Dispose();
+            Device device = _renderer.Params.Device;
+            AllocationCallbacks* allocator = (AllocationCallbacks*)_renderer.Params.AllocationCallbacks.ToPointer();
+            Vk vk = _renderer.Vk;
 
-            _renderer.Vk.DestroyShaderModule(_renderer.Params.device, VertShader, _renderer.Params.allocator);
-            _renderer.Vk.DestroyShaderModule(_renderer.Params.device, FragShader, _renderer.Params.allocator);
-            _renderer.Vk.DestroyShaderModule(_renderer.Params.device, FragShaderAA, _renderer.Params.allocator);
+            vk.DestroyPipelineLayout(device, _layout, allocator);
 
-            _renderer.Vk.DestroyDescriptorPool(_renderer.Params.device, _descriptorPool, _renderer.Params.allocator);
-            _renderer.Vk.DestroyDescriptorSetLayout(_renderer.Params.device, DescLayout, _renderer.Params.allocator);
+            vk.DestroyShaderModule(device, _vertexShaderModule, allocator);
+            vk.DestroyShaderModule(device, _fragmentShaderModule, allocator);
+        }
+
+        private static unsafe PipelineShaderStageCreateInfo ShaderStageCreateInfo(ShaderModule module, ShaderStageFlags stage)
+        {
+            return new PipelineShaderStageCreateInfo()
+            {
+                SType = StructureType.PipelineShaderStageCreateInfo,
+
+                Module = module,
+                PName = (byte*)SilkMarshal.StringToPtr("main"),
+                PSpecializationInfo = null,
+                Stage = stage
+            };
         }
 
     }

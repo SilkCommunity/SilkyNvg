@@ -13,15 +13,6 @@ namespace SilkyNvg.Rendering.Vulkan
 
         public ReadOnlySpan<Vertex> Vertices => _vertices;
 
-        public Vertex this[int index]
-        {
-            set
-            {
-                AllocVerts(1);
-                _vertices[index] = value;
-            }
-        }
-
         public VertexCollection()
         {
             _vertices = Array.Empty<Vertex>();

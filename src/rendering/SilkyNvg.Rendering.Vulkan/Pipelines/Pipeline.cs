@@ -1,274 +1,195 @@
-﻿using Silk.NET.Core.Native;
-using Silk.NET.Vulkan;
-using SilkyNvg.Blending;
-using System;
+﻿using Silk.NET.Vulkan;
 
 namespace SilkyNvg.Rendering.Vulkan.Pipelines
 {
-    internal class Pipeline : IDisposable
+    internal class Pipeline
     {
 
         private readonly VulkanRenderer _renderer;
 
-        public PipelineKey CreateKey { get; }
-
         public Silk.NET.Vulkan.Pipeline Handle { get; }
 
-        public unsafe Pipeline(PipelineKey pipelineKey, VulkanRenderer renderer)
+        public Pipeline(PipelineData pipelineData)
         {
-            _renderer = renderer;
+            _renderer = VulkanRenderer.Instance;
+            Handle = CreatePipeline(pipelineData);
+        }
 
-            Device device = _renderer.Params.device;
-            PipelineLayout pipelineLayout = _renderer.PipelineLayout;
-            RenderPass renderpass = _renderer.Params.renderpass;
-            AllocationCallbacks* allocator = _renderer.Params.allocator;
+        private unsafe Silk.NET.Vulkan.Pipeline CreatePipeline(PipelineData pipelineData)
+        {
+            Device device = _renderer.Params.Device;
+            AllocationCallbacks* allocator = (AllocationCallbacks*)_renderer.Params.AllocationCallbacks.ToPointer();
+            Vk vk = _renderer.Vk;
 
-            DescriptorSetLayout descLayout = _renderer.Shader.DescLayout;
-            ShaderModule vertShader = _renderer.Shader.VertShader;
-            ShaderModule fragShader = _renderer.Shader.FragShader;
-            ShaderModule fragShaderAA = _renderer.Shader.FragShaderAA;
+            PipelineVertexInputStateCreateInfo vertexInputState = VertexInputState(VulkanRenderer.VertexInputBindingDescription, VulkanRenderer.VertexInputAttributeDescriptions);
+            PipelineInputAssemblyStateCreateInfo inputAssemblyState = InputAssemblyState(pipelineData.Topology);
+            PipelineViewportStateCreateInfo viewportState = ViewportState();
+            PipelineRasterizationStateCreateInfo rasterizationState = RasterizationState();
+            PipelineMultisampleStateCreateInfo multisampleState = MultisampleState();
+            PipelineColorBlendAttachmentState colorBlendAttachmentState = ColourBlendAttachmentState(pipelineData.SrcRgb, pipelineData.SrcAlpha, pipelineData.DstRgb, pipelineData.DstAlpha);
+            PipelineColorBlendStateCreateInfo colourBlendState = ColourBlendState(colorBlendAttachmentState);
+            PipelineDynamicStateCreateInfo dynamicState = DynamicStateCreateInfo(DynamicState.Viewport, DynamicState.Scissor);
 
-            VertexInputBindingDescription* viBindings = stackalloc VertexInputBindingDescription[1]
+            PipelineShaderStageCreateInfo* shaderStages = stackalloc PipelineShaderStageCreateInfo[2]
             {
-                new VertexInputBindingDescription(0, (uint)sizeof(Vertex), VertexInputRate.Vertex)
+                _renderer.Shader.VertexShaderStage,
+                _renderer.Shader.FragmentShaderStage
             };
 
-            VertexInputAttributeDescription* viAttrs = stackalloc VertexInputAttributeDescription[2]
+            GraphicsPipelineCreateInfo graphicsPipelineCreateInfo = new()
             {
-                new VertexInputAttributeDescription(0, 0, Format.R32G32Sfloat, 0),
-                new VertexInputAttributeDescription(1, 0, Format.R32G32Sfloat, 2 * sizeof(float))
+                SType = StructureType.GraphicsPipelineCreateInfo,
+
+                StageCount = 2,
+                PStages = shaderStages,
+
+                PVertexInputState = &vertexInputState,
+                PInputAssemblyState = &inputAssemblyState,
+                PRasterizationState = &rasterizationState,
+                PMultisampleState = &multisampleState,
+                PColorBlendState = &colourBlendState,
+                PDepthStencilState = null, // TODO
+                PDynamicState = &dynamicState,
+                PViewportState = &viewportState,
+                PTessellationState = null,
+
+                Layout = _renderer.Shader.Layout,
+
+                RenderPass = _renderer.Params.RenderPass,
+                Subpass = _renderer.Params.SubpassIndex,
+
+                BasePipelineHandle = default,
+                BasePipelineIndex = -1
             };
 
-            PipelineVertexInputStateCreateInfo vi = new(StructureType.PipelineVertexInputStateCreateInfo)
+            _renderer.AssertVulkan(vk.CreateGraphicsPipelines(device, default, 1, graphicsPipelineCreateInfo, allocator, out Silk.NET.Vulkan.Pipeline pipeline));
+            return pipeline;
+        }
+
+        private static unsafe PipelineVertexInputStateCreateInfo VertexInputState(VertexInputBindingDescription vertexInputBindingDescription, VertexInputAttributeDescription[] vertexInputAttributeDescriptions)
+        {
+            PipelineVertexInputStateCreateInfo inputState = new()
             {
+                SType = StructureType.PipelineVertexInputStateCreateInfo,
+
                 VertexBindingDescriptionCount = 1,
-                PVertexBindingDescriptions = viBindings,
-                VertexAttributeDescriptionCount = 2,
-                PVertexAttributeDescriptions = viAttrs
+                PVertexBindingDescriptions = &vertexInputBindingDescription,
+                VertexAttributeDescriptionCount = (uint)vertexInputAttributeDescriptions.Length
             };
 
-            PipelineInputAssemblyStateCreateInfo ia = new(StructureType.PipelineInputAssemblyStateCreateInfo)
+            fixed (VertexInputAttributeDescription* ptr = &vertexInputAttributeDescriptions[0])
             {
-                Topology = pipelineKey.Topology
-            };
+                inputState.PVertexAttributeDescriptions = ptr;
+            }
 
-            PipelineRasterizationStateCreateInfo rs = new(StructureType.PipelineRasterizationStateCreateInfo)
+            return inputState;
+        }
+
+        private static PipelineInputAssemblyStateCreateInfo InputAssemblyState(PrimitiveTopology topology)
+        {
+            return new()
             {
-                PolygonMode = PolygonMode.Fill,
-                CullMode = CullModeFlags.CullModeBackBit,
-                FrontFace = FrontFace.CounterClockwise,
+                SType = StructureType.PipelineInputAssemblyStateCreateInfo,
+
+                PrimitiveRestartEnable = false,
+                Topology = topology
+            };
+        }
+
+        private static unsafe PipelineViewportStateCreateInfo ViewportState()
+        {
+            return new()
+            {
+                SType = StructureType.PipelineViewportStateCreateInfo,
+
+                ScissorCount = 1,
+                ViewportCount = 1
+            };
+        }
+
+        private static PipelineRasterizationStateCreateInfo RasterizationState()
+        {
+            return new()
+            {
+                SType = StructureType.PipelineRasterizationStateCreateInfo,
+
                 DepthClampEnable = false,
                 RasterizerDiscardEnable = false,
                 DepthBiasEnable = false,
-                LineWidth = 1.0f
-            };
 
-            PipelineColorBlendAttachmentState colourBlend = CompositeOperationToColourBlendAttachmentState(pipelineKey.CompositeOperation);
+                PolygonMode = PolygonMode.Fill,
+                LineWidth = 1.0f,
 
-            if (pipelineKey.StencilFill)
-            {
-                rs.CullMode = CullModeFlags.CullModeNone;
-                colourBlend.ColorWriteMask = 0;
-            }
+                CullMode = CullModeFlags.CullModeBackBit,
+                FrontFace = FrontFace.CounterClockwise,
 
-            PipelineColorBlendStateCreateInfo cb = new(StructureType.PipelineColorBlendStateCreateInfo)
-            {
-                AttachmentCount = 1,
-                PAttachments = &colourBlend
-            };
-
-            PipelineViewportStateCreateInfo vp = new(StructureType.PipelineViewportStateCreateInfo)
-            {
-                ViewportCount = 1,
-                ScissorCount = 1
-            };
-
-            const int DYNAMIC_STATE_COUNT = 2;
-            DynamicState* dynamicStateEnables = stackalloc DynamicState[DYNAMIC_STATE_COUNT]
-            {
-                DynamicState.Viewport,
-                DynamicState.Scissor
-            };
-
-            PipelineDynamicStateCreateInfo dynamicState = new(StructureType.PipelineDynamicStateCreateInfo)
-            {
-                DynamicStateCount = 2,
-                PDynamicStates = dynamicStateEnables
-            };
-
-            PipelineDepthStencilStateCreateInfo ds = InitializeDepthStencilCreateInfo(pipelineKey);
-
-            PipelineMultisampleStateCreateInfo ms = new(StructureType.PipelineMultisampleStateCreateInfo)
-            {
-                PSampleMask = null,
-                RasterizationSamples = SampleCountFlags.SampleCount1Bit
-            };
-
-            PipelineShaderStageCreateInfo* shaderStages = stackalloc PipelineShaderStageCreateInfo[2];
-            shaderStages[0] = new PipelineShaderStageCreateInfo(StructureType.PipelineShaderStageCreateInfo)
-            {
-                Stage = ShaderStageFlags.ShaderStageVertexBit,
-                Module = vertShader,
-                PName = (byte*)SilkMarshal.StringToPtr("main")
-            };
-            shaderStages[1] = new PipelineShaderStageCreateInfo(StructureType.PipelineShaderStageCreateInfo)
-            {
-                Stage = ShaderStageFlags.ShaderStageFragmentBit,
-                Module = fragShader,
-                PName = (byte*)SilkMarshal.StringToPtr("main")
-            };
-            if (pipelineKey.EdgeAAShader)
-            {
-                shaderStages[1].Module = fragShaderAA;
-            }
-
-            GraphicsPipelineCreateInfo pipelineCreateInfo = new(StructureType.GraphicsPipelineCreateInfo)
-            {
-                Layout = pipelineLayout,
-                StageCount = 2,
-                PStages = shaderStages,
-                PVertexInputState = &vi,
-                PInputAssemblyState = &ia,
-                PRasterizationState = &rs,
-                PColorBlendState = &cb,
-                PMultisampleState = &ms,
-                PViewportState = &vp,
-                PDepthStencilState = &ds,
-                RenderPass = renderpass,
-                PDynamicState = &dynamicState
-            };
-
-            renderer.Assert(renderer.Vk.CreateGraphicsPipelines(device, default, 1, pipelineCreateInfo, allocator, out Silk.NET.Vulkan.Pipeline pipeline));
-
-            CreateKey = pipelineKey;
-            Handle = pipeline;
-        }
-
-        public void Bind(CommandBuffer cmdBuffer)
-        {
-            _renderer.Vk.CmdBindPipeline(cmdBuffer, PipelineBindPoint.Graphics, Handle);
-        }
-
-        public unsafe void Dispose()
-        {
-            _renderer.Vk.DestroyPipeline(_renderer.Params.device, Handle, _renderer.Params.allocator);
-        }
-
-        private static Silk.NET.Vulkan.BlendFactor BlendFactorToVkBlendFactor(Blending.BlendFactor factor)
-        {
-            return factor switch
-            {
-                Blending.BlendFactor.Zero => Silk.NET.Vulkan.BlendFactor.Zero,
-                Blending.BlendFactor.One => Silk.NET.Vulkan.BlendFactor.One,
-                Blending.BlendFactor.SrcColour => Silk.NET.Vulkan.BlendFactor.SrcColor,
-                Blending.BlendFactor.OneMinusSrcColour => Silk.NET.Vulkan.BlendFactor.OneMinusSrcColor,
-                Blending.BlendFactor.DstColour => Silk.NET.Vulkan.BlendFactor.DstColor,
-                Blending.BlendFactor.OneMinusDstColour => Silk.NET.Vulkan.BlendFactor.OneMinusDstColor,
-                Blending.BlendFactor.SrcAlpha => Silk.NET.Vulkan.BlendFactor.SrcAlpha,
-                Blending.BlendFactor.OneMinusSrcAlpha => Silk.NET.Vulkan.BlendFactor.OneMinusSrcAlpha,
-                Blending.BlendFactor.DstAlpha => Silk.NET.Vulkan.BlendFactor.DstAlpha,
-                Blending.BlendFactor.OneMinusDstAlpha => Silk.NET.Vulkan.BlendFactor.OneMinusDstAlpha,
-                Blending.BlendFactor.SrcAlphaSaturate => Silk.NET.Vulkan.BlendFactor.SrcAlphaSaturate,
-                _ => Silk.NET.Vulkan.BlendFactor.OneMinusSrc1Alpha,
+                DepthBiasConstantFactor = 0.0f,
+                DepthBiasClamp = 0.0f,
+                DepthBiasSlopeFactor = 0.0f
             };
         }
 
-        private static PipelineColorBlendAttachmentState CompositeOperationToColourBlendAttachmentState(CompositeOperationState compositeOperation)
+        private static PipelineMultisampleStateCreateInfo MultisampleState()
         {
-            PipelineColorBlendAttachmentState state = new()
+            return new()
             {
-                BlendEnable = true,
-                ColorBlendOp = BlendOp.Add,
-                AlphaBlendOp = BlendOp.Add,
+                SType = StructureType.PipelineMultisampleStateCreateInfo,
+
+                SampleShadingEnable = false,
+                AlphaToCoverageEnable = false,
+                AlphaToOneEnable = false,
+
+                RasterizationSamples = SampleCountFlags.SampleCount1Bit,
+                MinSampleShading = 0.0f,
+                PSampleMask = null
+            };
+        }
+
+        private static PipelineColorBlendAttachmentState ColourBlendAttachmentState(BlendFactor srcRgb, BlendFactor srcAlpha, BlendFactor dstRgb, BlendFactor dstAlpha)
+        {
+            return new()
+            {
                 ColorWriteMask = ColorComponentFlags.ColorComponentRBit | ColorComponentFlags.ColorComponentGBit |
-                ColorComponentFlags.ColorComponentBBit | ColorComponentFlags.ColorComponentABit,
+                    ColorComponentFlags.ColorComponentBBit | ColorComponentFlags.ColorComponentABit,
 
-                SrcColorBlendFactor = BlendFactorToVkBlendFactor(compositeOperation.SrcRgb),
-                SrcAlphaBlendFactor = BlendFactorToVkBlendFactor(compositeOperation.SrcAlpha),
-                DstColorBlendFactor = BlendFactorToVkBlendFactor(compositeOperation.DstRgb),
-                DstAlphaBlendFactor = BlendFactorToVkBlendFactor(compositeOperation.DstAlpha)
+                BlendEnable = false, // TODO: Change this to fit rendering
+                SrcColorBlendFactor = BlendFactor.One,
+                DstColorBlendFactor = BlendFactor.Zero,
+                ColorBlendOp = BlendOp.Add,
+                SrcAlphaBlendFactor = BlendFactor.One,
+                DstAlphaBlendFactor = BlendFactor.Zero,
+                AlphaBlendOp = BlendOp.Add
             };
-
-            if (state.SrcColorBlendFactor == Silk.NET.Vulkan.BlendFactor.OneMinusSrc1Alpha ||
-                state.SrcAlphaBlendFactor == Silk.NET.Vulkan.BlendFactor.OneMinusSrc1Alpha ||
-                state.DstColorBlendFactor == Silk.NET.Vulkan.BlendFactor.OneMinusSrc1Alpha ||
-                state.DstAlphaBlendFactor == Silk.NET.Vulkan.BlendFactor.OneMinusSrc1Alpha)
-            {
-                state.SrcColorBlendFactor = Silk.NET.Vulkan.BlendFactor.One;
-                state.SrcAlphaBlendFactor = Silk.NET.Vulkan.BlendFactor.OneMinusSrcAlpha;
-                state.DstColorBlendFactor = Silk.NET.Vulkan.BlendFactor.One;
-                state.DstAlphaBlendFactor = Silk.NET.Vulkan.BlendFactor.OneMinusSrcAlpha;
-            }
-
-            return state;
         }
 
-        private static unsafe PipelineDepthStencilStateCreateInfo InitializeDepthStencilCreateInfo(PipelineKey pipelineKey)
+        public static unsafe PipelineColorBlendStateCreateInfo ColourBlendState(PipelineColorBlendAttachmentState colourBlendAttachmentState)
         {
-            PipelineDepthStencilStateCreateInfo ds = new(StructureType.PipelineDepthStencilStateCreateInfo)
+            return new()
             {
-                DepthWriteEnable = false,
-                DepthTestEnable = false,
-                DepthCompareOp = CompareOp.LessOrEqual,
-                DepthBoundsTestEnable = false,
-                StencilTestEnable = false,
-                Back = new StencilOpState()
-                {
-                    FailOp = StencilOp.Keep,
-                    PassOp = StencilOp.Keep,
-                    CompareOp = CompareOp.Always
-                }
-            };
-            if (pipelineKey.StencilFill)
-            {
-                ds.StencilTestEnable = true;
-                ds.Front = new StencilOpState()
-                {
-                    CompareOp = CompareOp.Always,
-                    FailOp = StencilOp.Keep,
-                    DepthFailOp = StencilOp.Keep,
-                    PassOp = StencilOp.IncrementAndWrap,
-                    Reference = 0x0,
-                    CompareMask = 0xff,
-                    WriteMask = 0xff
-                };
-                ds.Back = ds.Front;
-                ds.Back.PassOp = StencilOp.DecrementAndWrap;
-            }
-            else if (pipelineKey.StencilTest)
-            {
-                ds.StencilTestEnable = true;
-                if (pipelineKey.EdgeAA)
-                {
-                    ds.Front = new StencilOpState()
-                    {
-                        CompareOp = CompareOp.Equal,
-                        Reference = 0x0,
-                        CompareMask = 0xff,
-                        WriteMask = 0xff,
-                        FailOp = StencilOp.Keep,
-                        DepthFailOp = StencilOp.Keep,
-                        PassOp = StencilOp.Keep
-                    };
-                    ds.Back = ds.Front;
-                }
-                else
-                {
-                    ds.Front = new StencilOpState()
-                    {
-                        CompareOp = CompareOp.NotEqual,
-                        Reference = 0x0,
-                        CompareMask = 0xff,
-                        WriteMask = 0xff,
-                        FailOp = StencilOp.Zero,
-                        DepthFailOp = StencilOp.Zero,
-                        PassOp = StencilOp.Zero
-                    };
-                    ds.Back = ds.Front;
-                }
-            }
+                SType = StructureType.PipelineColorBlendStateCreateInfo,
 
-            return ds;
+                LogicOpEnable = false,
+
+                LogicOp = LogicOp.Copy,
+                AttachmentCount = 1,
+                PAttachments = &colourBlendAttachmentState
+            };
         }
+
+        public static unsafe PipelineDynamicStateCreateInfo DynamicStateCreateInfo(params DynamicState[] dynamics)
+        {
+            PipelineDynamicStateCreateInfo dynamicStateCreateInfo = new()
+            {
+                SType = StructureType.PipelineDynamicStateCreateInfo,
+
+                DynamicStateCount = (uint)dynamics.Length
+            };
+            fixed (DynamicState* ptr = &dynamics[0])
+            {
+                dynamicStateCreateInfo.PDynamicStates = ptr;
+            }
+            return dynamicStateCreateInfo;
+        }
+
     }
 }
