@@ -2,48 +2,47 @@
 using Silk.NET.Vulkan;
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace SilkyNvg.Rendering.Vulkan.Shaders
 {
     internal class Shader : IDisposable
     {
 
-        private readonly VulkanRenderer _renderer;
+        private readonly ShaderModule _vertexShaderModule, _fragmentShaderModule;
+
         private readonly string _name;
+        private readonly VulkanRenderer _renderer;
 
-        private readonly ShaderModule _vertexShaderModule;
-        private readonly ShaderModule _fragmentShaderModule;
+        private DescriptorSetLayout _descriptorSetLayout;
+        private PipelineLayout _pipelineLayout;
 
-        private PipelineLayout _layout;
+        private int _align;
 
-        public PipelineShaderStageCreateInfo VertexShaderStage { get; }
+        public DescriptorSetLayout DescriptorSetLayout => _descriptorSetLayout;
 
-        public PipelineShaderStageCreateInfo FragmentShaderStage { get; }
+        public PipelineLayout PipelineLayout => _pipelineLayout;
 
-        public PipelineLayout Layout => _layout;
+        public PipelineShaderStageCreateInfo VertexShaderStage => ShaderStageCreateInfo(_vertexShaderModule, ShaderStageFlags.ShaderStageVertexBit);
 
-        public bool Status { get; private set; }
+        public PipelineShaderStageCreateInfo FragmentShaderStage => ShaderStageCreateInfo(_fragmentShaderModule, ShaderStageFlags.ShaderStageFragmentBit);
 
-        public Shader(string name, string vertexFile, string fragmentFile)
+        public int FragSize { get; private set; }
+
+        public UniformManager UniformManager { get; private set; }
+
+        public bool Status { get; private set; } = true;
+
+        public Shader(string name, string vertexFile, string fragmentFile, VulkanRenderer renderer)
         {
-            Status = true;
-
-            _renderer = VulkanRenderer.Instance;
+            _renderer = renderer;
             _name = name;
 
-            _vertexShaderModule = LoadShader(vertexFile);
-            _fragmentShaderModule = LoadShader(fragmentFile);
-
-            VertexShaderStage = ShaderStageCreateInfo(_vertexShaderModule, ShaderStageFlags.ShaderStageVertexBit);
-            FragmentShaderStage = ShaderStageCreateInfo(_fragmentShaderModule, ShaderStageFlags.ShaderStageFragmentBit);
-
-            if (Status == false)
-            {
-                return;
-            }
+            _vertexShaderModule = CreateShader(vertexFile);
+            _fragmentShaderModule = CreateShader(fragmentFile);
         }
 
-        private unsafe ShaderModule LoadShader(string file)
+        private unsafe ShaderModule CreateShader(string file)
         {
             Device device = _renderer.Params.Device;
             AllocationCallbacks* allocator = (AllocationCallbacks*)_renderer.Params.AllocationCallbacks.ToPointer();
@@ -62,29 +61,96 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
                 shaderModuleCreateInfo.PCode = (uint*)ptr;
             }
 
-            if (vk.CreateShaderModule(device, shaderModuleCreateInfo, allocator, out ShaderModule module) != Result.Success)
+            Result result = vk.CreateShaderModule(device, shaderModuleCreateInfo, allocator, out ShaderModule module);
+            if (result != Result.Success)
             {
                 Status = false;
+                _renderer.AssertVulkan(result);
             }
             return module;
         }
 
-        public unsafe void CreatePipelineLayout()
+        public unsafe void CreateLayout()
         {
             Device device = _renderer.Params.Device;
             AllocationCallbacks* allocator = (AllocationCallbacks*)_renderer.Params.AllocationCallbacks.ToPointer();
             Vk vk = _renderer.Vk;
 
+            DescriptorSetLayoutBinding* descriptorSetLayoutBindings = stackalloc DescriptorSetLayoutBinding[]
+            {
+                new DescriptorSetLayoutBinding() // vertex binding
+                {
+                    Binding = 0,
+                    DescriptorCount = 1,
+                    DescriptorType = DescriptorType.UniformBuffer,
+                    PImmutableSamplers = null,
+                    StageFlags = ShaderStageFlags.ShaderStageVertexBit
+                }
+            };
+
+            DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = new()
+            {
+                SType = StructureType.DescriptorSetLayoutCreateInfo,
+
+                BindingCount = 1, // FIXME: 3 - vertex, fragment and image
+                PBindings = descriptorSetLayoutBindings
+            };
+
+            _renderer.AssertVulkan(vk.CreateDescriptorSetLayout(device, descriptorSetLayoutCreateInfo, allocator, out _descriptorSetLayout));
+
             PipelineLayoutCreateInfo pipelineLayoutCreateInfo = new()
             {
                 SType = StructureType.PipelineLayoutCreateInfo,
 
-                SetLayoutCount = 0,
-                PSetLayouts = null,
                 PushConstantRangeCount = 0,
-                PPushConstantRanges = null
+                PPushConstantRanges = null,
+                SetLayoutCount = 1,
             };
-            _renderer.AssertVulkan(vk.CreatePipelineLayout(device, pipelineLayoutCreateInfo, allocator, out _layout));
+            fixed (DescriptorSetLayout* ptr = &_descriptorSetLayout)
+            {
+                pipelineLayoutCreateInfo.PSetLayouts = ptr;
+            }
+
+            _renderer.AssertVulkan(vk.CreatePipelineLayout(device, pipelineLayoutCreateInfo, allocator, out _pipelineLayout));
+        }
+
+        public void InitializeFragUniformBuffers()
+        {
+            PhysicalDevice physicalDevice = _renderer.Params.PhysicalDevice;
+            Vk vk = _renderer.Vk;
+
+            vk.GetPhysicalDeviceProperties(physicalDevice, out PhysicalDeviceProperties properties);
+            _align = (int)properties.Limits.MinUniformBufferOffsetAlignment;
+
+            FragSize = Marshal.SizeOf(typeof(FragUniforms)) + _align - (Marshal.SizeOf(typeof(FragUniforms)) % _align);
+
+            UniformManager = new UniformManager(FragSize);
+        }
+
+        public unsafe void SetUniforms(Frame frame, DescriptorSet descriptorSet, int uniformOffset, int image)
+        {
+            DescriptorBufferInfo vertexUniformBufferInfo = frame.VertexUniformBuffer.BufferInfo;
+
+            Span<WriteDescriptorSet> descriptorWrites = stackalloc WriteDescriptorSet[]
+            {
+                new WriteDescriptorSet() // Vertex Uniform Buffer
+                {
+                    SType = StructureType.WriteDescriptorSet,
+
+                    DstBinding = 0,
+                    DstArrayElement = 0,
+                    DstSet = descriptorSet,
+
+                    DescriptorCount = 1,
+                    DescriptorType = DescriptorType.UniformBuffer,
+                    PBufferInfo = &vertexUniformBufferInfo
+                }
+            };
+
+            Device device = _renderer.Params.Device;
+            Vk vk = _renderer.Vk;
+
+            vk.UpdateDescriptorSets(device, (uint)descriptorWrites.Length, in descriptorWrites[0], 0, null);
         }
 
         public unsafe void Dispose()
@@ -93,10 +159,7 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
             AllocationCallbacks* allocator = (AllocationCallbacks*)_renderer.Params.AllocationCallbacks.ToPointer();
             Vk vk = _renderer.Vk;
 
-            vk.DestroyPipelineLayout(device, _layout, allocator);
-
-            vk.DestroyShaderModule(device, _vertexShaderModule, allocator);
-            vk.DestroyShaderModule(device, _fragmentShaderModule, allocator);
+            vk.DestroyPipelineLayout(device, _pipelineLayout, allocator);
         }
 
         private static unsafe PipelineShaderStageCreateInfo ShaderStageCreateInfo(ShaderModule module, ShaderStageFlags stage)

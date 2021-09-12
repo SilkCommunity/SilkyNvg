@@ -314,5 +314,19 @@ namespace Vulkan_Example
         }
         #endregion
 
+
+        public static uint FindMemoryTypeIndex(uint typeFilter, MemoryPropertyFlags properties, PhysicalDeviceMemoryProperties memoryProperties)
+        {
+            for (uint i = 0; i < memoryProperties.MemoryTypeCount; i++)
+            {
+                if (((typeFilter & 1) == 1) & ((memoryProperties.MemoryTypes[(int)i].PropertyFlags & properties) == properties))
+                {
+                    return i;
+                }
+            }
+
+            throw new MissingMemberException("No compatible memory type found!");
+        }
+
     }
 }

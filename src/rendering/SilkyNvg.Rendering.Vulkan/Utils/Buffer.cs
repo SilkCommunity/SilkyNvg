@@ -19,9 +19,16 @@ namespace SilkyNvg.Rendering.Vulkan.Utils
 
         public Silk.NET.Vulkan.Buffer Handle => _buffer;
 
-        public Buffer(BufferUsageFlags usage, MemoryPropertyFlags memoryPropertyFlags)
+        public DescriptorBufferInfo BufferInfo => new()
         {
-            _renderer = VulkanRenderer.Instance;
+            Buffer = _buffer,
+            Offset = 0,
+            Range = (uint)Marshal.SizeOf<T>()
+        };
+
+        public Buffer(BufferUsageFlags usage, MemoryPropertyFlags memoryPropertyFlags, VulkanRenderer renderer)
+        {
+            _renderer = renderer;
             _usage = usage;
             _memoryPropertyFlags = memoryPropertyFlags;
 

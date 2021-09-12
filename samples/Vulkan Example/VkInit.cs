@@ -106,7 +106,7 @@ namespace Vulkan_Example
             return swapchainCreateInfo;
         }
 
-        public static ImageViewCreateInfo ImageViewCreateInfo(Format format, Image image, ImageAspectFlags aspectFlags)
+        public static ImageViewCreateInfo ImageViewCreateInfo(Format format, Image image, ImageAspectFlags aspectFlags, ImageViewType viewType = ImageViewType.ImageViewType2D)
         {
             return new ImageViewCreateInfo()
             {
@@ -114,7 +114,7 @@ namespace Vulkan_Example
 
                 Image = image,
 
-                ViewType = ImageViewType.ImageViewType2D,
+                ViewType = viewType,
                 Format = format,
 
                 Components = new ComponentMapping()
@@ -159,7 +159,7 @@ namespace Vulkan_Example
             };
         }
 
-        public static unsafe RenderPassCreateInfo RenderPassCreateInfo(Span<AttachmentDescription> attachments, SubpassDescription subpass)
+        public static unsafe RenderPassCreateInfo RenderPassCreateInfo(Span<AttachmentDescription> attachments, SubpassDependency dependency, SubpassDescription subpass)
         {
             RenderPassCreateInfo renderPassCreateInfo = new()
             {
@@ -167,8 +167,8 @@ namespace Vulkan_Example
 
                 AttachmentCount = (uint)attachments.Length,
 
-                DependencyCount = 0,
-                PDependencies = null,
+                DependencyCount = 1,
+                PDependencies = &dependency,
                 SubpassCount = 1,
                 PSubpasses = &subpass
             };
@@ -180,13 +180,13 @@ namespace Vulkan_Example
             return renderPassCreateInfo;
         }
 
-        public static FramebufferCreateInfo FramebufferCreateInfo(RenderPass renderPass, Extent2D extent)
+        public static FramebufferCreateInfo FramebufferCreateInfo(uint attachmentCount, RenderPass renderPass, Extent2D extent)
         {
             return new FramebufferCreateInfo()
             {
                 SType = StructureType.FramebufferCreateInfo,
 
-                AttachmentCount = 1,
+                AttachmentCount = attachmentCount,
                 RenderPass = renderPass,
                 Width = extent.Width,
                 Height = extent.Height,
@@ -208,6 +208,43 @@ namespace Vulkan_Example
             return new SemaphoreCreateInfo()
             {
                 SType = StructureType.SemaphoreCreateInfo
+            };
+        }
+
+        public static ImageCreateInfo ImageCreateInfo(ImageType type, Format format, uint width, uint height)
+        {
+            return new ImageCreateInfo()
+            {
+                SType = StructureType.ImageCreateInfo,
+
+                ImageType = type,
+                Format = format,
+                Tiling = ImageTiling.Optimal,
+                Extent = new Extent3D()
+                {
+                    Width = width,
+                    Height = height,
+                    Depth = 1
+                },
+                MipLevels = 1,
+                ArrayLayers = 1,
+                Samples = SampleCountFlags.SampleCount1Bit,
+                InitialLayout = ImageLayout.Undefined,
+                QueueFamilyIndexCount = 0,
+                PQueueFamilyIndices = null,
+                SharingMode = SharingMode.Exclusive,
+                Usage = ImageUsageFlags.ImageUsageDepthStencilAttachmentBit
+            };
+        }
+
+        public static MemoryAllocateInfo MemoryAllocateInfo(ulong allocationSize, uint index)
+        {
+            return new MemoryAllocateInfo()
+            {
+                SType = StructureType.MemoryAllocateInfo,
+
+                AllocationSize = allocationSize,
+                MemoryTypeIndex = index
             };
         }
 

@@ -9,11 +9,6 @@ namespace SilkyNvg.Rendering.OpenGL.Calls
 
         public bool HasCalls => _calls.Count > 0;
 
-        public CallQueue()
-        {
-
-        }
-
         public void Add(Call call)
         {
             _calls.Enqueue(call);

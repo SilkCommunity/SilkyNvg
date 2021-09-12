@@ -4,62 +4,22 @@ using SilkyNvg.Blending;
 using SilkyNvg.Images;
 using SilkyNvg.Rendering.Vulkan.Calls;
 using SilkyNvg.Rendering.Vulkan.Shaders;
-using SilkyNvg.Rendering.Vulkan.Utils;
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 
 namespace SilkyNvg.Rendering.Vulkan
 {
     public sealed class VulkanRenderer : INvgRenderer
     {
 
-        public static AttachmentDescription ColourAttachmentDescription(Format format)
-        {
-            return new AttachmentDescription()
-            {
-                Format = format,
-                Samples = SampleCountFlags.SampleCount1Bit,
-                LoadOp = AttachmentLoadOp.Clear,
-                StoreOp = AttachmentStoreOp.Store,
-                StencilLoadOp = AttachmentLoadOp.DontCare,
-                StencilStoreOp = AttachmentStoreOp.DontCare,
-                InitialLayout = ImageLayout.Undefined,
-                FinalLayout = ImageLayout.PresentSrcKhr // FIXME: Transition to depth stencil attachment optimal!
-            };
-        }
-
-        internal static VertexInputBindingDescription VertexInputBindingDescription => new()
-        {
-            Binding = 0,
-            Stride = (uint)Marshal.SizeOf(typeof(Vertex)),
-            InputRate = VertexInputRate.Vertex
-        };
-
-        internal static VertexInputAttributeDescription[] VertexInputAttributeDescriptions => new VertexInputAttributeDescription[2]
-        {
-            new VertexInputAttributeDescription()
-            {
-                Binding = 0,
-                Location = 0,
-                Offset = (uint)Marshal.OffsetOf<Vertex>("_x"),
-                Format = Format.R32G32Sfloat
-            },
-            new VertexInputAttributeDescription()
-            {
-                Binding = 0,
-                Location = 1,
-                Offset = (uint)Marshal.OffsetOf<Vertex>("_u"),
-                Format = Format.R32G32Sfloat
-            }
-        };
-
-        internal static VulkanRenderer Instance { get; private set; }
-
+        private readonly CreateFlags _flags;
         private readonly VertexCollection _vertexCollection;
         private readonly CallQueue _callQueue;
 
+        private readonly Frame[] _frames;
+
         private Vector2D<float> _viewSize;
+        private uint _requireredDescriptorSetCount;
 
         internal Vk Vk { get; }
 
@@ -67,36 +27,34 @@ namespace SilkyNvg.Rendering.Vulkan
 
         internal Shader Shader { get; private set; }
 
-        internal bool Debug { get; private set; }
+        internal bool Debug => _flags.HasFlag(CreateFlags.Debug);
 
-        internal bool StencilStrokes { get; private set; }
+        internal bool StencilStrokes => _flags.HasFlag(CreateFlags.StencilStrokes);
 
-        internal bool UseTriangleListFill { get; private set; }
+        internal bool TriangleListFill => _flags.HasFlag(CreateFlags.TriangleListFill);
 
-        public bool EdgeAntiAlias { get; }
+        public uint CurrentFrameIndex { private get; set; }
+
+        public CommandBuffer CurrentCommandBuffer { private get; set; }
+
+        public bool EdgeAntiAlias => _flags.HasFlag(CreateFlags.Antialias);
 
         public VulkanRenderer(CreateFlags flags, VulkanRendererParams @params, Vk vk)
         {
+            _flags = flags;
             Vk = vk;
-
-            Debug = flags.HasFlag(CreateFlags.Debug);
-            StencilStrokes = flags.HasFlag(CreateFlags.StencilStrokes);
-            UseTriangleListFill = flags.HasFlag(CreateFlags.TriangleListFill);
-            EdgeAntiAlias = flags.HasFlag(CreateFlags.Antialias);
-
             Params = @params;
 
             _vertexCollection = new VertexCollection();
             _callQueue = new CallQueue();
 
-            if (Instance == null)
-            {
-                Instance = this;
-            }
-            else
-            {
-                throw new InvalidOperationException("Vulkan renderer already initialized!");
-            }
+            _frames = new Frame[Params.FrameCount];
+
+            CurrentFrameIndex = 0;
+            CurrentCommandBuffer = Params.InitialCommandBuffer;
+            _requireredDescriptorSetCount = 0;
+
+            VulkanRenderExtensionMethodContainer.VulkanRenderer = this;
         }
 
         internal void AssertVulkan(Result result)
@@ -116,8 +74,27 @@ namespace SilkyNvg.Rendering.Vulkan
         {
             if (EdgeAntiAlias)
             {
-                
+                Shader = new Shader("SilkyNvg-Vulkan-Shader", "vertexShader", "fragmentShaderEdgeAA", this);
             }
+            else
+            {
+                Shader = new Shader("SilkyNvg-Vulkan-Shader", "vertexShader", "fragmentShader", this);
+            }
+            if (!Shader.Status)
+            {
+                return false;
+            }
+
+            Shader.CreateLayout();
+
+            for (int i = 0; i < _frames.Length; i++)
+            {
+                _frames[i] = new Frame(this);
+            }
+
+            Shader.InitializeFragUniformBuffers();
+
+            _ = CreateTexture(Texture.Alpha, new Vector2D<uint>(1, 1), 0, null);
 
             return true;
         }
@@ -153,19 +130,118 @@ namespace SilkyNvg.Rendering.Vulkan
 
         }
 
+        internal void AdvanceFrame()
+        {
+            CurrentFrameIndex++;
+            if (CurrentFrameIndex >= _frames.Length)
+            {
+                CurrentFrameIndex = 0;
+            }
+        }
+
         public void Flush()
         {
+            if (_callQueue.HasCalls)
+            {
+                Frame frame = _frames[CurrentFrameIndex];
 
+                frame.VertexBuffer.Update(_vertexCollection.Vertices);
+
+                VertUniforms vertUniforms = new()
+                {
+                    ViewSize = _viewSize
+                };
+                frame.VertexUniformBuffer.Update(vertUniforms);
+
+                Viewport viewport = new(0.0f, 0.0f, _viewSize.X, _viewSize.Y);
+                Rect2D scissor = new(new Offset2D(0, 0), new Extent2D((uint)_viewSize.X, (uint)_viewSize.Y));
+                Vk.CmdSetViewport(CurrentCommandBuffer, 0, 1, viewport);
+                Vk.CmdSetScissor(CurrentCommandBuffer, 0, 1, scissor);
+
+                frame.DescriptorSetManager.Reset(_requireredDescriptorSetCount);
+
+                Vk.CmdBindVertexBuffers(CurrentCommandBuffer, 0, 1, frame.VertexBuffer.Handle, 0);
+
+                _callQueue.Run(frame, CurrentCommandBuffer);
+            }
+
+            _vertexCollection.Clear();
+            _callQueue.Clear();
+            _requireredDescriptorSetCount = 0;
+
+            if (Params.AdvanceFrameIndexAutomatically)
+            {
+                AdvanceFrame();
+            }
         }
 
         public void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Box2D<float> bounds, IReadOnlyList<Rendering.Path> paths)
         {
+            int offset = _vertexCollection.CurrentsOffset;
+            Path[] renderPaths = new Path[paths.Count];
+            for (int i = 0; i < paths.Count; i++)
+            {
+                Rendering.Path path = paths[i];
+                renderPaths[i] = new Path(
+                    _vertexCollection.CurrentsOffset, path.Fill.Count,
+                    _vertexCollection.CurrentsOffset + path.Fill.Count, path.Stroke.Count
+                );
+                _vertexCollection.AddVertices(path.Fill);
+                _vertexCollection.AddVertices(path.Stroke);
+                offset += path.Fill.Count;
+                offset += path.Stroke.Count;
+            }
 
+            Call call;
+            if ((paths.Count == 1) && paths[0].Convex) // Convex
+            {
+                _requireredDescriptorSetCount++;
+                call = new ConvexFillCall(paint.Image, renderPaths, 0, compositeOperation, this);
+            }
+            else
+            {
+                _vertexCollection.AddVertex(new Vertex(bounds.Max, 0.5f, 1.0f));
+                _vertexCollection.AddVertex(new Vertex(bounds.Max.X, bounds.Min.Y, 0.5f, 1.0f));
+                _vertexCollection.AddVertex(new Vertex(bounds.Min.X, bounds.Max.Y, 0.5f, 1.0f));
+                _vertexCollection.AddVertex(new Vertex(bounds.Min, 0.5f, 1.0f));
+
+                _requireredDescriptorSetCount += 2;
+                call = new FillCall(paint.Image, renderPaths, (uint)offset, 0, compositeOperation, this);
+            }
+
+            _callQueue.Add(call);
         }
 
         public void Stroke(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, float strokeWidth, IReadOnlyList<Rendering.Path> paths)
         {
+            int offset = _vertexCollection.CurrentsOffset;
+            Path[] renderPaths = new Path[paths.Count];
+            for (int i = 0; i < paths.Count; i++)
+            {
+                if (paths[i].Stroke.Count > 0)
+                {
+                    renderPaths[i] = new Path(0, 0, offset, paths[i].Stroke.Count);
+                }
+                else
+                {
+                    renderPaths[i] = default;
+                }
+                _vertexCollection.AddVertices(paths[i].Stroke);
+                offset += paths[i].Stroke.Count;
+            }
 
+            Call call;
+            if (StencilStrokes)
+            {
+                _requireredDescriptorSetCount += 2;
+                call = new StencilStrokeCall(paint.Image, renderPaths, 0, compositeOperation, this);
+            }
+            else
+            {
+                _requireredDescriptorSetCount += 1;
+                call = new StrokeCall(paint.Image, renderPaths, 0, compositeOperation, this);
+            }
+            _callQueue.Add(call);
         }
 
         public void Triangles(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, ICollection<Vertex> vertices, float fringeWidth)
@@ -183,13 +259,15 @@ namespace SilkyNvg.Rendering.Vulkan
     public static class VulkanRenderExtensionMethodContainer
     {
 
+        internal static VulkanRenderer VulkanRenderer { private get; set; }
+
         /// <summary>
         /// End drawing flushing remaining render state.
         /// Also sets the <see cref="VulkanRenderer.CurrentCommandBuffer"/> property to the specified command buffer.
         /// </summary>
         public static void EndFrame(this Nvg nvg, CommandBuffer currentCommandBuffer)
         {
-            //VulkanRenderer.Instance.CurrentCommandBuffer = currentCommandBuffer;
+            VulkanRenderer.CurrentCommandBuffer = currentCommandBuffer;
             nvg.EndFrame();
         }
 
@@ -199,7 +277,7 @@ namespace SilkyNvg.Rendering.Vulkan
         /// </summary>
         public static void EndFrame(this Nvg nvg, uint frameIndex)
         {
-            //VulkanRenderer.Instance.FrameIndex = frameIndex;
+            VulkanRenderer.CurrentFrameIndex = frameIndex;
             nvg.EndFrame();
         }
 
@@ -209,8 +287,8 @@ namespace SilkyNvg.Rendering.Vulkan
         /// </summary>
         public static void EndFrame(this Nvg nvg, CommandBuffer currentCommandBuffer, uint frameIndex)
         {
-            //VulkanRenderer.Instance.CurrentCommandBuffer = currentCommandBuffer;
-            //VulkanRenderer.Instance.FrameIndex = frameIndex;
+            VulkanRenderer.CurrentCommandBuffer = currentCommandBuffer;
+            VulkanRenderer.CurrentFrameIndex = frameIndex;
             nvg.EndFrame();
         }
 
@@ -220,9 +298,9 @@ namespace SilkyNvg.Rendering.Vulkan
         /// </summary>
         public static void EndFrameAndAdvance(this Nvg nvg, CommandBuffer currentCommandBuffer)
         {
-            //VulkanRenderer.Instance.CurrentCommandBuffer = currentCommandBuffer;
+            VulkanRenderer.CurrentCommandBuffer = currentCommandBuffer;
             nvg.EndFrame();
-            //VulkanRenderer.Instance.AdvanceFrame();
+            VulkanRenderer.AdvanceFrame();
         }
 
     }

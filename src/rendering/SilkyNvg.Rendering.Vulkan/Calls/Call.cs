@@ -8,16 +8,18 @@ namespace SilkyNvg.Rendering.Vulkan.Calls
 
         protected readonly int image;
         protected readonly Path[] paths;
-        protected readonly int triangleOffset;
+        protected readonly uint triangleOffset;
         protected readonly uint triangleCount;
         protected readonly int uniformOffset;
 
-        protected readonly Pipelines.Pipeline renderPipeline;
-        protected readonly Pipelines.Pipeline antiAliasPipeline;
+        protected readonly PipelineSettings renderPipeline;
+        protected readonly PipelineSettings stencilPipeline;
+        protected readonly PipelineSettings antiAliasPipeline;
 
         protected readonly VulkanRenderer renderer;
 
-        protected Call(int image, Path[] paths, int triangleOffset, uint triangleCount, int uniformOffset, Pipelines.Pipeline renderPipeline, Pipelines.Pipeline antiAliasPipeline)
+        protected Call(int image, Path[] paths, uint triangleOffset, uint triangleCount, int uniformOffset,
+            PipelineSettings renderPipeline, PipelineSettings stencilPipeline, PipelineSettings antiAliasPipeline, VulkanRenderer renderer)
         {
             this.image = image;
             this.paths = paths;
@@ -25,11 +27,12 @@ namespace SilkyNvg.Rendering.Vulkan.Calls
             this.triangleCount = triangleCount;
             this.uniformOffset = uniformOffset;
             this.renderPipeline = renderPipeline;
+            this.stencilPipeline = stencilPipeline;
             this.antiAliasPipeline = antiAliasPipeline;
-            renderer = VulkanRenderer.Instance;
+            this.renderer = renderer;
         }
 
-        public abstract void Run(CommandBuffer cmd);
+        public abstract unsafe void Run(Frame frame, CommandBuffer cmd);
 
     }
 }

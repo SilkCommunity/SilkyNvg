@@ -41,6 +41,8 @@ namespace Vulkan_Example
         private static RenderPass renderPass;
         private static Framebuffer[] framebuffers;
 
+        private static DepthImage depthImage;
+
         private static bool blowup = false;
         private static bool screenshot = false;
         private static bool premult = false;
@@ -119,14 +121,50 @@ namespace Vulkan_Example
 
         private static unsafe void InitRenderPass()
         {
-            AttachmentDescription nvgColourAttachment = VulkanRenderer.ColourAttachmentDescription(swapchain.Format);
+            AttachmentDescription nvgColourAttachment = new()
+            {
+                Format = swapchain.Format,
 
-            Span<AttachmentDescription> attachments = stackalloc AttachmentDescription[] { nvgColourAttachment };
+                LoadOp = AttachmentLoadOp.Clear,
+                StoreOp = AttachmentStoreOp.Store,
+
+                StencilLoadOp = AttachmentLoadOp.DontCare,
+                StencilStoreOp = AttachmentStoreOp.DontCare,
+
+                Samples = SampleCountFlags.SampleCount1Bit,
+
+                InitialLayout = ImageLayout.Undefined,
+                FinalLayout = ImageLayout.PresentSrcKhr
+            };
+
+            AttachmentDescription nvgDepthStencilAttachment = new()
+            {
+                Format = depthImage.Format,
+
+                LoadOp = AttachmentLoadOp.Clear,
+                StoreOp = AttachmentStoreOp.DontCare,
+
+                StencilLoadOp = AttachmentLoadOp.Clear,
+                StencilStoreOp = AttachmentStoreOp.DontCare,
+
+                Samples = SampleCountFlags.SampleCount1Bit,
+
+                InitialLayout = ImageLayout.Undefined,
+                FinalLayout = ImageLayout.DepthStencilAttachmentOptimal
+            };
+
+            Span<AttachmentDescription> attachments = stackalloc AttachmentDescription[] { nvgColourAttachment, nvgDepthStencilAttachment };
 
             AttachmentReference colourAttachmentRef = new()
             {
                 Attachment = 0,
                 Layout = ImageLayout.ColorAttachmentOptimal
+            };
+
+            AttachmentReference depthStencilAttachmentRef = new()
+            {
+                Attachment = 1,
+                Layout = ImageLayout.DepthStencilAttachmentOptimal
             };
 
             SubpassDescription subpass = new()
@@ -137,27 +175,42 @@ namespace Vulkan_Example
                 PColorAttachments = &colourAttachmentRef,
                 InputAttachmentCount = 0,
                 PInputAttachments = null,
-                PDepthStencilAttachment = null, // TODO
+                PDepthStencilAttachment = &depthStencilAttachmentRef,
                 PreserveAttachmentCount = 0,
                 PPreserveAttachments = null,
                 PResolveAttachments = null
             };
 
-            RenderPassCreateInfo renderPassCreateInfo = VkInit.RenderPassCreateInfo(attachments, subpass);
+            SubpassDependency dependency = new()
+            {
+                SrcSubpass = Vk.SubpassExternal,
+                DstSubpass = 0,
+                SrcStageMask = PipelineStageFlags.PipelineStageColorAttachmentOutputBit | PipelineStageFlags.PipelineStageEarlyFragmentTestsBit,
+                SrcAccessMask = 0,
+                DstStageMask = PipelineStageFlags.PipelineStageColorAttachmentOutputBit | PipelineStageFlags.PipelineStageEarlyFragmentTestsBit,
+                DstAccessMask = AccessFlags.AccessColorAttachmentWriteBit | AccessFlags.AccessDepthStencilAttachmentWriteBit
+            };
+
+            RenderPassCreateInfo renderPassCreateInfo = VkInit.RenderPassCreateInfo(attachments, dependency, subpass);
             VkUtil.AssertVulkan(vk.CreateRenderPass(device, renderPassCreateInfo, null, out renderPass));
+        }
+
+        private static unsafe void InitDepthImage()
+        {
+            depthImage = new DepthImage(windowExtent.Width, windowExtent.Height, physicalDevice, device);
         }
 
         private static unsafe void InitFramebuffers()
         {
-            FramebufferCreateInfo framebufferCreateInfo = VkInit.FramebufferCreateInfo(renderPass, windowExtent);
+            FramebufferCreateInfo framebufferCreateInfo = VkInit.FramebufferCreateInfo(2, renderPass, windowExtent);
+            ImageView* imageViews = stackalloc ImageView[2];
+            imageViews[1] = depthImage.Handle;
 
             framebuffers = new Framebuffer[swapchain.Images.Length];
             for (int i = 0; i < framebuffers.Length; i++)
             {
-                fixed (ImageView* ptr = &swapchain.ImageViews[i])
-                {
-                    framebufferCreateInfo.PAttachments = ptr;
-                }
+                imageViews[0] = swapchain.ImageViews[i];
+                framebufferCreateInfo.PAttachments = imageViews;
                 VkUtil.AssertVulkan(vk.CreateFramebuffer(device, framebufferCreateInfo, null, out framebuffers[i]));
             }
         }
@@ -180,6 +233,7 @@ namespace Vulkan_Example
             (SurfaceCapabilitiesKHR, SurfaceFormatKHR[], PresentModeKHR[]) swapchainData = InitDevice();
             swapchain = new Swapchain(swapchainData, PresentModeKHR.PresentModeFifoKhr, 3, windowExtent,
                 graphicsQueueFamily, presentQueueFamily, surface);
+            InitDepthImage();
             InitRenderPass();
             InitFramebuffers();
             InitFrames();
@@ -205,7 +259,7 @@ namespace Vulkan_Example
                 ImageTransitionQueueFamily = graphicsQueueFamily,
                 ImageTransitionQueueFamilyIndex = 1
             };
-            VulkanRenderer nvgRenderer = new(CreateFlags.Debug, @params, vk);
+            VulkanRenderer nvgRenderer = new(CreateFlags.Antialias | CreateFlags.StencilStrokes | CreateFlags.Debug, @params, vk);
             nvg = Nvg.Create(nvgRenderer);
 
             // demo = new Demo(nvg);
@@ -235,6 +289,7 @@ namespace Vulkan_Example
             {
                 vk.DestroyFramebuffer(device, framebuffer, null);
             }
+            depthImage.Dispose();
             vk.DestroyRenderPass(device, renderPass, null);
         }
 
@@ -246,6 +301,7 @@ namespace Vulkan_Example
             DestroySwapchain();
 
             swapchain.Recreate(windowExtent);
+            InitDepthImage();
             InitRenderPass();
             InitFramebuffers();
             for (int i = 0; i < frames.Length; i++)
@@ -289,15 +345,25 @@ namespace Vulkan_Example
 
             VkUtil.AssertVulkan(vk.BeginCommandBuffer(cmd, beginInfo));
 
-            ClearValue clearValue;
+            ClearValue* clearValues = stackalloc ClearValue[2];
             if (premult)
             {
-                clearValue = new(new ClearColorValue(0.0f, 0.0f, 0.0f, 0.0f));
+                clearValues[0] = new ClearValue()
+                {
+                    Color = new ClearColorValue(0.0f, 0.0f, 0.0f, 0.0f)
+                };
             }
             else
             {
-                clearValue = new(new ClearColorValue(0.3f, 0.3f, 0.32f, 1.0f));
+                clearValues[0] = new ClearValue()
+                {
+                    Color = new ClearColorValue(0.3f, 0.3f, 0.32f, 1.0f)
+                };
             }
+            clearValues[1] = new ClearValue()
+            {
+                DepthStencil = new ClearDepthStencilValue(1.0f, 0)
+            };
 
             RenderPassBeginInfo renderPassBeginInfo = new()
             {
@@ -311,8 +377,8 @@ namespace Vulkan_Example
                 },
                 Framebuffer = framebuffers[swapchainImageIdx],
 
-                ClearValueCount = 1,
-                PClearValues = &clearValue
+                ClearValueCount = 2,
+                PClearValues = clearValues
             };
 
             vk.CmdBeginRenderPass(cmd, renderPassBeginInfo, SubpassContents.Inline);
@@ -395,7 +461,14 @@ namespace Vulkan_Example
             Vector2D<float> fbSize = window.FramebufferSize.As<float>();
             float devicePxRatio = fbSize.X / wSize.X;
 
+            nvg.BeginFrame(wSize, devicePxRatio);
 
+            nvg.BeginPath();
+            nvg.Rect(25.0f, 25.0f, 100.0f, 100.0f);
+            nvg.Rect(250.0f, 250.0f, 100.0f, 100.0f);
+            nvg.Fill();
+
+            nvg.EndFrame(cmd);
             ////////////////////////////////////////////////////////////
             EndRender(frame.PresentSemaphore, frame.RenderSemaphore, frame.RenderFence, cmd);
             Present(frame.RenderSemaphore, swapchainImageIdx);

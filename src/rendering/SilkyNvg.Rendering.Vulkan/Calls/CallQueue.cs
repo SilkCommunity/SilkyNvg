@@ -10,21 +10,16 @@ namespace SilkyNvg.Rendering.Vulkan.Calls
 
         public bool HasCalls => _calls.Count > 0;
 
-        public CallQueue()
-        {
-
-        }
-
         public void Add(Call call)
         {
             _calls.Enqueue(call);
         }
 
-        public void Run(CommandBuffer cmd)
+        public void Run(Frame frame, CommandBuffer commandBuffer)
         {
             foreach (Call call in _calls)
             {
-                call.Run(cmd);
+                call.Run(frame, commandBuffer);
             }
         }
 
