@@ -45,7 +45,6 @@ namespace Vulkan_Example
         private static DepthImage depthImage;
 
         private static bool blowup = false;
-        private static bool screenshot = false;
         private static bool premult = false;
         private static bool resize = false, resized = false;
         private static float mx, my;
@@ -67,8 +66,6 @@ namespace Vulkan_Example
                 window.Close();
             else if (key == Key.Space)
                 blowup = !blowup;
-            else if (key == Key.S)
-                screenshot = true;
             else if (key == Key.P)
                 premult = !premult;
         }
