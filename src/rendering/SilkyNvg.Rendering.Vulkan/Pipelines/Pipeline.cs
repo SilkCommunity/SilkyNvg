@@ -19,6 +19,13 @@ namespace SilkyNvg.Rendering.Vulkan.Pipelines
             return _pipelines[settings];
         }
 
+        public static unsafe void DestroyAll()
+        {
+            foreach (Pipeline pipeline in _pipelines.Values)
+            {
+                pipeline.Dispose();
+            }
+        }
 
         private static readonly VertexInputBindingDescription _bindingDescription = new()
         {

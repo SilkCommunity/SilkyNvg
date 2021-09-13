@@ -7,7 +7,7 @@ namespace SilkyNvg.Rendering.Vulkan.Calls
     internal class StrokeCall : Call
     {
 
-        public StrokeCall(int image, Path[] paths, int uniformOffset, CompositeOperationState compositeOperation, VulkanRenderer renderer)
+        public StrokeCall(int image, Path[] paths, ulong uniformOffset, CompositeOperationState compositeOperation, VulkanRenderer renderer)
             : base(image, paths, 0, 0, uniformOffset, PipelineSettings.Stroke(compositeOperation), default, default, renderer) { }
 
         public override void Run(Frame frame, CommandBuffer cmd)

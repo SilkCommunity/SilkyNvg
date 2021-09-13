@@ -38,7 +38,6 @@ namespace SilkyNvg.Rendering.Vulkan.Utils
 
         private unsafe void Recreate()
         {
-            PhysicalDevice physicalDevice = _renderer.Params.PhysicalDevice;
             Device device = _renderer.Params.Device;
             AllocationCallbacks* allocator = (AllocationCallbacks*)_renderer.Params.AllocationCallbacks.ToPointer();
             Vk vk = _renderer.Vk;
@@ -65,8 +64,7 @@ namespace SilkyNvg.Rendering.Vulkan.Utils
             _renderer.AssertVulkan(vk.CreateBuffer(device, bufferCreateInfo, allocator, out _buffer));
 
             vk.GetBufferMemoryRequirements(device, _buffer, out MemoryRequirements memoryRequirements);
-            vk.GetPhysicalDeviceMemoryProperties(physicalDevice, out PhysicalDeviceMemoryProperties memoryProperties);
-            uint memoryTypeIndex = FindMemoryTypeIndex(memoryRequirements.MemoryTypeBits, _memoryPropertyFlags, memoryProperties);
+            uint memoryTypeIndex = _renderer.FindMemoryTypeIndex(memoryRequirements.MemoryTypeBits, _memoryPropertyFlags);
 
             MemoryAllocateInfo memoryAllocateInfo = new()
             {
@@ -119,19 +117,6 @@ namespace SilkyNvg.Rendering.Vulkan.Utils
 
             vk.FreeMemory(device, _memory, allocator);
             vk.DestroyBuffer(device, _buffer, allocator);
-        }
-
-        private static uint FindMemoryTypeIndex(uint typeFilter, MemoryPropertyFlags properties, PhysicalDeviceMemoryProperties memoryProperties)
-        {
-            for (uint i = 0; i < memoryProperties.MemoryTypeCount; i++)
-            {
-                if (((typeFilter & 1) == 1) & ((memoryProperties.MemoryTypes[(int)i].PropertyFlags & properties) == properties))
-                {
-                    return i;
-                }
-            }
-
-            throw new MissingMemberException("No compatible memory type found!");
         }
 
     }

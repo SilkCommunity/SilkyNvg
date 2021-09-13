@@ -112,10 +112,6 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
             AllocationCallbacks* allocator = (AllocationCallbacks*)_renderer.Params.AllocationCallbacks.ToPointer();
             Vk vk = _renderer.Vk;
 
-            foreach (DescriptorSet descriptorSet in _descriptorSets)
-            {
-                _renderer.AssertVulkan(vk.FreeDescriptorSets(device, _pool, 1, descriptorSet));
-            }
             vk.DestroyDescriptorPool(device, _pool, allocator);
         }
 

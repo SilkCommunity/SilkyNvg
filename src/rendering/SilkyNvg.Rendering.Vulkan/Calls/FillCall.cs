@@ -7,7 +7,7 @@ namespace SilkyNvg.Rendering.Vulkan.Calls
     internal class FillCall : Call
     {
 
-        public FillCall(int image, Path[] paths, uint triangleOffset, int uniformOffset, CompositeOperationState compositeOperation, VulkanRenderer renderer)
+        public FillCall(int image, Path[] paths, uint triangleOffset, ulong uniformOffset, CompositeOperationState compositeOperation, VulkanRenderer renderer)
             : base(image, paths, triangleOffset, 4, uniformOffset, PipelineSettings.Fill(compositeOperation), PipelineSettings.FillStencil(compositeOperation, renderer.TriangleListFill), PipelineSettings.FillEdgeAA(compositeOperation), renderer) { }
 
         public override void Run(Frame frame, CommandBuffer cmd)
@@ -26,7 +26,7 @@ namespace SilkyNvg.Rendering.Vulkan.Calls
             }
 
             descriptorSet = frame.DescriptorSetManager.GetDescriptorSet();
-            renderer.Shader.SetUniforms(frame, descriptorSet, uniformOffset /* + uniformOffset */, image);
+            renderer.Shader.SetUniforms(frame, descriptorSet, uniformOffset + renderer.Shader.FragSize, image);
             vk.CmdBindDescriptorSets(cmd, PipelineBindPoint.Graphics, renderer.Shader.PipelineLayout, 0, 1, descriptorSet, 0, 0);
 
             if (renderer.EdgeAntiAlias)

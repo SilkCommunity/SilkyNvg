@@ -7,7 +7,7 @@ namespace SilkyNvg.Rendering.Vulkan.Calls
     internal class ConvexFillCall : Call
     {
 
-        public ConvexFillCall(int image, Path[] paths, int uniformOffset, CompositeOperationState op, VulkanRenderer renderer)
+        public ConvexFillCall(int image, Path[] paths, ulong uniformOffset, CompositeOperationState op, VulkanRenderer renderer)
             : base(image, paths, 0, 0, uniformOffset, PipelineSettings.ConvexFill(op, renderer.TriangleListFill), default, PipelineSettings.ConvexFillEdgeAA(op), renderer) { }
 
         public unsafe override void Run(Frame frame, CommandBuffer cmd)
@@ -28,7 +28,7 @@ namespace SilkyNvg.Rendering.Vulkan.Calls
 
             if (renderer.EdgeAntiAlias)
             {
-                Pipelines.Pipeline aaPipeline = Pipelines.Pipeline.GetPipeline(renderPipeline, renderer);
+                Pipelines.Pipeline aaPipeline = Pipelines.Pipeline.GetPipeline(antiAliasPipeline, renderer);
                 aaPipeline.Bind(cmd);
 
                 foreach (Path path in paths)

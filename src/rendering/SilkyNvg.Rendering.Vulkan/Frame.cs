@@ -14,7 +14,7 @@ namespace SilkyNvg.Rendering.Vulkan
 
         public Buffer<VertUniforms> VertexUniformBuffer { get; }
 
-        public Buffer<FragUniforms> FragmentUniformBuffer { get; }
+        public Buffer<byte> FragmentUniformBuffer { get; }
 
         public DescriptorSetManager DescriptorSetManager { get; }
 
@@ -28,6 +28,9 @@ namespace SilkyNvg.Rendering.Vulkan
             VertexUniformBuffer = new Buffer<VertUniforms>(BufferUsageFlags.BufferUsageUniformBufferBit,
                 MemoryPropertyFlags.MemoryPropertyHostVisibleBit, _renderer);
 
+            FragmentUniformBuffer = new Buffer<byte>(BufferUsageFlags.BufferUsageUniformBufferBit,
+                MemoryPropertyFlags.MemoryPropertyHostVisibleBit, _renderer);
+
             DescriptorSetManager = new DescriptorSetManager(_renderer);
         }
 
@@ -35,6 +38,7 @@ namespace SilkyNvg.Rendering.Vulkan
         {
             VertexBuffer.Dispose();
             VertexUniformBuffer.Dispose();
+            FragmentUniformBuffer.Dispose();
             DescriptorSetManager.Dispose();
         }
 

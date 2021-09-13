@@ -6,6 +6,7 @@ using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.KHR;
 using Silk.NET.Windowing;
 using SilkyNvg;
+using SilkyNvg.Graphics;
 using SilkyNvg.Paths;
 using SilkyNvg.Rendering.Vulkan;
 using System;
@@ -256,17 +257,17 @@ namespace Vulkan_Example
                 RenderPass = renderPass,
                 SubpassIndex = 0,
 
-                ImageTransitionQueueFamily = graphicsQueueFamily,
-                ImageTransitionQueueFamilyIndex = 1
+                ImageQueueFamily = graphicsQueueFamily,
+                ImageQueueFamilyIndex = 1
             };
-            VulkanRenderer nvgRenderer = new(CreateFlags.Antialias | CreateFlags.StencilStrokes | CreateFlags.Debug, @params, vk);
+            VulkanRenderer nvgRenderer = new(CreateFlags.Antialias | CreateFlags.StencilStrokes | CreateFlags.TriangleListFill | CreateFlags.Debug, @params, vk);
             nvg = Nvg.Create(nvgRenderer);
 
-            // demo = new Demo(nvg);
+            demo = new Demo(nvg);
 
             timer = Stopwatch.StartNew();
 
-            timer.Reset();
+            timer.Restart();
 
             prevTime = timer.Elapsed.TotalMilliseconds;
         }
@@ -457,18 +458,29 @@ namespace Vulkan_Example
 
             BeginRender(cmd, swapchainImageIdx);
             ////////////////////////////////////////////////////////////
+            double t = timer.Elapsed.TotalSeconds;
+            double dt = t - prevTime;
+            prevTime = t;
+
             Vector2D<float> wSize = window.Size.As<float>();
             Vector2D<float> fbSize = window.FramebufferSize.As<float>();
+
             float devicePxRatio = fbSize.X / wSize.X;
 
             nvg.BeginFrame(wSize, devicePxRatio);
 
-            nvg.BeginPath();
-            nvg.Rect(25.0f, 25.0f, 100.0f, 100.0f);
-            nvg.Rect(250.0f, 250.0f, 100.0f, 100.0f);
-            nvg.Fill();
+            demo.Render(mx, my, wSize.X, wSize.Y, (float)t, blowup);
+
+            frameGraph.Render(5.0f, 5.0f, nvg);
+            cpuGraph.Render(5.0f + 200.0f + 5.0f, 5.0f, nvg);
 
             nvg.EndFrame(cmd);
+
+            cpuTime = timer.Elapsed.TotalSeconds - t;
+
+            frameGraph.Update((float)dt);
+            cpuGraph.Update((float)cpuTime);
+
             ////////////////////////////////////////////////////////////
             EndRender(frame.PresentSemaphore, frame.RenderSemaphore, frame.RenderFence, cmd);
             Present(frame.RenderSemaphore, swapchainImageIdx);
@@ -478,9 +490,6 @@ namespace Vulkan_Example
 
         private static unsafe void DisposeVulkan()
         {
-            VkUtil.AssertVulkan(vk.DeviceWaitIdle(device));
-            nvg.Dispose();
-
             DestroySwapchain();
             swapchain.Dispose();
             for (int i = 0; i < frames.Length; i++)
@@ -500,6 +509,8 @@ namespace Vulkan_Example
         {
             timer.Stop();
 
+            VkUtil.AssertVulkan(vk.DeviceWaitIdle(device));
+            demo.Dispose();
             nvg.Dispose();
 
             DisposeVulkan();
@@ -507,11 +518,13 @@ namespace Vulkan_Example
 
         static void Main()
         {
+            frameGraph = new PerformanceGraph(PerformanceGraph.GraphRenderStyle.Fps, "Frame Time");
+            cpuGraph = new PerformanceGraph(PerformanceGraph.GraphRenderStyle.Ms, "CPU Time");
+
             WindowOptions windowOptions = WindowOptions.DefaultVulkan;
             windowOptions.FramesPerSecond = -1;
             windowOptions.Size = new Vector2D<int>((int)windowExtent.Width, (int)windowExtent.Height);
             windowOptions.Title = "SilkyNvg";
-            windowOptions.PreferredBitDepth = new Vector4D<int>(8, 8, 8, 8);
 
             window = Window.Create(windowOptions);
             window.Load += Load;

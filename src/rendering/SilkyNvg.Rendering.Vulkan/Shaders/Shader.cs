@@ -17,7 +17,7 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
         private DescriptorSetLayout _descriptorSetLayout;
         private PipelineLayout _pipelineLayout;
 
-        private int _align;
+        private ulong _align;
 
         public DescriptorSetLayout DescriptorSetLayout => _descriptorSetLayout;
 
@@ -27,7 +27,7 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
 
         public PipelineShaderStageCreateInfo FragmentShaderStage => ShaderStageCreateInfo(_fragmentShaderModule, ShaderStageFlags.ShaderStageFragmentBit);
 
-        public int FragSize { get; private set; }
+        public ulong FragSize { get; private set; }
 
         public UniformManager UniformManager { get; private set; }
 
@@ -85,6 +85,22 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
                     DescriptorType = DescriptorType.UniformBuffer,
                     PImmutableSamplers = null,
                     StageFlags = ShaderStageFlags.ShaderStageVertexBit
+                },
+                new DescriptorSetLayoutBinding() // fragment binding
+                {
+                    Binding = 1,
+                    DescriptorCount = 1,
+                    DescriptorType = DescriptorType.UniformBuffer,
+                    PImmutableSamplers = null,
+                    StageFlags = ShaderStageFlags.ShaderStageFragmentBit
+                },
+                new DescriptorSetLayoutBinding() // image sampler(2D)
+                {
+                    Binding = 2,
+                    DescriptorCount = 1,
+                    DescriptorType = DescriptorType.CombinedImageSampler,
+                    PImmutableSamplers = null,
+                    StageFlags = ShaderStageFlags.ShaderStageFragmentBit
                 }
             };
 
@@ -92,7 +108,7 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
             {
                 SType = StructureType.DescriptorSetLayoutCreateInfo,
 
-                BindingCount = 1, // FIXME: 3 - vertex, fragment and image
+                BindingCount = 3, // FIXME: 3 - vertex, fragment and image
                 PBindings = descriptorSetLayoutBindings
             };
 
@@ -120,16 +136,21 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
             Vk vk = _renderer.Vk;
 
             vk.GetPhysicalDeviceProperties(physicalDevice, out PhysicalDeviceProperties properties);
-            _align = (int)properties.Limits.MinUniformBufferOffsetAlignment;
+            _align = properties.Limits.MinUniformBufferOffsetAlignment;
 
-            FragSize = Marshal.SizeOf(typeof(FragUniforms)) + _align - (Marshal.SizeOf(typeof(FragUniforms)) % _align);
+            FragSize = ((ulong)Marshal.SizeOf(typeof(FragUniforms))) + _align - (((ulong)Marshal.SizeOf(typeof(FragUniforms))) % _align);
 
             UniformManager = new UniformManager(FragSize);
         }
 
-        public unsafe void SetUniforms(Frame frame, DescriptorSet descriptorSet, int uniformOffset, int image)
+        public unsafe void SetUniforms(Frame frame, DescriptorSet descriptorSet, ulong uniformOffset, int image)
         {
             DescriptorBufferInfo vertexUniformBufferInfo = frame.VertexUniformBuffer.BufferInfo;
+            vertexUniformBufferInfo.Offset = 0;
+            DescriptorBufferInfo fragmentUniformBufferInfo = frame.FragmentUniformBuffer.BufferInfo;
+            fragmentUniformBufferInfo.Offset = uniformOffset;
+            fragmentUniformBufferInfo.Range = (uint)Marshal.SizeOf<FragUniforms>();
+            DescriptorImageInfo fragmentImageInfo = Textures.Texture.FindTexture(image).ImageInfo;
 
             Span<WriteDescriptorSet> descriptorWrites = stackalloc WriteDescriptorSet[]
             {
@@ -144,6 +165,30 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
                     DescriptorCount = 1,
                     DescriptorType = DescriptorType.UniformBuffer,
                     PBufferInfo = &vertexUniformBufferInfo
+                },
+                new WriteDescriptorSet() // Fragment Uniform Buffer
+                {
+                    SType = StructureType.WriteDescriptorSet,
+
+                    DstBinding = 1,
+                    DstArrayElement = 0,
+                    DstSet = descriptorSet,
+
+                    DescriptorCount = 1,
+                    DescriptorType = DescriptorType.UniformBuffer,
+                    PBufferInfo = &fragmentUniformBufferInfo
+                },
+                new WriteDescriptorSet() // Fragment Image Sampler(2D)
+                {
+                    SType = StructureType.WriteDescriptorSet,
+
+                    DstBinding = 2,
+                    DstArrayElement = 0,
+                    DstSet = descriptorSet,
+
+                    DescriptorCount = 1,
+                    DescriptorType = DescriptorType.CombinedImageSampler,
+                    PImageInfo = &fragmentImageInfo
                 }
             };
 
@@ -159,6 +204,10 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
             AllocationCallbacks* allocator = (AllocationCallbacks*)_renderer.Params.AllocationCallbacks.ToPointer();
             Vk vk = _renderer.Vk;
 
+            vk.DestroyShaderModule(device, _vertexShaderModule, allocator);
+            vk.DestroyShaderModule(device, _fragmentShaderModule, allocator);
+
+            vk.DestroyDescriptorSetLayout(device, _descriptorSetLayout, allocator);
             vk.DestroyPipelineLayout(device, _pipelineLayout, allocator);
         }
 

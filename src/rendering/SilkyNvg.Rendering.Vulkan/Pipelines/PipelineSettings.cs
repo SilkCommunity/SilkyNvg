@@ -247,5 +247,15 @@ namespace SilkyNvg.Rendering.Vulkan.Pipelines
             return settings;
         }
 
+        public static PipelineSettings Triangles(Blending.CompositeOperationState compositeOperation)
+        {
+            PipelineSettings settings = Default();
+
+            settings.CompositeOperation = compositeOperation;
+            settings.Topology = PrimitiveTopology.TriangleList;
+
+            return settings;
+        }
+
     }
 }

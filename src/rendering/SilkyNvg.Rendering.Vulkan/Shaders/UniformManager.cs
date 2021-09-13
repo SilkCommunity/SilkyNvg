@@ -6,7 +6,7 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
     internal class UniformManager
     {
 
-        private readonly int _fragSize;
+        private readonly ulong _fragSize;
 
         private byte[] _uniforms;
         private int _count;
@@ -16,7 +16,7 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
 
         public ReadOnlySpan<byte> Uniforms => _uniforms;
 
-        public UniformManager(int fragSize)
+        public UniformManager(ulong fragSize)
         {
             _fragSize = fragSize;
             _uniforms = Array.Empty<byte>();
@@ -24,22 +24,22 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
             _capacity = 0;
         }
 
-        private int AllocUniforms(int n)
+        private ulong AllocUniforms(int n)
         {
             if (_count + n > _capacity)
             {
                 int cuniforms = Math.Max(_count + n, 128) + _uniforms.Length / 2;
-                Array.Resize(ref _uniforms, cuniforms * _fragSize);
+                Array.Resize(ref _uniforms, cuniforms * (int)_fragSize);
                 _capacity = cuniforms;
             }
-            return _count * _fragSize;
+            return (ulong)_count * _fragSize;
         }
 
-        public unsafe int AddUniform(FragUniforms uniforms)
+        public unsafe ulong AddUniform(FragUniforms uniforms)
         {
-            int ret = AllocUniforms(1);
+            ulong ret = AllocUniforms(1);
             ReadOnlySpan<byte> bytes = new(&uniforms, Marshal.SizeOf(typeof(FragUniforms)));
-            Buffer.BlockCopy(bytes.ToArray(), 0, _uniforms, ret, bytes.Length);
+            Buffer.BlockCopy(bytes.ToArray(), 0, _uniforms, (int)ret, bytes.Length);
             _count += 1;
             return ret;
         }

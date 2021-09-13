@@ -183,11 +183,11 @@ namespace SilkyNvg.Rendering.OpenGL.Textures
 
             if (TextureType == Rendering.Texture.Rgba)
             {
-                _gl.TexSubImage2D(TextureTarget.Texture2D, 0, (int)bounds.Origin.X, (int)bounds.Origin.Y, bounds.Max.X, bounds.Max.Y, GLEnum.Rgba, GLEnum.UnsignedByte, data);
+                _gl.TexSubImage2D(TextureTarget.Texture2D, 0, (int)bounds.Origin.X, (int)bounds.Origin.Y, bounds.Size.X, bounds.Size.Y, GLEnum.Rgba, GLEnum.UnsignedByte, data);
             }
             else
             {
-                _gl.TexSubImage2D(TextureTarget.Texture2D, 0, (int)bounds.Origin.X, (int)bounds.Origin.Y, bounds.Max.X, bounds.Max.Y, GLEnum.Red, GLEnum.UnsignedByte, data);
+                _gl.TexSubImage2D(TextureTarget.Texture2D, 0, (int)bounds.Origin.X, (int)bounds.Origin.Y, bounds.Size.X, bounds.Size.Y, GLEnum.Red, GLEnum.UnsignedByte, data);
             }
 
             ResetPixelStore();

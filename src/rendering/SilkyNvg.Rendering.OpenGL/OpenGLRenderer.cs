@@ -171,6 +171,7 @@ namespace SilkyNvg.Rendering.OpenGL
         {
             _vertexCollection.Clear();
             _callQueue.Clear();
+            Shader.UniformManager.Clear();
         }
 
         public void Flush()

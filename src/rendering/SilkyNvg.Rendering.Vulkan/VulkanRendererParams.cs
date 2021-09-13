@@ -18,8 +18,8 @@ namespace SilkyNvg.Rendering.Vulkan
         public RenderPass RenderPass;
         public uint SubpassIndex;
 
-        public uint ImageTransitionQueueFamily;
-        public uint ImageTransitionQueueFamilyIndex;
+        public uint ImageQueueFamily;
+        public uint ImageQueueFamilyIndex;
 
     }
 }

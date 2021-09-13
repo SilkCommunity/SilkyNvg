@@ -18,6 +18,8 @@ namespace SilkyNvg.Rendering.Vulkan
 
         private readonly Frame[] _frames;
 
+        private PhysicalDeviceMemoryProperties _physicalDeviceMemoryProperties;
+
         private Vector2D<float> _viewSize;
         private uint _requireredDescriptorSetCount;
 
@@ -26,6 +28,10 @@ namespace SilkyNvg.Rendering.Vulkan
         internal VulkanRendererParams Params { get; }
 
         internal Shader Shader { get; private set; }
+
+        internal CommandPool ImageTransitionPool { get; private set; }
+
+        internal Queue ImageTransitionQueue { get; private set; }
 
         internal bool Debug => _flags.HasFlag(CreateFlags.Debug);
 
@@ -70,8 +76,43 @@ namespace SilkyNvg.Rendering.Vulkan
             }
         }
 
+        internal uint FindMemoryTypeIndex(uint typeFilter, MemoryPropertyFlags properties)
+        {
+            for (uint i = 0; i < _physicalDeviceMemoryProperties.MemoryTypeCount; i++)
+            {
+                if (((typeFilter & 1) == 1) & ((_physicalDeviceMemoryProperties.MemoryTypes[(int)i].PropertyFlags & properties) == properties))
+                {
+                    return i;
+                }
+            }
+
+            throw new MissingMemberException("No compatible memory type found!");
+        }
+
+        private unsafe void InitializeImageTransition()
+        {
+            Device device = Params.Device;
+            AllocationCallbacks* allocator = (AllocationCallbacks*)Params.AllocationCallbacks.ToPointer();
+
+            CommandPoolCreateInfo commandPoolCreateInfo = new()
+            {
+                SType = StructureType.CommandPoolCreateInfo,
+                Flags = CommandPoolCreateFlags.CommandPoolCreateResetCommandBufferBit,
+
+                QueueFamilyIndex = Params.ImageQueueFamily
+            };
+
+            AssertVulkan(Vk.CreateCommandPool(device, commandPoolCreateInfo, allocator, out CommandPool pool));
+            ImageTransitionPool = pool;
+
+            Vk.GetDeviceQueue(device, Params.ImageQueueFamily, Params.ImageQueueFamilyIndex, out Queue queue);
+            ImageTransitionQueue = queue;
+        }
+
         public bool Create()
         {
+            Vk.GetPhysicalDeviceMemoryProperties(Params.PhysicalDevice, out _physicalDeviceMemoryProperties);
+
             if (EdgeAntiAlias)
             {
                 Shader = new Shader("SilkyNvg-Vulkan-Shader", "vertexShader", "fragmentShaderEdgeAA", this);
@@ -94,6 +135,8 @@ namespace SilkyNvg.Rendering.Vulkan
 
             Shader.InitializeFragUniformBuffers();
 
+            InitializeImageTransition();
+
             _ = CreateTexture(Texture.Alpha, new Vector2D<uint>(1, 1), 0, null);
 
             return true;
@@ -101,22 +144,41 @@ namespace SilkyNvg.Rendering.Vulkan
 
         public int CreateTexture(Texture type, Vector2D<uint> size, ImageFlags imageFlags, ReadOnlySpan<byte> data)
         {
-            return 2;
+            Textures.Texture texture = new(size, imageFlags, type, data, this);
+            return texture.Id;
         }
 
         public bool UpdateTexture(int image, Rectangle<uint> bounds, ReadOnlySpan<byte> data)
         {
+            Textures.Texture tex = Textures.Texture.FindTexture(image);
+            if (tex == null)
+            {
+                return false;
+            }
+            tex.Update(bounds, data);
             return true;
         }
 
         public bool GetTextureSize(int image, out Vector2D<uint> size)
         {
-            size = default;
+            Textures.Texture tex = Textures.Texture.FindTexture(image);
+            if (tex == null)
+            {
+                size = default;
+                return false;
+            }
+            size = tex.Size;
             return true;
         }
 
         public bool DeleteTexture(int image)
         {
+            Textures.Texture tex = Textures.Texture.FindTexture(image);
+            if (tex == null)
+            {
+                return false;
+            }
+            tex.Dispose();
             return true;
         }
 
@@ -127,7 +189,9 @@ namespace SilkyNvg.Rendering.Vulkan
 
         public void Cancel()
         {
-
+            _vertexCollection.Clear();
+            _callQueue.Clear();
+            Shader.UniformManager.Clear();
         }
 
         internal void AdvanceFrame()
@@ -159,6 +223,7 @@ namespace SilkyNvg.Rendering.Vulkan
                 Vk.CmdSetScissor(CurrentCommandBuffer, 0, 1, scissor);
 
                 frame.DescriptorSetManager.Reset(_requireredDescriptorSetCount);
+                frame.FragmentUniformBuffer.Update(Shader.UniformManager.Uniforms);
 
                 Vk.CmdBindVertexBuffers(CurrentCommandBuffer, 0, 1, frame.VertexBuffer.Handle, 0);
 
@@ -167,6 +232,7 @@ namespace SilkyNvg.Rendering.Vulkan
 
             _vertexCollection.Clear();
             _callQueue.Clear();
+            Shader.UniformManager.Clear();
             _requireredDescriptorSetCount = 0;
 
             if (Params.AdvanceFrameIndexAutomatically)
@@ -182,31 +248,56 @@ namespace SilkyNvg.Rendering.Vulkan
             for (int i = 0; i < paths.Count; i++)
             {
                 Rendering.Path path = paths[i];
+                int verticesPresentCount = _vertexCollection.CurrentsOffset;
+                int fillCount;
+                if (TriangleListFill)
+                {
+                    for (int j = 0; j < path.Fill.Count - 2; j++)
+                    {
+                        _vertexCollection.AddVertex(path.Fill[0]);
+                        _vertexCollection.AddVertex(path.Fill[j + 1]);
+                        _vertexCollection.AddVertex(path.Fill[j + 2]);
+                        offset += 3;
+                    }
+                    fillCount = (path.Fill.Count - 2) * 3;
+                }
+                else
+                {
+                    _vertexCollection.AddVertices(path.Fill);
+                    fillCount = path.Fill.Count;
+                    offset += fillCount;
+                }
                 renderPaths[i] = new Path(
-                    _vertexCollection.CurrentsOffset, path.Fill.Count,
-                    _vertexCollection.CurrentsOffset + path.Fill.Count, path.Stroke.Count
+                    verticesPresentCount, fillCount,
+                    verticesPresentCount + fillCount, path.Stroke.Count
                 );
-                _vertexCollection.AddVertices(path.Fill);
                 _vertexCollection.AddVertices(path.Stroke);
-                offset += path.Fill.Count;
                 offset += path.Stroke.Count;
             }
 
+            FragUniforms uniforms = new(paint, scissor, fringe, fringe, -1.0f);
             Call call;
             if ((paths.Count == 1) && paths[0].Convex) // Convex
             {
                 _requireredDescriptorSetCount++;
-                call = new ConvexFillCall(paint.Image, renderPaths, 0, compositeOperation, this);
+
+                ulong uniformOffset = Shader.UniformManager.AddUniform(uniforms);
+                call = new ConvexFillCall(paint.Image, renderPaths, uniformOffset, compositeOperation, this);
             }
             else
             {
+                _requireredDescriptorSetCount += 2;
+
                 _vertexCollection.AddVertex(new Vertex(bounds.Max, 0.5f, 1.0f));
                 _vertexCollection.AddVertex(new Vertex(bounds.Max.X, bounds.Min.Y, 0.5f, 1.0f));
                 _vertexCollection.AddVertex(new Vertex(bounds.Min.X, bounds.Max.Y, 0.5f, 1.0f));
                 _vertexCollection.AddVertex(new Vertex(bounds.Min, 0.5f, 1.0f));
 
-                _requireredDescriptorSetCount += 2;
-                call = new FillCall(paint.Image, renderPaths, (uint)offset, 0, compositeOperation, this);
+                FragUniforms stencilUniforms = new(-1.0f, ShaderType.Simple);
+                ulong uniformOffset = Shader.UniformManager.AddUniform(stencilUniforms);
+                _ = Shader.UniformManager.AddUniform(uniforms);
+
+                call = new FillCall(paint.Image, renderPaths, (uint)offset, uniformOffset, compositeOperation, this);
             }
 
             _callQueue.Add(call);
@@ -230,28 +321,57 @@ namespace SilkyNvg.Rendering.Vulkan
                 offset += paths[i].Stroke.Count;
             }
 
+            FragUniforms uniforms = new(paint, scissor, strokeWidth, fringe, -1.0f);
             Call call;
             if (StencilStrokes)
             {
                 _requireredDescriptorSetCount += 2;
-                call = new StencilStrokeCall(paint.Image, renderPaths, 0, compositeOperation, this);
+
+                FragUniforms stencilUniforms = new(paint, scissor, strokeWidth, fringe, 1.0f - 0.5f / 255.0f);
+                ulong uniformOffset = Shader.UniformManager.AddUniform(uniforms);
+                _ = Shader.UniformManager.AddUniform(stencilUniforms);
+
+                call = new StencilStrokeCall(paint.Image, renderPaths, uniformOffset, compositeOperation, this);
             }
             else
             {
-                _requireredDescriptorSetCount += 1;
-                call = new StrokeCall(paint.Image, renderPaths, 0, compositeOperation, this);
+                _requireredDescriptorSetCount++;
+
+                ulong uniformOffset = Shader.UniformManager.AddUniform(uniforms);
+                call = new StrokeCall(paint.Image, renderPaths, uniformOffset, compositeOperation, this);
             }
             _callQueue.Add(call);
         }
 
-        public void Triangles(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, ICollection<Vertex> vertices, float fringeWidth)
+        public void Triangles(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, ICollection<Vertex> vertices, float fringe)
         {
+            uint offset = (uint)_vertexCollection.CurrentsOffset;
+            _vertexCollection.AddVertices(vertices);
 
+            _requireredDescriptorSetCount++;
+
+            FragUniforms uniforms = new(paint, scissor, fringe);
+            ulong uniformOffset = Shader.UniformManager.AddUniform(uniforms);
+            Call call = new TrianglesCall(paint.Image, compositeOperation, offset, (uint)vertices.Count, uniformOffset, this);
+            _callQueue.Add(call);
         }
 
         public unsafe void Dispose()
         {
+            foreach (Frame frame in _frames)
+            {
+                frame.Dispose();
+            }
 
+            Shader.Dispose();
+
+            Pipelines.Pipeline.DestroyAll();
+
+            Textures.Texture.DeleteAll();
+            Vk.DestroyCommandPool(Params.Device, ImageTransitionPool, (AllocationCallbacks*)Params.AllocationCallbacks);
+
+            _callQueue.Clear();
+            _vertexCollection.Clear();
         }
 
     }

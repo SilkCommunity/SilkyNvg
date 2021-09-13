@@ -7,7 +7,7 @@ namespace SilkyNvg.Rendering.Vulkan.Calls
     internal class StencilStrokeCall : Call
     {
 
-        public StencilStrokeCall(int image, Path[] paths, int uniformOffset, CompositeOperationState compositeOperation, VulkanRenderer renderer)
+        public StencilStrokeCall(int image, Path[] paths, ulong uniformOffset, CompositeOperationState compositeOperation, VulkanRenderer renderer)
             : base(image, paths, 0, 0, uniformOffset, PipelineSettings.StencilStroke(compositeOperation), PipelineSettings.StencilStrokeStencil(compositeOperation), PipelineSettings.StencilStrokeEdgeAA(compositeOperation), renderer) { }
 
         public override void Run(Frame frame, CommandBuffer cmd)
@@ -18,7 +18,7 @@ namespace SilkyNvg.Rendering.Vulkan.Calls
             sPipeline.Bind(cmd);
 
             DescriptorSet descriptorSet = frame.DescriptorSetManager.GetDescriptorSet();
-            renderer.Shader.SetUniforms(frame, descriptorSet, uniformOffset /* + fragSize */, image);
+            renderer.Shader.SetUniforms(frame, descriptorSet, uniformOffset + renderer.Shader.FragSize, image);
             vk.CmdBindDescriptorSets(cmd, PipelineBindPoint.Graphics, renderer.Shader.PipelineLayout, 0, 1, descriptorSet, 0, 0);
             foreach (Path path in paths)
             {

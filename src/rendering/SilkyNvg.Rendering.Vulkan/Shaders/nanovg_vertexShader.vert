@@ -10,7 +10,7 @@ layout (location = 1) in vec2 tcoord;
 layout (location = 0) out vec2 pass_vertex;
 layout (location = 1) out vec2 pass_tcoord;
 
-layout (binding = 0) uniform VertexUniforms {
+layout (set = 0, binding = 0) uniform VertexUniforms {
 	vec2 viewSize;
 };
 

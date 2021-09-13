@@ -136,7 +136,6 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
                 tex = Textures.Texture.FindTexture(image);
             }
             tex?.Bind();
-            
         }
 
         public void Start()

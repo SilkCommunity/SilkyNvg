@@ -1,4 +1,5 @@
 ﻿using Silk.NET.Maths;
+using SilkyNvg.Images;
 using System;
 using System.Runtime.InteropServices;
 
@@ -56,7 +57,7 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
             _strokeMult = (width * 0.5f + fringe * 0.5f) / fringe;
             _strokeThr = strokeThr;
 
-            /*if (paint.Image != 0)
+            if (paint.Image != 0)
             {
                 Textures.Texture tex = Textures.Texture.FindTexture(paint.Image);
                 if (tex == null)
@@ -92,14 +93,14 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
                 _radius = _feather = 0.0f;
             }
             else
-            {*/
+            {
                 _type = (int)ShaderType.Fillgrad;
                 _radius = paint.Radius;
                 _feather = paint.Feather;
                 _texType = 0;
 
                 _ = Matrix3X2.Invert(paint.Transform, out invtransform);
-            //}
+            }
 
             _paintMat = new Matrix3X4<float>(invtransform);
         }
