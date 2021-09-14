@@ -85,14 +85,7 @@ namespace SilkyNvg.Rendering.OpenGL
         {
             CheckError("init");
 
-            if (EdgeAntiAlias)
-            {
-                Shader = new Shader("SilkyNvg-OpenGL-Shader", "vertexShader", "fragmentShaderEdgeAA", Gl);
-            }
-            else
-            {
-                Shader = new Shader("SilkyNvg-OpenGL-Shader", "vertexShader", "fragmentShader", Gl);
-            }
+            Shader = new Shader("SilkyNvg-OpenGL-Shader", EdgeAntiAlias, Gl);
             if (!Shader.Status)
             {
                 return false;

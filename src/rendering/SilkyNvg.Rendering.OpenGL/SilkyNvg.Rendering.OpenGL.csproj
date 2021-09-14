@@ -8,6 +8,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageTags>SilkyNvg SilkyNvgRenderer UI Graphics</PackageTags>
     <PackageReleaseNotes>This is a 1:1 implementation of the NanoVG renderer.</PackageReleaseNotes>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -25,18 +26,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\SilkyNvg\SilkyNvg.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Shaders\nanovg_fragmentShader.glsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Shaders\nanovg_fragmentShaderEdgeAA.glsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Shaders\nanovg_vertexShader.glsl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>

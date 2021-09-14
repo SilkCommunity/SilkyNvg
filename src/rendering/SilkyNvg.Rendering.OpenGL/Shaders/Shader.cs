@@ -39,7 +39,7 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
             Console.Error.WriteLine("Programme: " + _name + Environment.NewLine + "Error: " + infoLog);
         }
 
-        public Shader(string name, string vertexShader, string fragmentShader, GL gl)
+        public Shader(string name, bool edgeAA, GL gl)
         {
             _gl = gl;
             _name = name;
@@ -47,8 +47,8 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
             _programmeID = _gl.CreateProgram();
             _vertexShaderID = _gl.CreateShader(Silk.NET.OpenGL.ShaderType.VertexShader);
             _fragmentShaderID = _gl.CreateShader(Silk.NET.OpenGL.ShaderType.FragmentShader);
-            _gl.ShaderSource(_vertexShaderID, File.ReadAllText("./Shaders/nanovg_" + vertexShader + ".glsl"));
-            _gl.ShaderSource(_fragmentShaderID, File.ReadAllText("./Shaders/nanovg_" + fragmentShader + ".glsl"));
+            _gl.ShaderSource(_vertexShaderID, ShaderCode.VERTEX_SHADER_CODE);
+            _gl.ShaderSource(_fragmentShaderID, edgeAA ? ShaderCode.FRAGMENT_SHADER_EDGE_AA_CODE : ShaderCode.FRAGMENT_SHADER_CODE);
 
             _gl.CompileShader(_vertexShaderID);
             _gl.GetShader(_vertexShaderID, ShaderParameterName.CompileStatus, out int status);
