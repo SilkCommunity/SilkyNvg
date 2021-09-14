@@ -33,30 +33,28 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
 
         public bool Status { get; private set; } = true;
 
-        public Shader(string name, string vertexFile, string fragmentFile, VulkanRenderer renderer)
+        public Shader(string name, bool edgeAA, VulkanRenderer renderer)
         {
             _renderer = renderer;
             _name = name;
 
-            _vertexShaderModule = CreateShader(vertexFile);
-            _fragmentShaderModule = CreateShader(fragmentFile);
+            _vertexShaderModule = CreateShader(ShaderCode.VERTEX_SHADER_SOURCE_SPV);
+            _fragmentShaderModule = CreateShader(edgeAA ? ShaderCode.FRAGMENT_SHADER_EDGE_AA_SOURCE_SPV : ShaderCode.FRAGMENT_SHADER_SOURCE_SPV);
         }
 
-        private unsafe ShaderModule CreateShader(string file)
+        private unsafe ShaderModule CreateShader(byte[] code)
         {
             Device device = _renderer.Params.Device;
             AllocationCallbacks* allocator = (AllocationCallbacks*)_renderer.Params.AllocationCallbacks.ToPointer();
             Vk vk = _renderer.Vk;
 
-            byte[] data = File.ReadAllBytes("Shaders/nanovg_" + file + ".spv");
-
             ShaderModuleCreateInfo shaderModuleCreateInfo = new()
             {
                 SType = StructureType.ShaderModuleCreateInfo,
 
-                CodeSize = (nuint)(data.Length * sizeof(byte))
+                CodeSize = (nuint)(code.Length * sizeof(byte))
             };
-            fixed (byte* ptr = &data[0])
+            fixed (byte* ptr = &code[0])
             {
                 shaderModuleCreateInfo.PCode = (uint*)ptr;
             }

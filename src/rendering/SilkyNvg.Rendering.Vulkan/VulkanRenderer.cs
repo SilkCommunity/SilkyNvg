@@ -113,14 +113,7 @@ namespace SilkyNvg.Rendering.Vulkan
         {
             Vk.GetPhysicalDeviceMemoryProperties(Params.PhysicalDevice, out _physicalDeviceMemoryProperties);
 
-            if (EdgeAntiAlias)
-            {
-                Shader = new Shader("SilkyNvg-Vulkan-Shader", "vertexShader", "fragmentShaderEdgeAA", this);
-            }
-            else
-            {
-                Shader = new Shader("SilkyNvg-Vulkan-Shader", "vertexShader", "fragmentShader", this);
-            }
+            Shader = new Shader("SilkyNvg-Vulkan-Shader", EdgeAntiAlias, this);
             if (!Shader.Status)
             {
                 return false;

@@ -30,16 +30,4 @@ It has some issues and uses poor code style but has the basic functionallity.</D
     <PackageReference Include="Silk.NET.Vulkan" Version="2.8.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="Shaders\nanovg_fragmentShader.spv">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Shaders\nanovg_fragmentShaderEdgeAA.spv">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Shaders\nanovg_vertexShader.spv">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>
