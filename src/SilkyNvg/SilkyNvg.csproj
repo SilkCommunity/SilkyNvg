@@ -11,6 +11,7 @@
     <PackageTags>NanoVG Graphics UI VectorGraphics VG Silky SilkyNvg SimpleUI</PackageTags>
     <PackageReleaseNotes>Just works as far as I know.</PackageReleaseNotes>
     <Version>1.0.1</Version>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

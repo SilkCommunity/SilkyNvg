@@ -43,9 +43,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg.Text", "src\compon
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg.Rendering.Vulkan", "src\rendering\SilkyNvg.Rendering.Vulkan\SilkyNvg.Rendering.Vulkan.csproj", "{D4F30FE8-56E0-4C58-8526-ED65EF7FAE2D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenGL Example", "samples\OpenGL Example\OpenGL Example.csproj", "{76829E0C-FD9C-4C7E-8AF0-91CE0A1F28C4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenGL Example", "samples\OpenGL Example\OpenGL Example.csproj", "{76829E0C-FD9C-4C7E-8AF0-91CE0A1F28C4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vulkan Example", "samples\Vulkan Example\Vulkan Example.csproj", "{B5AB5EB4-C49F-4568-BFE2-917C9F0B0AEC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vulkan Example", "samples\Vulkan Example\Vulkan Example.csproj", "{B5AB5EB4-C49F-4568-BFE2-917C9F0B0AEC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IncreasingFontSizeTest", "tests\IncreasingFontSizeTest\IncreasingFontSizeTest.csproj", "{C20A47F9-31DB-43EF-8FFA-E45CDE8F917D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -121,6 +123,10 @@ Global
 		{B5AB5EB4-C49F-4568-BFE2-917C9F0B0AEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B5AB5EB4-C49F-4568-BFE2-917C9F0B0AEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B5AB5EB4-C49F-4568-BFE2-917C9F0B0AEC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C20A47F9-31DB-43EF-8FFA-E45CDE8F917D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C20A47F9-31DB-43EF-8FFA-E45CDE8F917D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C20A47F9-31DB-43EF-8FFA-E45CDE8F917D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C20A47F9-31DB-43EF-8FFA-E45CDE8F917D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -145,6 +151,7 @@ Global
 		{D4F30FE8-56E0-4C58-8526-ED65EF7FAE2D} = {8C10A437-CF81-4A46-93A7-E380F60F4F0F}
 		{76829E0C-FD9C-4C7E-8AF0-91CE0A1F28C4} = {E94958C3-5109-4384-A9CB-E165EC5754CE}
 		{B5AB5EB4-C49F-4568-BFE2-917C9F0B0AEC} = {E94958C3-5109-4384-A9CB-E165EC5754CE}
+		{C20A47F9-31DB-43EF-8FFA-E45CDE8F917D} = {225A277C-EFE4-47D6-A080-4005F7ED1D4C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {08FE0BD8-4253-419D-9FBF-7F9671C9AAC2}

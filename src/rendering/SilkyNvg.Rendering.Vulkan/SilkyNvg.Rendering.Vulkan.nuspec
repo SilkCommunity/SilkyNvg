@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package >
+  <metadata>
+    <id>SilkyNvg.Rendering.Vulkan</id>
+    <version>1.0.0</version>
+    <title>SilkyNvg.Rendering.Vulkan</title>
+    <authors>Matija Brown</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <projectUrl>https://github.com/SilkCommunity/SilkyNvg</projectUrl>
+    <description>A fully functioning implementation of the SilkyNvg renderer for Vulkan.</description>
+    <releaseNotes>Re-wrote the package completely and now works very well.</releaseNotes>
+
+    <dependencies>
+      <dependency id="Silk.NET.Maths" version="2.8.0"/>
+      <dependency id="Silk.NET.Vulkan" version="2.8.0"/>
+      <dependency id="SilkyNvg" version="1.0.2"/>
+    </dependencies>
+  </metadata>
+</package>

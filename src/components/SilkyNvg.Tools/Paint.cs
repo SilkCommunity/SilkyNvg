@@ -198,7 +198,6 @@ namespace SilkyNvg
             => RadialGradient(new Vector2D<float>(cx, cy), inr, outr, icol, ocol);
 
         /// <summary>
-        /// <inheritdoc cref="Paint"/><br/>
         /// Creates and returns an image pattern.
         /// The gradient is transformed by the current transform when it is passed to Nvg.FillPaint() or Nvg.StrokePaint().
         /// </summary>
@@ -218,7 +217,6 @@ namespace SilkyNvg
         }
 
         /// <summary>
-        /// <inheritdoc cref="NvgImagePaint"/><br/>
         /// Creates and returns an image pattern.
         /// The gradient is transformed by the current transform when it is passed to Nvg.FillPaint() or Nvg.StrokePaint().
         /// </summary>
@@ -230,7 +228,6 @@ namespace SilkyNvg
             => ImagePattern(new Rectangle<float>(origin, size), angle, image, alpha);
 
         /// <summary>
-        /// <inheritdoc cref="NvgImagePaint"/><br/>
         /// Creates and returns an image pattern.
         /// The gradient is transformed by the current transform when it is passed to Nvg.FillPaint() or Nvg.StrokePaint().
         /// </summary>

@@ -11,6 +11,7 @@ It has some issues and uses poor code style but has the basic functionallity.</D
     <RepositoryType>git</RepositoryType>
     <PackageTags>SilkyNvg SilkyNvgRendering SilkyNvgVulkan UI Graphics Silky SimpleUI</PackageTags>
     <PackageReleaseNotes>This implementation is pretty bad and a re-write is to be expected in the near future.</PackageReleaseNotes>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
