@@ -101,13 +101,13 @@ namespace SilkyNvg.Core.Fonts
                             _fontImages[j++] = _fontImages[i];
                         }
                     }
-                    _fontImages[j++] = _fontImages[0];
-                    _fontImages[0] = fontImage;
-                    _fontImageIdx = 0;
-                    for (i = j; i < MAX_FONTIMAGES; i++)
-                    {
-                        _fontImages[i] = 0;
-                    }
+                }
+                _fontImages[j++] = _fontImages[0];
+                _fontImages[0] = fontImage;
+                _fontImageIdx = 0;
+                for (i = j; i < MAX_FONTIMAGES; i++)
+                {
+                    _fontImages[i] = 0;
                 }
             }
         }
@@ -124,7 +124,7 @@ namespace SilkyNvg.Core.Fonts
 
             if (_fontImages[_fontImageIdx + 1] != 0)
             {
-                _nvg.renderer.GetTextureSize(_fontImages[_fontImageIdx], out iSize);
+                _nvg.renderer.GetTextureSize(_fontImages[_fontImageIdx + 1], out iSize);
             }
             else
             {

@@ -6,8 +6,6 @@ using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.KHR;
 using Silk.NET.Windowing;
 using SilkyNvg;
-using SilkyNvg.Graphics;
-using SilkyNvg.Paths;
 using SilkyNvg.Rendering.Vulkan;
 using System;
 using System.Diagnostics;
@@ -468,8 +466,8 @@ namespace Vulkan_Example
 
             demo.Render(mx, my, wSize.X, wSize.Y, (float)t, blowup);
 
-            frameGraph.Render(5.0f, 5.0f, nvg);
-            cpuGraph.Render(5.0f + 200.0f + 5.0f, 5.0f, nvg);
+            //frameGraph.Render(5.0f, 5.0f, nvg);
+            //cpuGraph.Render(5.0f + 200.0f + 5.0f, 5.0f, nvg);
 
             nvg.EndFrame(cmd);
 

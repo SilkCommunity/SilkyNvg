@@ -4,8 +4,6 @@ using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using SilkyNvg;
-using SilkyNvg.Graphics;
-using SilkyNvg.Paths;
 using SilkyNvg.Rendering.OpenGL;
 using StbImageWriteSharp;
 using System;

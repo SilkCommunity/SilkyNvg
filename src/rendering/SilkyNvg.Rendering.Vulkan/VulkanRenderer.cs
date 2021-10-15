@@ -4,6 +4,7 @@ using SilkyNvg.Blending;
 using SilkyNvg.Images;
 using SilkyNvg.Rendering.Vulkan.Calls;
 using SilkyNvg.Rendering.Vulkan.Shaders;
+using SilkyNvg.Rendering.Vulkan.Textures;
 using System;
 using System.Collections.Generic;
 
@@ -39,6 +40,10 @@ namespace SilkyNvg.Rendering.Vulkan
 
         internal bool TriangleListFill => _flags.HasFlag(CreateFlags.TriangleListFill);
 
+        internal TextureManager TextureManager { get; }
+
+        internal int DummyTex { get; private set; }
+
         public uint CurrentFrameIndex { private get; set; }
 
         public CommandBuffer CurrentCommandBuffer { private get; set; }
@@ -61,6 +66,8 @@ namespace SilkyNvg.Rendering.Vulkan
             _requireredDescriptorSetCount = 0;
 
             VulkanRenderExtensionMethodContainer.VulkanRenderer = this;
+
+            TextureManager = new TextureManager(this);
         }
 
         internal void AssertVulkan(Result result)
@@ -130,21 +137,22 @@ namespace SilkyNvg.Rendering.Vulkan
 
             InitializeImageTransition();
 
-            _ = CreateTexture(Texture.Alpha, new Vector2D<uint>(1, 1), 0, null);
+            DummyTex = CreateTexture(Texture.Alpha, new Vector2D<uint>(1, 1), 0, null);
 
             return true;
         }
 
         public int CreateTexture(Texture type, Vector2D<uint> size, ImageFlags imageFlags, ReadOnlySpan<byte> data)
         {
-            Textures.Texture texture = new(size, imageFlags, type, data, this);
-            return texture.Id;
+            ref var tex = ref TextureManager.AllocTexture();
+            tex.Load(size, imageFlags, type, data);
+            return tex.Id;
         }
 
         public bool UpdateTexture(int image, Rectangle<uint> bounds, ReadOnlySpan<byte> data)
         {
-            Textures.Texture tex = Textures.Texture.FindTexture(image);
-            if (tex == null)
+            ref var tex = ref TextureManager.FindTexture(image);
+            if (tex.Id == 0)
             {
                 return false;
             }
@@ -154,8 +162,8 @@ namespace SilkyNvg.Rendering.Vulkan
 
         public bool GetTextureSize(int image, out Vector2D<uint> size)
         {
-            Textures.Texture tex = Textures.Texture.FindTexture(image);
-            if (tex == null)
+            ref var tex = ref TextureManager.FindTexture(image);
+            if (tex.Id == 0)
             {
                 size = default;
                 return false;
@@ -166,13 +174,7 @@ namespace SilkyNvg.Rendering.Vulkan
 
         public bool DeleteTexture(int image)
         {
-            Textures.Texture tex = Textures.Texture.FindTexture(image);
-            if (tex == null)
-            {
-                return false;
-            }
-            tex.Dispose();
-            return true;
+            return TextureManager.DeleteTexture(image);
         }
 
         public void Viewport(Vector2D<float> size, float _)
@@ -268,7 +270,7 @@ namespace SilkyNvg.Rendering.Vulkan
                 offset += path.Stroke.Count;
             }
 
-            FragUniforms uniforms = new(paint, scissor, fringe, fringe, -1.0f);
+            FragUniforms uniforms = new(paint, scissor, fringe, fringe, -1.0f, this);
             Call call;
             if ((paths.Count == 1) && paths[0].Convex) // Convex
             {
@@ -314,13 +316,13 @@ namespace SilkyNvg.Rendering.Vulkan
                 offset += paths[i].Stroke.Count;
             }
 
-            FragUniforms uniforms = new(paint, scissor, strokeWidth, fringe, -1.0f);
+            FragUniforms uniforms = new(paint, scissor, strokeWidth, fringe, -1.0f, this);
             Call call;
             if (StencilStrokes)
             {
                 _requireredDescriptorSetCount += 2;
 
-                FragUniforms stencilUniforms = new(paint, scissor, strokeWidth, fringe, 1.0f - 0.5f / 255.0f);
+                FragUniforms stencilUniforms = new(paint, scissor, strokeWidth, fringe, 1.0f - 0.5f / 255.0f, this);
                 ulong uniformOffset = Shader.UniformManager.AddUniform(uniforms);
                 _ = Shader.UniformManager.AddUniform(stencilUniforms);
 
@@ -343,7 +345,7 @@ namespace SilkyNvg.Rendering.Vulkan
 
             _requireredDescriptorSetCount++;
 
-            FragUniforms uniforms = new(paint, scissor, fringe);
+            FragUniforms uniforms = new(paint, scissor, fringe, this);
             ulong uniformOffset = Shader.UniformManager.AddUniform(uniforms);
             Call call = new TrianglesCall(paint.Image, compositeOperation, offset, (uint)vertices.Count, uniformOffset, this);
             _callQueue.Add(call);
@@ -360,7 +362,7 @@ namespace SilkyNvg.Rendering.Vulkan
 
             Pipelines.Pipeline.DestroyAll();
 
-            Textures.Texture.DeleteAll();
+            TextureManager.Dispose();
             Vk.DestroyCommandPool(Params.Device, ImageTransitionPool, (AllocationCallbacks*)Params.AllocationCallbacks);
 
             _callQueue.Clear();

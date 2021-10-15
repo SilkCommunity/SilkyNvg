@@ -29,7 +29,7 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
             _type = (int)type;
         }
 
-        public FragUniforms(Paint paint, Scissor scissor, float width, float fringe, float strokeThr)
+        public FragUniforms(Paint paint, Scissor scissor, float width, float fringe, float strokeThr, VulkanRenderer renderer)
         {
             Matrix3X2<float> invtransform;
 
@@ -59,38 +59,46 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
 
             if (paint.Image != 0)
             {
-                Textures.Texture tex = Textures.Texture.FindTexture(paint.Image);
-                if (tex == null)
+                ref var tex = ref renderer.TextureManager.FindTexture(paint.Image);
+                if (tex.Id == 0)
                 {
-                    tex = Textures.Texture.FindTexture(0);
-                }
-                if (tex.HasFlag(ImageFlags.FlipY))
-                {
-                    Matrix3X2<float> m1, m2;
-                    m1 = Matrix3X2.CreateTranslation(new Vector2D<float>(0.0f, _extent.Y * 0.5f));
-                    m1 = Transforms.NvgTransforms.Multiply(m1, paint.Transform);
-                    m2 = Matrix3X2.CreateScale(new Vector2D<float>(1.0f, -1.0f));
-                    m2 = Transforms.NvgTransforms.Multiply(m2, m1);
-                    m1 = Matrix3X2.CreateTranslation(new Vector2D<float>(0.0f, -_extent.Y * 0.5f));
-                    m1 = Transforms.NvgTransforms.Multiply(m1, m2);
-                    _ = Matrix3X2.Invert(m1, out invtransform);
-                }
-                else
-                {
+                    _type = (int)ShaderType.Fillgrad;
+                    _radius = paint.Radius;
+                    _feather = paint.Feather;
+                    _texType = 0;
+
                     _ = Matrix3X2.Invert(paint.Transform, out invtransform);
                 }
-                _type = (int)ShaderType.FillImg;
-
-                if (tex.TextureType == Texture.Rgba)
-                {
-                    _texType = tex.HasFlag(ImageFlags.Premultiplied) ? 0 : 1;
-                }
                 else
                 {
-                    _texType = 2;
-                }
+                    if (tex.HasFlag(ImageFlags.FlipY))
+                    {
+                        Matrix3X2<float> m1, m2;
+                        m1 = Matrix3X2.CreateTranslation(new Vector2D<float>(0.0f, _extent.Y * 0.5f));
+                        m1 = Transforms.NvgTransforms.Multiply(m1, paint.Transform);
+                        m2 = Matrix3X2.CreateScale(new Vector2D<float>(1.0f, -1.0f));
+                        m2 = Transforms.NvgTransforms.Multiply(m2, m1);
+                        m1 = Matrix3X2.CreateTranslation(new Vector2D<float>(0.0f, -_extent.Y * 0.5f));
+                        m1 = Transforms.NvgTransforms.Multiply(m1, m2);
+                        _ = Matrix3X2.Invert(m1, out invtransform);
+                    }
+                    else
+                    {
+                        _ = Matrix3X2.Invert(paint.Transform, out invtransform);
+                    }
+                    _type = (int)ShaderType.FillImg;
 
-                _radius = _feather = 0.0f;
+                    if (tex.TextureType == Texture.Rgba)
+                    {
+                        _texType = tex.HasFlag(ImageFlags.Premultiplied) ? 0 : 1;
+                    }
+                    else
+                    {
+                        _texType = 2;
+                    }
+
+                    _radius = _feather = 0.0f;
+                }
             }
             else
             {
@@ -105,8 +113,8 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
             _paintMat = new Matrix3X4<float>(invtransform);
         }
 
-        public FragUniforms(Paint paint, Scissor scissor, float fringe)
-            : this(paint, scissor, 1.0f, fringe, -1.0f)
+        public FragUniforms(Paint paint, Scissor scissor, float fringe, VulkanRenderer renderer)
+            : this(paint, scissor, 1.0f, fringe, -1.0f, renderer)
         {
             _type = (int)ShaderType.Img;
         }

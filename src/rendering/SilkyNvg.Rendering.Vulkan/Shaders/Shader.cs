@@ -148,7 +148,13 @@ namespace SilkyNvg.Rendering.Vulkan.Shaders
             DescriptorBufferInfo fragmentUniformBufferInfo = frame.FragmentUniformBuffer.BufferInfo;
             fragmentUniformBufferInfo.Offset = uniformOffset;
             fragmentUniformBufferInfo.Range = (uint)Marshal.SizeOf<FragUniforms>();
-            DescriptorImageInfo fragmentImageInfo = Textures.Texture.FindTexture(image).ImageInfo;
+
+            int id = _renderer.DummyTex;
+            if (image != 0)
+            {
+                id = image;
+            }
+            DescriptorImageInfo fragmentImageInfo = _renderer.TextureManager.FindTexture(id).ImageInfo;
 
             Span<WriteDescriptorSet> descriptorWrites = stackalloc WriteDescriptorSet[]
             {

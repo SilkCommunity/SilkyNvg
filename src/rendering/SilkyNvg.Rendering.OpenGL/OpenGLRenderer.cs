@@ -5,6 +5,7 @@ using SilkyNvg.Images;
 using SilkyNvg.Rendering.OpenGL.Blending;
 using SilkyNvg.Rendering.OpenGL.Calls;
 using SilkyNvg.Rendering.OpenGL.Shaders;
+using SilkyNvg.Rendering.OpenGL.Textures;
 using SilkyNvg.Rendering.OpenGL.Utils;
 using System;
 using System.Collections.Generic;
@@ -18,7 +19,6 @@ namespace SilkyNvg.Rendering.OpenGL
         private readonly CreateFlags _flags;
         private readonly VertexCollection _vertexCollection;
         private readonly CallQueue _callQueue;
-
         private VAO _vao;
 
         private Vector2D<float> _size;
@@ -33,6 +33,10 @@ namespace SilkyNvg.Rendering.OpenGL
 
         internal Shader Shader { get; private set; }
 
+        internal int DummyTex { get; private set; }
+
+        internal TextureManager TextureManager { get; }
+
         public bool EdgeAntiAlias => _flags.HasFlag(CreateFlags.Antialias);
 
         public OpenGLRenderer(CreateFlags flags, GL gl)
@@ -42,6 +46,7 @@ namespace SilkyNvg.Rendering.OpenGL
 
             _vertexCollection = new VertexCollection();
             _callQueue = new CallQueue();
+            TextureManager = new TextureManager(this);
         }
 
         internal void StencilMask(uint mask)
@@ -85,7 +90,7 @@ namespace SilkyNvg.Rendering.OpenGL
         {
             CheckError("init");
 
-            Shader = new Shader("SilkyNvg-OpenGL-Shader", EdgeAntiAlias, Gl);
+            Shader = new Shader("SilkyNvg-OpenGL-Shader", EdgeAntiAlias, this);
             if (!Shader.Status)
             {
                 return false;
@@ -102,7 +107,7 @@ namespace SilkyNvg.Rendering.OpenGL
             Shader.BindUniformBlock();
 
             // Dummy tex will always be at index 0.
-            _ = CreateTexture(Texture.Alpha, new Vector2D<uint>(1, 1), 0, null);
+            DummyTex = CreateTexture(Texture.Alpha, new Vector2D<uint>(1, 1), 0, null);
 
             CheckError("create done!");
 
@@ -113,28 +118,21 @@ namespace SilkyNvg.Rendering.OpenGL
 
         public int CreateTexture(Texture type, Vector2D<uint> size, ImageFlags imageFlags, ReadOnlySpan<byte> data)
         {
-            Textures.Texture texture = new(size, imageFlags, type, data, this);
+            ref var tex = ref TextureManager.AllocTexture();
+            tex.Load(size, imageFlags, type, data);
             CheckError("creating texture.");
-
-            return texture.Id;
+            return tex.Id;
         }
 
         public bool DeleteTexture(int image)
         {
-            Textures.Texture tex = Textures.Texture.FindTexture(image);
-            if (tex == null)
-            {
-                return false;
-            }
-            tex.Dispose();
-            return true;
+            return TextureManager.DeleteTexture(image);
         }
 
         public bool UpdateTexture(int image, Rectangle<uint> bounds, ReadOnlySpan<byte> data)
         {
-            Textures.Texture tex = Textures.Texture.FindTexture(image);
-
-            if (tex == null)
+            ref var tex = ref TextureManager.FindTexture(image);
+            if (tex.Id == 0)
             {
                 return false;
             }
@@ -145,8 +143,8 @@ namespace SilkyNvg.Rendering.OpenGL
 
         public bool GetTextureSize(int image, out Vector2D<uint> size)
         {
-            Textures.Texture tex = Textures.Texture.FindTexture(image);
-            if (tex == null)
+            ref var tex = ref TextureManager.FindTexture(image);
+            if (tex.Id == 0)
             {
                 size = default;
                 return false;
@@ -240,7 +238,7 @@ namespace SilkyNvg.Rendering.OpenGL
                 offset += path.Stroke.Count;
             }
 
-            FragUniforms uniforms = new(paint, scissor, fringe, fringe, -1.0f);
+            FragUniforms uniforms = new(paint, scissor, fringe, fringe, -1.0f, this);
             Call call;
             if ((paths.Count == 1) && paths[0].Convex) // Convex
             {
@@ -282,11 +280,11 @@ namespace SilkyNvg.Rendering.OpenGL
                 offset += paths[i].Stroke.Count;
             }
 
-            FragUniforms uniforms = new(paint, scissor, strokeWidth, fringe, -1.0f);
+            FragUniforms uniforms = new(paint, scissor, strokeWidth, fringe, -1.0f, this);
             Call call;
             if (StencilStrokes)
             {
-                FragUniforms stencilUniforms = new(paint, scissor, strokeWidth, fringe, 1.0f - 0.5f / 255.0f);
+                FragUniforms stencilUniforms = new(paint, scissor, strokeWidth, fringe, 1.0f - 0.5f / 255.0f, this);
                 int uniformOffset = Shader.UniformManager.AddUniform(uniforms);
                 _ = Shader.UniformManager.AddUniform(stencilUniforms);
 
@@ -305,7 +303,7 @@ namespace SilkyNvg.Rendering.OpenGL
             int offset = _vertexCollection.CurrentsOffset;
             _vertexCollection.AddVertices(vertices);
 
-            FragUniforms uniforms = new(paint, scissor, fringe);
+            FragUniforms uniforms = new(paint, scissor, fringe, this);
             int uniformOffset = Shader.UniformManager.AddUniform(uniforms);
             Call call = new TrianglesCall(paint.Image, new Blend(compositeOperation, this), offset, (uint)vertices.Count, uniformOffset, this);
             _callQueue.Add(call);
@@ -317,7 +315,7 @@ namespace SilkyNvg.Rendering.OpenGL
 
             _vao.Dispose();
 
-            Textures.Texture.DeleteAll();
+            TextureManager.Dispose();
 
             _callQueue.Clear();
             _vertexCollection.Clear();

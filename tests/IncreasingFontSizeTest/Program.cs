@@ -45,7 +45,7 @@ namespace OpenGL_Example
         private static void DrawFontIncreasing(string text, float x, float y, float h, float delta)
         {
             nvg.FontSize(fontSize);
-            fontSize += 0.5f;
+            fontSize += 0.001f;
 
             nvg.FontFace("Roboto");
             nvg.FillColour(nvg.Rgba(255, 255, 255, 128));

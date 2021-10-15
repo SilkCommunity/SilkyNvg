@@ -3,36 +3,33 @@ using Silk.NET.Vulkan;
 using SilkyNvg.Images;
 using SilkyNvg.Rendering.Vulkan.Utils;
 using System;
-using System.Collections.Generic;
 
 namespace SilkyNvg.Rendering.Vulkan.Textures
 {
-    internal class Texture : IDisposable
+    internal struct Texture : IDisposable
     {
 
-        private static readonly IList<Texture> _textures = new List<Texture>();
-
-        public static Texture DummyTex => _textures[0];
-
-        private readonly Image _image;
-        private readonly ImageView _imageView;
-        private readonly Sampler _sampler;
-
-        private readonly DeviceMemory _memory;
-
-        private readonly Format _format;
-        private readonly uint _mipLevelCount;
-        private readonly Rendering.Texture _type;
-
-        private readonly ImageFlags _flags;
+        private static int _idCounter = 0;
 
         private readonly VulkanRenderer _renderer;
 
-        public int Id { get; }
+        private Image _image;
+        private ImageView _imageView;
+        private Sampler _sampler;
 
-        public Vector2D<uint> Size { get; }
+        private DeviceMemory _memory;
 
-        public Rendering.Texture TextureType { get; }
+        private Format _format;
+        private uint _mipLevelCount;
+        private Rendering.Texture _type;
+
+        private ImageFlags _flags;
+
+        public int Id { get; private set; }
+
+        public Vector2D<uint> Size { get; private set; }
+
+        public Rendering.Texture TextureType { get; private set; }
 
         public DescriptorImageInfo ImageInfo => new()
         {
@@ -41,30 +38,10 @@ namespace SilkyNvg.Rendering.Vulkan.Textures
             Sampler = _sampler
         };
 
-        public unsafe Texture(Vector2D<uint> size, ImageFlags flags, Rendering.Texture type, ReadOnlySpan<byte> data, VulkanRenderer renderer)
+        public unsafe Texture(VulkanRenderer renderer)
+            : this()
         {
             _renderer = renderer;
-
-            _format = (type == Rendering.Texture.Rgba) ? Format.R8G8B8A8Unorm : Format.R8Unorm;
-
-            Id = _textures.Count;
-            Size = size;
-            _type = type;
-            _mipLevelCount = CalculateMipLevelCount();
-            _image = CreateImage(type);
-            TextureType = type;
-            _flags = flags;
-
-            _memory = BindImageMemory();
-            if ((data == null) || (data.Length == 0))
-            {
-                data = FakeData();
-            }
-            Upload(data);
-            _imageView = CreateImageView();
-            _sampler = CreateSampler();
-
-            _textures.Add(this);
         }
 
         private uint CalculateMipLevelCount()
@@ -401,6 +378,28 @@ namespace SilkyNvg.Rendering.Vulkan.Textures
             return sampler;
         }
 
+        public void Load(Vector2D<uint> size, ImageFlags flags, Rendering.Texture type, ReadOnlySpan<byte> data)
+        {
+            _format = (type == Rendering.Texture.Rgba) ? Format.R8G8B8A8Unorm : Format.R8Unorm;
+
+            Id = ++_idCounter;
+            Size = size;
+            _type = type;
+            _mipLevelCount = CalculateMipLevelCount();
+            _image = CreateImage(type);
+            TextureType = type;
+            _flags = flags;
+
+            _memory = BindImageMemory();
+            if ((data == null) || (data.Length == 0))
+            {
+                data = FakeData();
+            }
+            Upload(data);
+            _imageView = CreateImageView();
+            _sampler = CreateSampler();
+        }
+
         public unsafe void Mipmaps()
         {
             PhysicalDevice physicalDevice = _renderer.Params.PhysicalDevice;
@@ -573,30 +572,21 @@ namespace SilkyNvg.Rendering.Vulkan.Textures
 
         public unsafe void Dispose()
         {
+            if (Id == 0)
+            {
+                return;
+            }
+
             Device device = _renderer.Params.Device;
             AllocationCallbacks* allocator = (AllocationCallbacks*)_renderer.Params.AllocationCallbacks.ToPointer();
             Vk vk = _renderer.Vk;
+
+            _renderer.AssertVulkan(vk.DeviceWaitIdle(device));
 
             vk.DestroySampler(device, _sampler, allocator);
             vk.DestroyImageView(device, _imageView, allocator);
             vk.FreeMemory(device, _memory, allocator);
             vk.DestroyImage(device, _image, allocator);
-
-            _ = _textures.Remove(this);
-        }
-
-        public static Texture FindTexture(int image)
-        {
-            return (image >= _textures.Count) || (image < 0) ? null : _textures[image];
-        }
-
-        public static void DeleteAll()
-        {
-            int i = _textures.Count - 1;
-            while (_textures.Count > 0)
-            {
-                _textures[i--].Dispose();
-            }
         }
 
     }

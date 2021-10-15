@@ -14,6 +14,7 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
         private readonly uint _vertexShaderID, _fragmentShaderID;
 
         private readonly string _name;
+        private readonly OpenGLRenderer _renderer;
         private readonly GL _gl;
 
         private readonly IDictionary<UniformLoc, int> _loc = new Dictionary<UniformLoc, int>();
@@ -39,10 +40,10 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
             Console.Error.WriteLine("Programme: " + _name + Environment.NewLine + "Error: " + infoLog);
         }
 
-        public Shader(string name, bool edgeAA, GL gl)
+        public Shader(string name, bool edgeAA, OpenGLRenderer renderer)
         {
-            _gl = gl;
-            _name = name;
+            _renderer = renderer;
+            _gl = _renderer.Gl;
 
             _programmeID = _gl.CreateProgram();
             _vertexShaderID = _gl.CreateShader(Silk.NET.OpenGL.ShaderType.VertexShader);
@@ -130,12 +131,16 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
         {
             _gl.BindBufferRange(BufferTargetARB.UniformBuffer, (uint)UniformBindings.FragBinding, _fragBuffer, uniformOffset, (nuint)Marshal.SizeOf(typeof(FragUniforms)));
 
-            Textures.Texture tex = null;
+            int id = _renderer.DummyTex;
             if (image != 0)
             {
-                tex = Textures.Texture.FindTexture(image);
+                id = image;
             }
-            tex?.Bind();
+            ref var tex = ref _renderer.TextureManager.FindTexture(id);
+            if (tex.Id != 0)
+            {
+                tex.Bind();
+            }
         }
 
         public void Start()

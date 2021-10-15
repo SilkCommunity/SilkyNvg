@@ -69,6 +69,8 @@ namespace SilkyNvg
         /// </summary>
         public void BeginFrame(Vector2D<float> windowSize, float devicePixelRatio)
         {
+            fontManager.Pack();
+
             stateStack.Clear();
             Save();
             Reset();
@@ -97,7 +99,6 @@ namespace SilkyNvg
         public void EndFrame()
         {
             renderer.Flush();
-            fontManager.Pack();
         }
         #endregion
 

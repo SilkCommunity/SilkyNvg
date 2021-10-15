@@ -2,41 +2,43 @@
 using Silk.NET.OpenGL;
 using SilkyNvg.Images;
 using System;
-using System.Collections.Generic;
 
 namespace SilkyNvg.Rendering.OpenGL.Textures
 {
-    internal class Texture : IDisposable
+    internal struct Texture : IDisposable
     {
 
-        private static readonly IList<Texture> textures = new List<Texture>();
-
-        public static Texture DummyTex => textures[0];
-
-        private readonly uint _textureID;
-        private readonly ImageFlags _flags;
+        private static int _idCounter = 0;
 
         private readonly OpenGLRenderer _renderer;
         private readonly GL _gl;
 
-        public int Id { get; }
+        private uint _textureID;
+        private ImageFlags _flags;
 
-        public Vector2D<uint> Size { get; }
+        public int Id { get; private set; }
 
-        public Rendering.Texture TextureType { get; }
+        public Vector2D<uint> Size { get; private set; }
 
-        public unsafe Texture(Vector2D<uint> size, ImageFlags flags, Rendering.Texture type, ReadOnlySpan<byte> data, OpenGLRenderer renderer)
+        public Rendering.Texture TextureType { get; private set; }
+
+        public unsafe Texture(OpenGLRenderer renderer)
+            : this()
         {
             _renderer = renderer;
             _gl = _renderer.Gl;
+        }
 
-            Id = textures.Count;
+        public void Load(Vector2D<uint> size, ImageFlags flags, Rendering.Texture type, ReadOnlySpan<byte> data)
+        {
+            Id = ++_idCounter;
             _textureID = _gl.GenTexture();
             Size = size;
             TextureType = type;
             _flags = flags;
 
             Bind();
+            _renderer.CheckError("tex paint tex");
             SetPixelStore();
             Load(data);
             MinFilter();
@@ -48,8 +50,6 @@ namespace SilkyNvg.Rendering.OpenGL.Textures
 
             _renderer.CheckError("create tex");
             Unbind();
-
-            textures.Add(this);
         }
 
         private void SetPixelStore()
@@ -159,7 +159,6 @@ namespace SilkyNvg.Rendering.OpenGL.Textures
                 _renderer.Filter.BoundTexture = _textureID;
                 _gl.BindTexture(TextureTarget.Texture2D, _textureID);
             }
-            _renderer.CheckError("tex paint tex");
         }
 
         public void Unbind()
@@ -204,21 +203,6 @@ namespace SilkyNvg.Rendering.OpenGL.Textures
             if (_textureID != 0)
             {
                 _gl.DeleteTexture(_textureID);
-            }
-            textures.Remove(this);
-        }
-
-        public static Texture FindTexture(int image)
-        {
-            return (image >= textures.Count) || (image < 0) ? null : textures[image];
-        }
-
-        public static void DeleteAll()
-        {
-            int i = textures.Count - 1;
-            while (textures.Count > 0)
-            {
-                textures[i--].Dispose();
             }
         }
 

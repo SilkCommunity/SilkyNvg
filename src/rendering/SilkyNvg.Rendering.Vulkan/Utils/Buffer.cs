@@ -42,7 +42,7 @@ namespace SilkyNvg.Rendering.Vulkan.Utils
             AllocationCallbacks* allocator = (AllocationCallbacks*)_renderer.Params.AllocationCallbacks.ToPointer();
             Vk vk = _renderer.Vk;
 
-            if (_buffer.Handle == 0)
+            if (_buffer.Handle != 0)
             {
                 Dispose();
             }
