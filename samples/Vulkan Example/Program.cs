@@ -466,8 +466,8 @@ namespace Vulkan_Example
 
             demo.Render(mx, my, wSize.X, wSize.Y, (float)t, blowup);
 
-            //frameGraph.Render(5.0f, 5.0f, nvg);
-            //cpuGraph.Render(5.0f + 200.0f + 5.0f, 5.0f, nvg);
+            frameGraph.Render(5.0f, 5.0f, nvg);
+            cpuGraph.Render(5.0f + 200.0f + 5.0f, 5.0f, nvg);
 
             nvg.EndFrame(cmd);
 
