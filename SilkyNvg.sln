@@ -51,7 +51,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IncreasingFontSizeTest", "t
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg.Rendering.Veldrid", "src\rendering\SilkyNvg.Rendering.Veldrid\SilkyNvg.Rendering.Veldrid.csproj", "{284B2ACC-BEE2-45C8-AAE3-85A32D570FBF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Veldrid Demo", "samples\Veldrid Example\Veldrid Demo.csproj", "{FCBB77EE-C989-461F-AA69-DB249AB9A8A4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Veldrid Example", "samples\Veldrid Example\Veldrid Example.csproj", "{FCBB77EE-C989-461F-AA69-DB249AB9A8A4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

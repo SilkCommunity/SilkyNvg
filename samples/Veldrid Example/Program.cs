@@ -118,7 +118,8 @@ public class Program
 
     private static void LoadVeldrid()
     {
-        device = window.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.D32_Float_S8_UInt, false, ResourceBindingModel.Default, true, true), GraphicsBackend.Vulkan);
+        // Create a device with the "default" Graphics API (Vulkan for linux, DirectX11 for Windows, Metal for MacOS.)
+        device = window.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.D32_Float_S8_UInt, false, ResourceBindingModel.Improved, true, true));
         list = device.ResourceFactory.CreateCommandList();
     }
 
