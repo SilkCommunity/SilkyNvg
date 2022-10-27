@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <TargetFramework>net5.0</TargetFramework>
+        <Nullable>disable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <RootNamespace>SilkyNvg.Rendering.Vulkan</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Content Include="fonts\**">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+    <ItemGroup>
+        <Content Include="images\**">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="Silk.NET.Maths" Version="2.16.0" />
+      <PackageReference Include="Veldrid" Version="4.9.0-beta2" />
+      <PackageReference Include="Veldrid.SPIRV" Version="1.0.15" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\..\SilkyNvg\SilkyNvg.csproj" />
+    </ItemGroup>
+
+</Project>

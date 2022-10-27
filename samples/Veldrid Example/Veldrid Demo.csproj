@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Veldrid_Example</RootNamespace>
+    <Nullable>disable</Nullable>
+    <LangVersion>9</LangVersion>
+    <AssemblyName>Veldrid Example</AssemblyName>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Silk.NET.Input" Version="2.15.0" />
+    <PackageReference Include="Silk.NET.Input.Common" Version="2.16.0" />
+    <PackageReference Include="Silk.NET.Windowing" Version="2.16.0" />
+    <PackageReference Include="Silk.NET.Windowing.Common" Version="2.16.0" />
+    <PackageReference Include="Silk.NET.Windowing.Extensions.Veldrid" Version="2.16.0" />
+    <PackageReference Include="SilkyNvg" Version="1.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="fonts\**">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="images\**">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\rendering\SilkyNvg.Rendering.Veldrid\SilkyNvg.Rendering.Veldrid.csproj" />
+    <ProjectReference Include="..\NvgExample\NvgExample.csproj" />
+  </ItemGroup>
+
+</Project>
