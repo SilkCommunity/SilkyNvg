@@ -146,48 +146,63 @@ namespace SilkyNvg.Rendering.Vulkan
             AdvanceFrame();
         }
 
-        public void Flush()
+    public void Flush()
+    {
+        if (_frame == null)
         {
-            if (_frame == null)
-            {
-                return;
-            }
-            
-            CurrentCommandBuffer.SetFramebuffer(_frame.Framebuffer);
-            Viewport viewport = new Viewport(0, 0, _viewSize.X, _viewSize.Y, 0, 1);
-            CurrentCommandBuffer.SetViewport(0, viewport);
-            CurrentCommandBuffer.SetScissorRect(0, 0, 0, (uint)_viewSize.X, (uint)_viewSize.Y);
-            
-            _frame.FragmentUniformBuffer.ModifyBuffer(_frame.UniformAllocator.Uniforms, Device);
-            _frame.VertexBuffer.ModifyBuffer(_vertexCollection.Vertices, Device);
-            
-            VertUniforms vertUniforms = new VertUniforms
-            {
-                ViewSize = _viewSize
-            };
-            
-            _frame.VertexUniformBuffer.ModifyBuffer(vertUniforms);
-            
-            List<DrawCall> calls = _frame.Queue.CreateDrawCalls();
+            return;
+        }
+        
+        CurrentCommandBuffer.SetFramebuffer(_frame.Framebuffer);
+        Viewport viewport = new Viewport(0, 0, _viewSize.X, _viewSize.Y, 0, 1);
+        CurrentCommandBuffer.SetViewport(0, viewport);
+        CurrentCommandBuffer.SetScissorRect(0, 0, 0, (uint)_viewSize.X, (uint)_viewSize.Y);
+        
+        _frame.FragmentUniformBuffer.ModifyBuffer(_frame.UniformAllocator.Uniforms, Device);
+        _frame.VertexBuffer.ModifyBuffer(_vertexCollection.Vertices, Device);
+        
+        VertUniforms vertUniforms = new VertUniforms
+        {
+            ViewSize = _viewSize
+        };
+        
+        _frame.VertexUniformBuffer.ModifyBuffer(vertUniforms);
+        
+        List<DrawCall> calls = _frame.Queue.CreateDrawCalls();
 
-            foreach (DrawCall drawCall in calls)
-            {
+        Pipeline prevPipeline = default;
+        ResourceSet prevSet = default;
 
+        foreach (DrawCall drawCall in calls)
+        {
+            ResourceSet set = _frame.ResourceSetCache.GetResourceSet(drawCall.Set, this);
+            if (drawCall.Pipeline != prevPipeline)
+            {
+                prevPipeline = drawCall.Pipeline;
                 CurrentCommandBuffer.SetPipeline(drawCall.Pipeline);
-                CurrentCommandBuffer.SetGraphicsResourceSet(0, _frame.ResourceSetCache.GetResourceSet(drawCall.Set, this));
+                
                 CurrentCommandBuffer.SetVertexBuffer(0, _frame.VertexBuffer.BufferObject);
                 CurrentCommandBuffer.SetVertexBuffer(1, _frame.FragmentUniformBuffer.BufferObject);
-                CurrentCommandBuffer.Draw(drawCall.Count, 1, drawCall.Offset, drawCall.UniformOffset / (uint)Unsafe.SizeOf<FragUniforms>() );
+
             }
 
-
-            if (Params.AdvanceFrameIndexAutomatically)
+            if (prevSet != set)
             {
-                // Clear frame!
-                AdvanceFrame();   
+                prevSet = _frame.ResourceSetCache.GetResourceSet(drawCall.Set, this);
+                CurrentCommandBuffer.SetGraphicsResourceSet(0, prevSet);
             }
-
+            
+            CurrentCommandBuffer.Draw(drawCall.Count, 1, drawCall.Offset, drawCall.UniformOffset / (uint)Unsafe.SizeOf<FragUniforms>() );
         }
+
+
+        if (Params.AdvanceFrameIndexAutomatically)
+        {
+            // Clear frame!
+            AdvanceFrame();   
+        }
+
+    }
 
         public void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Box2D<float> bounds, IReadOnlyList<Path> paths)
         {

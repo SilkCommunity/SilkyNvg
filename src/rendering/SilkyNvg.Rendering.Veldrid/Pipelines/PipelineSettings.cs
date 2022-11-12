@@ -4,7 +4,7 @@ using SilkyNvg.Blending;
 using Veldrid;
 using BlendFactor = Veldrid.BlendFactor;
 
-namespace SilkyNvg.Rendering.Veldrid.Pipelines
+namespace SilkyNvg.Rendering.Vulkan.Pipelines
 {
     public struct PipelineSettings : IEquatable<PipelineSettings>
 
