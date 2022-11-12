@@ -1,12 +1,18 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using SilkyNvg.Blending;
 using Veldrid;
 using BlendFactor = Veldrid.BlendFactor;
 
-namespace SilkyNvg.Rendering.Vulkan.Pipelines
+namespace SilkyNvg.Rendering.Veldrid.Pipelines
 {
-    public struct PipelineSettings
+    public struct PipelineSettings : IEquatable<PipelineSettings>
+
     {
+
+        ulong PipelineSettingsMask;
+
+
 
         public FaceCullMode CullMode;
         public FrontFace FrontFace;
@@ -14,7 +20,7 @@ namespace SilkyNvg.Rendering.Vulkan.Pipelines
         public bool DepthTestEnabled;
 
         public ColorWriteMask ColourMask;
-        
+
 
         public StencilOperation FrontStencilFailOp;
         public StencilOperation FrontStencilDepthFailOp;
@@ -39,7 +45,7 @@ namespace SilkyNvg.Rendering.Vulkan.Pipelines
         }
 
         public ComparisonKind StencilFunc;
-        
+
         public byte StencilWriteMask;
         public byte StencilRef;
         public byte StencilMask;
@@ -79,7 +85,8 @@ namespace SilkyNvg.Rendering.Vulkan.Pipelines
 
         private static PipelineSettings Default()
         {
-            return new()
+
+            var pipeline = new PipelineSettings
             {
                 CullMode = FaceCullMode.Back,
                 FrontFace = FrontFace.CounterClockwise,
@@ -93,6 +100,9 @@ namespace SilkyNvg.Rendering.Vulkan.Pipelines
                 StencilRef = 0,
                 StencilWriteMask = 0xff,
             };
+            pipeline.RegeneratePipelineMask();
+            return pipeline;
+
         }
 
         public static PipelineSettings ConvexFill(CompositeOperationState compositeOperation)
@@ -101,6 +111,7 @@ namespace SilkyNvg.Rendering.Vulkan.Pipelines
             settings.CompositeOperation = compositeOperation;
             settings.StencilTestEnable = false;
             settings.Topology = PrimitiveTopology.TriangleList;
+            settings.RegeneratePipelineMask();
             return settings;
         }
 
@@ -108,6 +119,7 @@ namespace SilkyNvg.Rendering.Vulkan.Pipelines
         {
             PipelineSettings settings = ConvexFill(compositeOperation);
             settings.Topology = PrimitiveTopology.TriangleStrip;
+            settings.RegeneratePipelineMask();
             return settings;
         }
 
@@ -137,6 +149,7 @@ namespace SilkyNvg.Rendering.Vulkan.Pipelines
 
             settings.CompositeOperation = compositeOperation;
             settings.Topology = PrimitiveTopology.TriangleList;
+            settings.RegeneratePipelineMask();
 
             return settings;
         }
@@ -160,7 +173,29 @@ namespace SilkyNvg.Rendering.Vulkan.Pipelines
             settings.CompositeOperation = compositeOperation;
             settings.Topology = PrimitiveTopology.TriangleStrip;
 
+            settings.RegeneratePipelineMask();
+
             return settings;
+        }
+
+        public void RegeneratePipelineMask()
+        {
+            PipelineSettingsMask = (ulong) BoolToNum(DepthTestEnabled) << 63; // boolean, 1 bit
+            PipelineSettingsMask |= (ulong) BoolToNum(StencilTestEnable) << 62; // boolean, 1 bit
+            PipelineSettingsMask |= (ulong) StencilFunc << 61; // enum range 0-7, three bits 
+            PipelineSettingsMask |= (ulong) CullMode << 58; // enum range 0-2, two bits
+            PipelineSettingsMask |= (ulong) FrontFace << 56; // enum range 0-1, one bit
+            PipelineSettingsMask |= (ulong) Topology << 55; // enum range 0-4, 3 bit
+            PipelineSettingsMask |= (ulong) FrontStencilPassOp << 52; //enum range 0-7 3 bits
+            PipelineSettingsMask |= (ulong) FrontStencilFailOp << 49; //enum range 0-7 3 bits
+            PipelineSettingsMask |= (ulong) FrontStencilDepthFailOp << 45; //enum range 0-7 3 bits
+            PipelineSettingsMask |= (ulong) BackStencilPassOp << 41; //enum range 0-7 3 bits
+            PipelineSettingsMask |= (ulong) BackStencilFailOp << 37; //enum range 0-7 3 bits
+            PipelineSettingsMask |= (ulong) BackStencilDepthFailOp << 33; //enum range 0-7 3 bits
+            PipelineSettingsMask |= (ulong) ColourMask << 29; // enum range 0-15 4 bits
+            PipelineSettingsMask |= (ulong) StencilRef << 28; // byte 0-255 8 bits
+            PipelineSettingsMask |= (ulong) StencilWriteMask << 19; // byte 0-255 8 bits
+            PipelineSettingsMask |= (ulong) StencilMask << 11; // byte 0-255 8 bits
         }
 
         public static PipelineSettings Fill(CompositeOperationState compositeOperation)
@@ -177,6 +212,7 @@ namespace SilkyNvg.Rendering.Vulkan.Pipelines
 
             settings.CompositeOperation = compositeOperation;
             settings.Topology = PrimitiveTopology.TriangleStrip;
+            settings.RegeneratePipelineMask();
 
             return settings;
         }
@@ -187,6 +223,7 @@ namespace SilkyNvg.Rendering.Vulkan.Pipelines
 
             settings.CompositeOperation = compositeOperation;
             settings.Topology = PrimitiveTopology.TriangleStrip;
+            settings.RegeneratePipelineMask();
 
             return settings;
         }
@@ -209,6 +246,7 @@ namespace SilkyNvg.Rendering.Vulkan.Pipelines
 
             settings.CompositeOperation = compositeOperation;
             settings.Topology = PrimitiveTopology.TriangleStrip;
+            settings.RegeneratePipelineMask();
 
             return settings;
         }
@@ -227,6 +265,7 @@ namespace SilkyNvg.Rendering.Vulkan.Pipelines
 
             settings.CompositeOperation = compositeOperation;
             settings.Topology = PrimitiveTopology.TriangleStrip;
+            settings.RegeneratePipelineMask();
 
             return settings;
         }
@@ -247,6 +286,7 @@ namespace SilkyNvg.Rendering.Vulkan.Pipelines
 
             settings.CompositeOperation = compositeOperation;
             settings.Topology = PrimitiveTopology.TriangleStrip;
+            settings.RegeneratePipelineMask();
 
             return settings;
         }
@@ -257,53 +297,33 @@ namespace SilkyNvg.Rendering.Vulkan.Pipelines
 
             settings.CompositeOperation = compositeOperation;
             settings.Topology = PrimitiveTopology.TriangleList;
+            settings.RegeneratePipelineMask();
 
             return settings;
         }
-        
+
         public override int GetHashCode()
         {
-            HashCode hashCode = new HashCode();
-            hashCode.Add((int) CullMode);
-            hashCode.Add((int) FrontFace);
-            hashCode.Add(DepthTestEnabled);
-            hashCode.Add((int) ColourMask);
-            hashCode.Add(StencilWriteMask);
-            hashCode.Add((int) FrontStencilFailOp);
-            hashCode.Add((int) FrontStencilDepthFailOp);
-            hashCode.Add((int) FrontStencilPassOp);
-            hashCode.Add((int) BackStencilFailOp);
-            hashCode.Add((int) BackStencilDepthFailOp);
-            hashCode.Add((int) BackStencilPassOp);
-            hashCode.Add((int) StencilFunc);
-            hashCode.Add(StencilRef);
-            hashCode.Add(StencilMask);
-            hashCode.Add(StencilTestEnable);
-            hashCode.Add((int) Topology);
-            hashCode.Add(CompositeOperation);
-            return hashCode.ToHashCode();
+
+            return (int)(PipelineSettingsMask & (ulong) CompositeOperation.GetHashCode());
         }
 
         public bool Equals(PipelineSettings other)
         {
-            return CullMode == other.CullMode
-                   && FrontFace == other.FrontFace
-                   && DepthTestEnabled == other.DepthTestEnabled
-                   && ColourMask == other.ColourMask
-                   && StencilWriteMask == other.StencilWriteMask
-                   && FrontStencilFailOp == other.FrontStencilFailOp
-                   && FrontStencilDepthFailOp == other.FrontStencilDepthFailOp
-                   && FrontStencilPassOp == other.FrontStencilPassOp
-                   && BackStencilFailOp == other.BackStencilFailOp
-                   && BackStencilDepthFailOp == other.BackStencilDepthFailOp
-                   && BackStencilPassOp == other.BackStencilPassOp
-                   && StencilFunc == other.StencilFunc
-                   && StencilRef == other.StencilRef
-                   && StencilMask == other.StencilMask
-                   && StencilTestEnable == other.StencilTestEnable
-                   && Topology == other.Topology
-                   && CompositeOperation.Equals(other.CompositeOperation);
+
+            if (GetHashCode() == other.GetHashCode())
+            {
+                return PipelineSettingsMask == other.PipelineSettingsMask
+                       && CompositeOperation.Equals(other.CompositeOperation);
+            }
+
+            return false;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static ushort BoolToNum(bool booleanValue)
+        {
+            return (ushort) (booleanValue ? 1 : 0);
+        }
     }
 }
