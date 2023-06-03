@@ -27,8 +27,8 @@ It has some issues and uses poor code style but has the basic functionallity.</D
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Silk.NET.Maths" Version="2.8.0" />
-    <PackageReference Include="Silk.NET.Vulkan" Version="2.8.0" />
+    <PackageReference Include="Silk.NET.Maths" Version="2.17.1" />
+    <PackageReference Include="Silk.NET.Vulkan" Version="2.17.1" />
   </ItemGroup>
 
 </Project>

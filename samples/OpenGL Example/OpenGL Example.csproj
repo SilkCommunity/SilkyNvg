@@ -20,10 +20,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Silk.NET.Windowing" Version="2.8.0" />
-    <PackageReference Include="Silk.NET.Input" Version="2.8.0" />
-    <PackageReference Include="Silk.NET.OpenGL" Version="2.8.0" />
-    <PackageReference Include="StbImageWriteSharp" Version="1.13.5" />
+    <PackageReference Include="Silk.NET.Windowing" Version="2.17.1" />
+    <PackageReference Include="Silk.NET.Input" Version="2.17.1" />
+    <PackageReference Include="Silk.NET.OpenGL" Version="2.17.1" />
+    <PackageReference Include="StbImageWriteSharp" Version="1.16.7" />
   </ItemGroup>
 
 </Project>
