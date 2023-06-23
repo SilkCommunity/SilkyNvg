@@ -22,8 +22,8 @@ namespace SilkyNvg.Rendering.OpenGL.Calls
             renderer.Shader.SetUniforms(uniformOffset, 0);
             renderer.CheckError("fill simple");
 
-            gl.StencilOpSeparate(StencilFaceDirection.Front, StencilOp.Keep, StencilOp.Keep, StencilOp.IncrWrap);
-            gl.StencilOpSeparate(StencilFaceDirection.Back, StencilOp.Keep, StencilOp.Keep, StencilOp.DecrWrap);
+            gl.StencilOpSeparate(TriangleFace.Front, StencilOp.Keep, StencilOp.Keep, StencilOp.IncrWrap);
+            gl.StencilOpSeparate(TriangleFace.Back, StencilOp.Keep, StencilOp.Keep, StencilOp.DecrWrap);
             gl.Disable(EnableCap.CullFace);
             foreach (Path path in paths)
             {

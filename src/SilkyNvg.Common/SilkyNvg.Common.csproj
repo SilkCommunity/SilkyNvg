@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Silk.NET" Version="2.8.0" />
+    <PackageReference Include="Silk.NET" Version="2.17.1" />
   </ItemGroup>
 
 </Project>

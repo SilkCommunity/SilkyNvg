@@ -172,7 +172,7 @@ namespace SilkyNvg.Rendering.OpenGL
                 Shader.Start();
 
                 Gl.Enable(EnableCap.CullFace);
-                Gl.CullFace(CullFaceMode.Back);
+                Gl.CullFace(TriangleFace.Back);
                 Gl.FrontFace(FrontFaceDirection.Ccw);
                 Gl.Enable(EnableCap.Blend);
                 Gl.Disable(EnableCap.DepthTest);
