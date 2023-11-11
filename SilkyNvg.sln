@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30907.101
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32922.545
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{E94958C3-5109-4384-A9CB-E165EC5754CE}"
 EndProject
@@ -47,7 +47,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenGL Example", "samples\O
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vulkan Example", "samples\Vulkan Example\Vulkan Example.csproj", "{B5AB5EB4-C49F-4568-BFE2-917C9F0B0AEC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IncreasingFontSizeTest", "tests\IncreasingFontSizeTest\IncreasingFontSizeTest.csproj", "{C20A47F9-31DB-43EF-8FFA-E45CDE8F917D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IncreasingFontSizeTest", "tests\IncreasingFontSizeTest\IncreasingFontSizeTest.csproj", "{C20A47F9-31DB-43EF-8FFA-E45CDE8F917D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg.Rendering.Veldrid", "src\rendering\SilkyNvg.Rendering.Veldrid\SilkyNvg.Rendering.Veldrid.csproj", "{284B2ACC-BEE2-45C8-AAE3-85A32D570FBF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Veldrid Example", "samples\Veldrid Example\Veldrid Example.csproj", "{FCBB77EE-C989-461F-AA69-DB249AB9A8A4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -127,6 +131,14 @@ Global
 		{C20A47F9-31DB-43EF-8FFA-E45CDE8F917D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C20A47F9-31DB-43EF-8FFA-E45CDE8F917D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C20A47F9-31DB-43EF-8FFA-E45CDE8F917D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{284B2ACC-BEE2-45C8-AAE3-85A32D570FBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{284B2ACC-BEE2-45C8-AAE3-85A32D570FBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{284B2ACC-BEE2-45C8-AAE3-85A32D570FBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{284B2ACC-BEE2-45C8-AAE3-85A32D570FBF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FCBB77EE-C989-461F-AA69-DB249AB9A8A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCBB77EE-C989-461F-AA69-DB249AB9A8A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCBB77EE-C989-461F-AA69-DB249AB9A8A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCBB77EE-C989-461F-AA69-DB249AB9A8A4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -152,6 +164,8 @@ Global
 		{76829E0C-FD9C-4C7E-8AF0-91CE0A1F28C4} = {E94958C3-5109-4384-A9CB-E165EC5754CE}
 		{B5AB5EB4-C49F-4568-BFE2-917C9F0B0AEC} = {E94958C3-5109-4384-A9CB-E165EC5754CE}
 		{C20A47F9-31DB-43EF-8FFA-E45CDE8F917D} = {225A277C-EFE4-47D6-A080-4005F7ED1D4C}
+		{284B2ACC-BEE2-45C8-AAE3-85A32D570FBF} = {8C10A437-CF81-4A46-93A7-E380F60F4F0F}
+		{FCBB77EE-C989-461F-AA69-DB249AB9A8A4} = {E94958C3-5109-4384-A9CB-E165EC5754CE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {08FE0BD8-4253-419D-9FBF-7F9671C9AAC2}

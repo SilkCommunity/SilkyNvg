@@ -352,3 +352,7 @@ MigrationBackup/
 # Vulkan Shaders
 *.spv
 compileShaders.bat
+
+# Rider files
+**/.idea/*
+
