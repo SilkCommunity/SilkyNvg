@@ -679,6 +679,17 @@ namespace NvgExample
             _nvg.Restore();
             _nvg.Restore();
         }
+        
+        private void DrawStylizedLines(float x, float y, float w, float h, float t){
+            _nvg.LineJoin(LineCap.Round);
+            _nvg.LineStyle(LineStyle.Dashed);
+            //_nvg.StrokeColor(vg,nvgRGBAf(0.6f,0.6f,1.0f,1.0f));
+            _nvg.StrokeWidth(5.0f);
+            _nvg.BeginPath();
+            _nvg.Rect(x, y, w, h);
+            _nvg.Stroke();
+            _nvg.LineStyle(LineStyle.Solid);
+        }
 
         private unsafe void DrawLines(float x, float y, float w, float h, float t)
         {
@@ -704,7 +715,7 @@ namespace NvgExample
                 {
                     float fx = x + s * 0.5f + (i * 3 + j) / 9.0f * w + pad;
                     float fy = y - s * 0.5f + pad;
-
+                    
                     _nvg.LineCap(caps[i]);
                     _nvg.LineJoin(joins[j]);
 
@@ -992,6 +1003,7 @@ namespace NvgExample
         public void Render(float mx, float my, float width, float height, float t, bool blowup)
         {
             DrawEyes(width - 250.0f, 50.0f, 150.0f, 100.0f, mx, my, t);
+            DrawStylizedLines(width - 245, 15, 180, 130, t);
             DrawParagraph(width - 450.0f, 50.0f, 150.0f, mx, my);
             DrawGraph(0.0f, height / 2.0f, width, height / 2.0f, t);
             DrawColourwheel(width - 300.0f, height - 300.0f, 250.0f, 250.0f, t);

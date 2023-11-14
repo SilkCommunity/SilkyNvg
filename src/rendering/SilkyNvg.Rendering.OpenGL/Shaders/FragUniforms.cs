@@ -1,8 +1,8 @@
 ﻿using Silk.NET.Maths;
 using SilkyNvg.Images;
-using SilkyNvg.Rendering.OpenGL.Textures;
 using System;
 using System.Runtime.InteropServices;
+using SilkyNvg.Graphics;
 
 namespace SilkyNvg.Rendering.OpenGL.Shaders
 {
@@ -21,6 +21,7 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
         private readonly float _feather;
         private readonly float _strokeMult;
         private readonly float _strokeThr;
+        private readonly int _lineStyle;
         private readonly int _texType;
         private readonly int _type;
 
@@ -30,7 +31,7 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
             _type = (int)type;
         }
 
-        public FragUniforms(Paint paint, Scissor scissor, float width, float fringe, float strokeThr, OpenGLRenderer renderer)
+        public FragUniforms(Paint paint, Scissor scissor, float width, float fringe, LineStyle lineStyle, float strokeThr, OpenGLRenderer renderer)
         {
             Matrix3X2<float> invtransform;
 
@@ -112,10 +113,27 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
             }
 
             _paintMat = new Matrix3X4<float>(invtransform);
+
+            _lineStyle = 0;
+            switch (lineStyle)
+            {
+                case LineStyle.Solid:
+                    _lineStyle = 0;
+                    break;
+                case LineStyle.Dashed:
+                    _lineStyle = 1;
+                    break;
+                case LineStyle.Dotted:
+                    _lineStyle = 2;
+                    break;
+                case LineStyle.Glow:
+                    _lineStyle = 3;
+                    break;
+            }
         }
 
-        public FragUniforms(Paint paint, Scissor scissor, float fringe, OpenGLRenderer renderer)
-            : this(paint, scissor, 1.0f, fringe, -1.0f, renderer)
+        public FragUniforms(Paint paint, Scissor scissor, float fringe, LineStyle lineStyle, OpenGLRenderer renderer)
+            : this(paint, scissor, 1.0f, fringe, lineStyle, -1.0f, renderer)
         {
             _type = (int)ShaderType.Img;
         }

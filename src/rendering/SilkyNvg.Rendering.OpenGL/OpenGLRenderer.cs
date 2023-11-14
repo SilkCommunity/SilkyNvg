@@ -9,6 +9,7 @@ using SilkyNvg.Rendering.OpenGL.Textures;
 using SilkyNvg.Rendering.OpenGL.Utils;
 using System;
 using System.Collections.Generic;
+using SilkyNvg.Graphics;
 using Shader = SilkyNvg.Rendering.OpenGL.Shaders.Shader;
 
 namespace SilkyNvg.Rendering.OpenGL
@@ -221,7 +222,7 @@ namespace SilkyNvg.Rendering.OpenGL
             Shader.UniformManager.Clear();
         }
 
-        public void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Box2D<float> bounds, IReadOnlyList<Rendering.Path> paths)
+        public void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, LineStyle lineStyle, float fringe, Box2D<float> bounds, IReadOnlyList<Rendering.Path> paths)
         {
             int offset = _vertexCollection.CurrentsOffset;
             Path[] renderPaths = new Path[paths.Count];
@@ -238,7 +239,7 @@ namespace SilkyNvg.Rendering.OpenGL
                 offset += path.Stroke.Count;
             }
 
-            FragUniforms uniforms = new(paint, scissor, fringe, fringe, -1.0f, this);
+            FragUniforms uniforms = new(paint, scissor, fringe, fringe, lineStyle, -1.0f, this);
             Call call;
             if ((paths.Count == 1) && paths[0].Convex) // Convex
             {
@@ -262,7 +263,7 @@ namespace SilkyNvg.Rendering.OpenGL
             _callQueue.Add(call);
         }
 
-        public void Stroke(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, float strokeWidth, IReadOnlyList<Rendering.Path> paths)
+        public void Stroke(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, LineStyle lineStyle, float fringe, float strokeWidth, IReadOnlyList<Rendering.Path> paths)
         {
             int offset = _vertexCollection.CurrentsOffset;
             Path[] renderPaths = new Path[paths.Count];
@@ -280,11 +281,11 @@ namespace SilkyNvg.Rendering.OpenGL
                 offset += paths[i].Stroke.Count;
             }
 
-            FragUniforms uniforms = new(paint, scissor, strokeWidth, fringe, -1.0f, this);
+            FragUniforms uniforms = new(paint, scissor, strokeWidth, fringe, lineStyle, -1.0f, this);
             Call call;
             if (StencilStrokes)
             {
-                FragUniforms stencilUniforms = new(paint, scissor, strokeWidth, fringe, 1.0f - 0.5f / 255.0f, this);
+                FragUniforms stencilUniforms = new(paint, scissor, strokeWidth, fringe, lineStyle, 1.0f - 0.5f / 255.0f, this);
                 int uniformOffset = Shader.UniformManager.AddUniform(uniforms);
                 _ = Shader.UniformManager.AddUniform(stencilUniforms);
 
@@ -298,12 +299,12 @@ namespace SilkyNvg.Rendering.OpenGL
             _callQueue.Add(call);
         }
 
-        public void Triangles(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, ICollection<Vertex> vertices, float fringe)
+        public void Triangles(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, LineStyle lineStyle, ICollection<Vertex> vertices, float fringe)
         {
             int offset = _vertexCollection.CurrentsOffset;
             _vertexCollection.AddVertices(vertices);
 
-            FragUniforms uniforms = new(paint, scissor, fringe, this);
+            FragUniforms uniforms = new(paint, scissor, fringe, lineStyle, this);
             int uniformOffset = Shader.UniformManager.AddUniform(uniforms);
             Call call = new TrianglesCall(paint.Image, new Blend(compositeOperation, this), offset, (uint)vertices.Count, uniformOffset, this);
             _callQueue.Add(call);

@@ -423,7 +423,7 @@ namespace SilkyNvg.Paths
 
             fillPaint.PremultiplyAlpha(nvg.stateStack.CurrentState.Alpha);
 
-            nvg.renderer.Fill(fillPaint, state.CompositeOperation, state.Scissor, nvg.pixelRatio.FringeWidth, nvg.pathCache.Bounds, nvg.pathCache.Paths);
+            nvg.renderer.Fill(fillPaint, state.CompositeOperation, state.Scissor, state.LineStyle,  nvg.pixelRatio.FringeWidth, nvg.pathCache.Bounds, nvg.pathCache.Paths);
 
             foreach (Path path in nvg.pathCache.Paths)
             {
@@ -461,7 +461,7 @@ namespace SilkyNvg.Paths
                 nvg.pathCache.ExpandStroke(strokeWidth * 0.5f, 0.0f, state.LineCap, state.LineJoin, state.LineStyle, state.MiterLimit, nvg.pixelRatio);
             }
 
-            nvg.renderer.Stroke(strokePaint, state.CompositeOperation, state.Scissor, nvg.pixelRatio.FringeWidth, strokeWidth, nvg.pathCache.Paths);
+            nvg.renderer.Stroke(strokePaint, state.CompositeOperation, state.Scissor, state.LineStyle, nvg.pixelRatio.FringeWidth, strokeWidth, nvg.pathCache.Paths);
 
             foreach (Path path in nvg.pathCache.Paths)
             {

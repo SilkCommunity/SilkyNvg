@@ -27,7 +27,7 @@ namespace SilkyNvg.Rendering.OpenGL.Utils
             _gl.EnableVertexAttribArray(0);
             _gl.EnableVertexAttribArray(1);
             _gl.VertexAttribPointer(0, 2, GLEnum.Float, false, (uint)sizeof(Vertex), (void*)0);
-            _gl.VertexAttribPointer(1, 2, GLEnum.Float, false, (uint)sizeof(Vertex), (void*)(0 + (2 * sizeof(float))));
+            _gl.VertexAttribPointer(1, 4, GLEnum.Float, false, (uint)sizeof(Vertex), (void*)(0 + (2 * sizeof(float))));
         }
 
         public void Unbind()
