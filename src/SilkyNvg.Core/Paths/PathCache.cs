@@ -84,7 +84,7 @@ namespace SilkyNvg.Core.Paths
             }
         }
 
-        public void ExpandStroke(float w, float fringe, LineCap lineCap, LineCap lineJoin, float miterLimit, PixelRatio pixelRatio)
+        public void ExpandStroke(float w, float fringe, LineCap lineCap, LineCap lineJoin, LineStyle lineStyle, float miterLimit, PixelRatio pixelRatio)
         {
             float aa = fringe;
             float u0 = 0.0f;
@@ -103,7 +103,7 @@ namespace SilkyNvg.Core.Paths
 
             foreach (Path path in _paths)
             {
-                path.ExpandStroke(aa, u0, u1, w, lineCap, lineJoin, ncap);
+                path.ExpandStroke(aa, u0, u1, w, lineCap, lineJoin, lineStyle, ncap);
             }
         }
 

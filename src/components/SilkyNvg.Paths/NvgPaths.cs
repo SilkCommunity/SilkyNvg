@@ -454,11 +454,11 @@ namespace SilkyNvg.Paths
 
             if (nvg.renderer.EdgeAntiAlias && state.ShapeAntiAlias)
             {
-                nvg.pathCache.ExpandStroke(strokeWidth * 0.5f, nvg.pixelRatio.FringeWidth, state.LineCap, state.LineJoin, state.MiterLimit, nvg.pixelRatio);
+                nvg.pathCache.ExpandStroke(strokeWidth * 0.5f, nvg.pixelRatio.FringeWidth, state.LineCap, state.LineJoin, state.LineStyle, state.MiterLimit, nvg.pixelRatio);
             }
             else
             {
-                nvg.pathCache.ExpandStroke(strokeWidth * 0.5f, 0.0f, state.LineCap, state.LineJoin, state.MiterLimit, nvg.pixelRatio);
+                nvg.pathCache.ExpandStroke(strokeWidth * 0.5f, 0.0f, state.LineCap, state.LineJoin, state.LineStyle, state.MiterLimit, nvg.pixelRatio);
             }
 
             nvg.renderer.Stroke(strokePaint, state.CompositeOperation, state.Scissor, nvg.pixelRatio.FringeWidth, strokeWidth, nvg.pathCache.Paths);
