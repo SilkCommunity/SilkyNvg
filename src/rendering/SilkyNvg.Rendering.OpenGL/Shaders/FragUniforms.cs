@@ -31,7 +31,7 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
             _type = (int)type;
         }
 
-        public FragUniforms(Paint paint, Scissor scissor, float width, float fringe, LineStyle lineStyle, float strokeThr, OpenGLRenderer renderer)
+        public FragUniforms(Paint paint, Scissor scissor, LineStyle lineStyle, float width, float fringe, float strokeThr, OpenGLRenderer renderer)
         {
             Matrix3X2<float> invtransform;
 
@@ -114,26 +114,18 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
 
             _paintMat = new Matrix3X4<float>(invtransform);
 
-            _lineStyle = 0;
-            switch (lineStyle)
+            _lineStyle = lineStyle switch
             {
-                case LineStyle.Solid:
-                    _lineStyle = 0;
-                    break;
-                case LineStyle.Dashed:
-                    _lineStyle = 1;
-                    break;
-                case LineStyle.Dotted:
-                    _lineStyle = 2;
-                    break;
-                case LineStyle.Glow:
-                    _lineStyle = 3;
-                    break;
-            }
+                LineStyle.Solid => 0,
+                LineStyle.Dashed => 1,
+                LineStyle.Dotted => 2,
+                LineStyle.Glow => 3,
+                _ => 0
+            };
         }
 
-        public FragUniforms(Paint paint, Scissor scissor, float fringe, LineStyle lineStyle, OpenGLRenderer renderer)
-            : this(paint, scissor, 1.0f, fringe, lineStyle, -1.0f, renderer)
+        public FragUniforms(Paint paint, Scissor scissor, LineStyle lineStyle, float fringe, OpenGLRenderer renderer)
+            : this(paint, scissor, lineStyle, 1.0f, fringe, -1.0f, renderer)
         {
             _type = (int)ShaderType.Img;
         }

@@ -683,7 +683,7 @@ namespace NvgExample
         private void DrawStylizedLines(float x, float y, float w, float h, float t){
             _nvg.LineJoin(LineCap.Round);
             _nvg.LineStyle(LineStyle.Dashed);
-            //_nvg.StrokeColor(vg,nvgRGBAf(0.6f,0.6f,1.0f,1.0f));
+            _nvg.StrokeColour(new Colour(0.6f, 0.6f, 1.0f, 1.0f));
             _nvg.StrokeWidth(5.0f);
             _nvg.BeginPath();
             _nvg.Rect(x, y, w, h);
