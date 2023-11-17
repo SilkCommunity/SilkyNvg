@@ -2,9 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <Version>1.0.0</Version>
+    <Authors>Matija Brown</Authors>
     <Description>An (modern) OpenGL implementation of a SilkyNvg renderer.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/MatijaBrown/SilkyNvg/tree/main/src/rendering/SilkyNvg.Rendering.OpenGL</RepositoryUrl>
+    <RepositoryUrl>https://github.com/SilkyNvg/SilkyNvg/tree/main/src/rendering/SilkyNvg.Rendering.OpenGL</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>SilkyNvg SilkyNvgRenderer UI Graphics</PackageTags>
     <PackageReleaseNotes>This is a 1:1 implementation of the NanoVG renderer.</PackageReleaseNotes>
@@ -20,8 +22,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Silk.NET.Maths" Version="2.18.0" />
-    <PackageReference Include="Silk.NET.OpenGL" Version="2.18.0" />
+    <PackageReference Include="Silk.NET.Maths" Version="2.19.0" />
+    <PackageReference Include="Silk.NET.OpenGL" Version="2.19.0" />
   </ItemGroup>
 
   <ItemGroup>

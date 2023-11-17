@@ -2,12 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <Version>0.1.0</Version>
-    <Description>A poor implementation of the SilkyNvg renderer for vulkan.
-It has some issues and uses poor code style but has the basic functionallity.</Description>
+    <Version>1.0.0</Version>
+    <Authors>Matija Brown</Authors>
+    <Description>A poor implementation of the SilkyNvg renderer for vulkan. It has some issues and uses poor code style but has the basic functionallity.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl></PackageProjectUrl>
-    <RepositoryUrl>https://github.com/MatijaBrown/SilkyNvg/tree/main/src/rendering/SilkyNvg.Rendering.Vulkan</RepositoryUrl>
+    <RepositoryUrl>https://github.com/SilkyNvg/SilkyNvg/tree/main/src/rendering/SilkyNvg.Rendering.Vulkan</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>SilkyNvg SilkyNvgRendering SilkyNvgVulkan UI Graphics Silky SimpleUI</PackageTags>
     <PackageReleaseNotes>This implementation is pretty bad and a re-write is to be expected in the near future.</PackageReleaseNotes>
@@ -27,8 +26,8 @@ It has some issues and uses poor code style but has the basic functionallity.</D
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Silk.NET.Maths" Version="2.18.0" />
-    <PackageReference Include="Silk.NET.Vulkan" Version="2.18.0" />
+    <PackageReference Include="Silk.NET.Maths" Version="2.19.0" />
+    <PackageReference Include="Silk.NET.Vulkan" Version="2.19.0" />
   </ItemGroup>
 
 </Project>
