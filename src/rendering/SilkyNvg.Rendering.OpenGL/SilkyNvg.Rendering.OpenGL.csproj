@@ -2,15 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <Version>1.0.0</Version>
-    <Authors>Matija Brown</Authors>
-    <Description>An (modern) OpenGL implementation of a SilkyNvg renderer.</Description>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/SilkyNvg/SilkyNvg/tree/main/src/rendering/SilkyNvg.Rendering.OpenGL</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageTags>SilkyNvg SilkyNvgRenderer UI Graphics</PackageTags>
-    <PackageReleaseNotes>This is a 1:1 implementation of the NanoVG renderer.</PackageReleaseNotes>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
