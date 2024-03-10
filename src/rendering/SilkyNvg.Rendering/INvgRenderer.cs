@@ -3,6 +3,7 @@ using SilkyNvg.Blending;
 using SilkyNvg.Images;
 using System;
 using System.Collections.Generic;
+using SilkyNvg.Graphics;
 
 namespace SilkyNvg.Rendering
 {
@@ -27,11 +28,11 @@ namespace SilkyNvg.Rendering
 
         void Flush();
 
-        void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Box2D<float> bounds, IReadOnlyList<Path> paths);
+        void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, LineStyle lineStyle, float fringe, Box2D<float> bounds, IReadOnlyList<Path> paths);
 
-        void Stroke(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, float strokeWidth, IReadOnlyList<Path> paths);
+        void Stroke(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, LineStyle lineStyle, float fringe, float strokeWidth, IReadOnlyList<Path> paths);
 
-        void Triangles(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, ICollection<Vertex> vertices, float fringeWidth);
+        void Triangles(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, LineStyle lineStyle, ICollection<Vertex> vertices, float fringeWidth);
 
     }
 }

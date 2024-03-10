@@ -136,20 +136,20 @@ namespace SilkyNvg.Rendering
         {
             Vector2D<float> pPos = p.Position - delta * d;
             Vector2D<float> dl = new(delta.Y, -delta.X);
-            _stroke.Add(new Vertex(pPos + (dl * w) - (delta * aa), u0, 0.0f));
-            _stroke.Add(new Vertex(pPos - (dl * w) - (delta * aa), u1, 0.0f));
-            _stroke.Add(new Vertex(pPos + (dl * w), u0, 1.0f));
-            _stroke.Add(new Vertex(pPos - (dl * w), u1, 1.0f));
+            _stroke.Add(new Vertex(pPos + (dl * w) - (delta * aa), u0, 0.0f, -1.0f, -aa));
+            _stroke.Add(new Vertex(pPos - (dl * w) - (delta * aa), u1, 0.0f, 1.0f, aa));
+            _stroke.Add(new Vertex(pPos + (dl * w), u0, 1.0f, -1.0f, 0.0f));
+            _stroke.Add(new Vertex(pPos - (dl * w), u1, 1.0f, 1.0f, 0.0f));
         }
 
-        private void ButtCapEnd(Point p, Vector2D<float> delta, float w, float d, float aa, float u0, float u1)
+        private void ButtCapEnd(Point p, Vector2D<float> delta, float w, float d, float aa, float u0, float u1, float t)
         {
             Vector2D<float> pPos = p.Position + delta * d;
             Vector2D<float> dl = new(delta.Y, -delta.X);
-            _stroke.Add(new Vertex(pPos + (dl * w), u0, 1.0f));
-            _stroke.Add(new Vertex(pPos - (dl * w), u1, 1.0f));
-            _stroke.Add(new Vertex(pPos + (dl * w) + (delta * aa), u0, 0.0f));
-            _stroke.Add(new Vertex(pPos - (dl * w) + (delta * aa), u1, 0.0f));
+            _stroke.Add(new Vertex(pPos + (dl * w), u0, 1.0f, -1f, t));
+            _stroke.Add(new Vertex(pPos - (dl * w), u1, 1.0f, 1.0f, t));
+            _stroke.Add(new Vertex(pPos + (dl * w) + (delta * aa), u0, 0.0f, -1.0f, t + aa / w));
+            _stroke.Add(new Vertex(pPos - (dl * w) + (delta * aa), u1, 0.0f, 1.0f, t + aa / w));
         }
 
         private void RoundCapStart(Point p, Vector2D<float> delta, float w, uint ncap, float u0, float u1)
@@ -161,26 +161,26 @@ namespace SilkyNvg.Rendering
                 float a = i / (float)(ncap - 1) * MathF.PI;
                 float ax = MathF.Cos(a) * w;
                 float ay = MathF.Sin(a) * w;
-                _stroke.Add(new Vertex(pPos - (dl * ax) - (delta * ay), u0, 1.0f));
-                _stroke.Add(new Vertex(pPos, 0.5f, 1.0f));
+                _stroke.Add(new Vertex(pPos - (dl * ax) - (delta * ay), u0, 1.0f, ax / w, -ay / w));
+                _stroke.Add(new Vertex(pPos, 0.5f, 1.0f, 0.0f, 0.0f));
             }
-            _stroke.Add(new Vertex(pPos + (dl * w), u0, 1.0f));
-            _stroke.Add(new Vertex(pPos - (dl * w), u1, 1.0f));
+            _stroke.Add(new Vertex(pPos + (dl * w), u0, 1.0f, 1.0f, 0.0f));
+            _stroke.Add(new Vertex(pPos - (dl * w), u1, 1.0f, -1.0f, 0.0f));
         }
 
-        private void RoundCapEnd(Point p, Vector2D<float> delta, float w, uint ncap, float u0, float u1)
+        private void RoundCapEnd(Point p, Vector2D<float> delta, float w, uint ncap, float u0, float u1, float t)
         {
             Vector2D<float> pPos = p.Position;
             Vector2D<float> dl = new(delta.Y, -delta.X);
-            _stroke.Add(new Vertex(pPos + (dl * w), u0, 1.0f));
-            _stroke.Add(new Vertex(pPos - (dl * w), u1, 1.0f));
+            _stroke.Add(new Vertex(pPos + (dl * w), u0, 1.0f, w, t));
+            _stroke.Add(new Vertex(pPos - (dl * w), u1, 1.0f, -w, t));
             for (int i = 0; i < ncap; i++)
             {
                 float a = i / (float)(ncap - 1) * MathF.PI;
                 float ax = MathF.Cos(a) * w;
                 float ay = MathF.Sin(a) * w;
-                _stroke.Add(new Vertex(pPos, 0.5f, 1.0f));
-                _stroke.Add(new Vertex(pPos - (dl * ax) + (delta * ay), u0, 1.0f));
+                _stroke.Add(new Vertex(pPos, 0.5f, 1.0f, 0.0f, t));
+                _stroke.Add(new Vertex(pPos - (dl * ax) + (delta * ay), u0, 1.0f, ax / w, t + ay / w));
             }
         }
 
@@ -212,11 +212,12 @@ namespace SilkyNvg.Rendering
             Convex = nleft == _points.Count;
         }
 
-        internal void ExpandStroke(float aa, float u0, float u1, float w, LineCap lineCap, LineCap lineJoin, uint ncap)
+        internal void ExpandStroke(float aa, float u0, float u1, float w, LineCap lineCap, LineCap lineJoin, LineStyle lineStyle, uint ncap)
         {
             _fill.Clear();
 
             bool loop = Closed;
+            float t = 0.0f;
 
             Point p0, p1;
             int s, e;
@@ -256,16 +257,25 @@ namespace SilkyNvg.Rendering
             for (int i = s; i < e; i++)
             {
                 p1 = _points[i];
-
+                
+                if(lineStyle != LineStyle.Solid){
+                    float dx = p1.Determinant.X - p0.Determinant.X;
+                    float dy = p1.Determinant.Y - p0.Determinant.Y;
+                    float dt = (p1.Determinant - p0.Determinant).Length;
+                    p0.InsertSpacer(dx, dy, w, u0, u1, t, p1, _stroke);
+                    t += dt * 1.0f / w;
+                    p1.InsertSpacer(dx, dy, w, u0, u1, t, p0, _stroke);
+                }
+                
                 if (p1.Flags.HasFlag(PointFlags.Bevel) || p1.Flags.HasFlag(PointFlags.Innerbevel))
                 {
                     if (lineJoin == LineCap.Round)
                     {
-                        p1.RoundJoin(w, w, u0, u1, ncap, p0, _stroke);
+                        p1.RoundJoin(w, w, u0, u1, ncap, t, p0, _stroke);
                     }
                     else
                     {
-                        p1.BevelJoin(w, w, u0, u1, p0, _stroke);
+                        p1.BevelJoin(w, w, u0, u1, t, p0, _stroke);
                     }
                 }
                 else
@@ -292,15 +302,15 @@ namespace SilkyNvg.Rendering
                 d = Vector2D.Normalize(d);
                 if (lineCap is LineCap.Butt)
                 {
-                    ButtCapEnd(p1, d, w, -aa * 0.5f, aa, u0, u1);
+                    ButtCapEnd(p1, d, w, -aa * 0.5f, aa, u0, u1, t);
                 }
                 else if (lineCap is LineCap.Butt or LineCap.Square)
                 {
-                    ButtCapEnd(p1, d, w, w - aa, aa, u0, u1);
+                    ButtCapEnd(p1, d, w, w - aa, aa, u0, u1, t);
                 }
                 else if (lineCap is LineCap.Round)
                 {
-                    RoundCapEnd(p1, d, w, ncap, u0, u1);
+                    RoundCapEnd(p1, d, w, ncap, u0, u1, t);
                 }
             }
         }

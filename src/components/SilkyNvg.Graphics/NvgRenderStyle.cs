@@ -40,6 +40,14 @@
         {
             nvg.stateStack.CurrentState.LineCap = cap;
         }
+        
+        /// <summary>
+        /// Sets how the line is drawn.
+        /// </summary>
+        public static void LineStyle(this Nvg nvg, LineStyle style)
+        {
+            nvg.stateStack.CurrentState.LineStyle = style;
+        }
 
         /// <summary>
         /// Sets how sharp path corners are drawn.

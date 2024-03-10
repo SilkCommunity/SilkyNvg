@@ -31,7 +31,7 @@ namespace SilkyNvg.Rendering
             Determinant = determinant;
         }
 
-        public void RoundJoin(float lw, float rw, float lu, float ru, uint ncap, Point other, ICollection<Vertex> verts)
+        public void RoundJoin(float lw, float rw, float lu, float ru, uint ncap, float t, Point other, ICollection<Vertex> verts)
         {
             Vector2D<float> dl0 = new(other.Determinant.Y, -other.Determinant.X);
             Vector2D<float> dl1 = new(Determinant.Y, -Determinant.X);
@@ -46,8 +46,8 @@ namespace SilkyNvg.Rendering
                     a1 -= MathF.PI * 2.0f;
                 }
 
-                verts.Add(new(l0, lu, 1.0f));
-                verts.Add(new(Position - dl0 * rw, ru, 1.0f));
+                verts.Add(new(l0, lu, 1.0f, -1.0f, t));
+                verts.Add(new(Position - dl0 * rw, ru, 1.0f, 1.0f, t));
 
                 uint n = (uint)Maths.Clamp((int)MathF.Ceiling(((a0 - a1) / MathF.PI) * ncap), 2, ncap);
                 for (int i = 0; i < n; i++)
@@ -56,12 +56,12 @@ namespace SilkyNvg.Rendering
                     float a = a0 + u * (a1 - a0);
                     float rx = Position.X + (MathF.Cos(a) * rw);
                     float ry = Position.Y + (MathF.Sin(a) * rw);
-                    verts.Add(new(Position, 0.5f, 1.0f));
-                    verts.Add(new(rx, ry, ru, 1.0f));
+                    verts.Add(new(Position, 0.5f, 1.0f, 0.0f, t));
+                    verts.Add(new(rx, ry, ru, 1.0f, 1, t));
                 }
 
-                verts.Add(new(l1, lu, 1.0f));
-                verts.Add(new(Position - (dl1 * rw), ru, 1.0f));
+                verts.Add(new(l1, lu, 1.0f, -1.0f, t));
+                verts.Add(new(Position - (dl1 * rw), ru, 1.0f, 1.0f, t));
             }
             else
             {
@@ -73,8 +73,8 @@ namespace SilkyNvg.Rendering
                     a1 += MathF.PI * 2.0f;
                 }
 
-                verts.Add(new(Position + dl0 * rw, lu, 1.0f));
-                verts.Add(new(r0, ru, 1.0f));
+                verts.Add(new(Position + dl0 * rw, lu, 1.0f, -1.0f, t));
+                verts.Add(new(r0, ru, 1.0f, 1.0f, t));
 
                 uint n = (uint)Maths.Clamp((int)MathF.Ceiling(((a1 - a0) / MathF.PI) * ncap), 2, ncap);
                 for (int i = 0; i < n; i++)
@@ -83,94 +83,104 @@ namespace SilkyNvg.Rendering
                     float a = a0 + u * (a1 - a0);
                     float lx = Position.X + MathF.Cos(a) * lw;
                     float ly = Position.Y + MathF.Sin(a) * lw;
-                    verts.Add(new(lx, ly, lu, 1.0f));
-                    verts.Add(new(Position, 0.5f, 1.0f));
+                    verts.Add(new(lx, ly, lu, 1.0f, 1.0f, t));
+                    verts.Add(new(Position, 0.5f, 1.0f, 0.0f, t));
                 }
 
-                verts.Add(new(Position + dl1 * rw, lu, 1.0f));
-                verts.Add(new(r1, ru, 1.0f));
+                verts.Add(new(Position + dl1 * rw, lu, 1.0f, -1.0f, t));
+                verts.Add(new(r1, ru, 1.0f, 1.0f, t));
             }
         }
 
-        private void BevelJoinLeft(float lw, float rw, float lu, float ru, Point other, Vector2D<float> dl0, Vector2D<float> dl1, ICollection<Vertex> verts)
+        private void BevelJoinLeft(float lw, float rw, float lu, float ru, float t, Point other, Vector2D<float> dl0, Vector2D<float> dl1, ICollection<Vertex> verts)
         {
             ChooseBevel(Flags.HasFlag(PointFlags.Innerbevel), other, this, lw, out Vector2D<float> l0, out Vector2D<float> l1);
 
-            verts.Add(new(l0, lu, 1.0f));
-            verts.Add(new(Position - dl0 * rw, ru, 1.0f));
+            verts.Add(new(l0, lu, 1.0f, -1.0f, t));
+            verts.Add(new(Position - dl0 * rw, ru, 1.0f, 1.0f, t));
 
             if (Flags.HasFlag(PointFlags.Bevel))
             {
-                verts.Add(new(l0, lu, 1.0f));
-                verts.Add(new(Position - dl0 * rw, ru, 1.0f));
+                verts.Add(new(l0, lu, 1.0f, -1.0f, t));
+                verts.Add(new(Position - dl0 * rw, ru, 1.0f, 1.0f, t));
 
-                verts.Add(new(l1, lu, 1.0f));
-                verts.Add(new(Position - dl1 * rw, ru, 1.0f));
+                verts.Add(new(l1, lu, 1.0f, -1.0f, t));
+                verts.Add(new(Position - dl1 * rw, ru, 1.0f, 1.0f, t));
             }
             else
             {
                 Vector2D<float> r0 = Position - MatrixDeterminant * rw;
 
-                verts.Add(new(Position, 0.5f, 1.0f));
-                verts.Add(new(Position - dl0 * rw, ru, 1.0f));
+                verts.Add(new(Position, 0.5f, 1.0f, -1.0f, t));
+                verts.Add(new(Position - dl0 * rw, ru, 1.0f, 1.0f, t));
 
-                verts.Add(new(r0, ru, 1.0f));
-                verts.Add(new(r0, ru, 1.0f));
+                verts.Add(new(r0, ru, 1.0f, -1.0f, t));
+                verts.Add(new(r0, ru, 1.0f, 1.0f, t));
 
-                verts.Add(new(Position, 0.5f, 1.0f));
-                verts.Add(new(Position - dl1 * rw, ru, 1.0f));
+                verts.Add(new(Position, 0.5f, 1.0f, -1.0f, t));
+                verts.Add(new(Position - dl1 * rw, ru, 1.0f, 1.0f, t));
             }
 
-            verts.Add(new(l1, lu, 1.0f));
-            verts.Add(new(Position - dl1 * rw, ru, 1.0f));
+            verts.Add(new(l1, lu, 1.0f, -1.0f, t));
+            verts.Add(new(Position - dl1 * rw, ru, 1.0f, 1.0f, t));
         }
 
-        private void BevelJoinRight(float lw, float rw, float lu, float ru, Point other, Vector2D<float> dl0, Vector2D<float> dl1, ICollection<Vertex> verts)
+        private void BevelJoinRight(float lw, float rw, float lu, float ru, float t, Point other, Vector2D<float> dl0, Vector2D<float> dl1, ICollection<Vertex> verts)
         {
             ChooseBevel(Flags.HasFlag(PointFlags.Innerbevel), other, this, -rw, out Vector2D<float> r0, out Vector2D<float> r1);
 
-            verts.Add(new(Position + dl0 * lw, lu, 1.0f));
-            verts.Add(new(r0, ru, 1.0f));
+            verts.Add(new(Position + dl0 * lw, lu, 1.0f, 1.0f, t));
+            verts.Add(new(r0, ru, 1.0f, -1.0f, t));
 
             if (Flags.HasFlag(PointFlags.Bevel))
             {
-                verts.Add(new(Position + dl0 * lw, lu, 1.0f));
-                verts.Add(new(r0, ru, 1.0f));
+                verts.Add(new(Position + dl0 * lw, lu, 1.0f, 1.0f, t));
+                verts.Add(new(r0, ru, 1.0f, -1.0f, t));
 
-                verts.Add(new(Position + dl1 * lw, lu, 1.0f));
-                verts.Add(new(r1, ru, 1.0f));
+                verts.Add(new(Position + dl1 * lw, lu, 1.0f, 1.0f, t));
+                verts.Add(new(r1, ru, 1.0f, -1.0f, t));
             }
             else
             {
                 Vector2D<float> l0 = MatrixDeterminant * lw;
 
-                verts.Add(new(Position + dl0 * lw, lu, 1.0f));
-                verts.Add(new(Position, 0.5f, 1.0f));
+                verts.Add(new(Position + dl0 * lw, lu, 1.0f, 1.0f, t));
+                verts.Add(new(Position, 0.5f, 1.0f, -1.0f, t));
 
-                verts.Add(new(l0, lu, 1.0f));
-                verts.Add(new(l0, lu, 1.0f));
+                verts.Add(new(l0, lu, 1.0f, 1.0f, t));
+                verts.Add(new(l0, lu, 1.0f, -1.0f, t));
 
-                verts.Add(new(Position + dl1 * lw, lu, 1.0f));
-                verts.Add(new(Position, 0.5f, 1.0f));
+                verts.Add(new(Position + dl1 * lw, lu, 1.0f, 1.0f, t));
+                verts.Add(new(Position, 0.5f, 1.0f, 1.0f, t));
             }
 
-            verts.Add(new(Position + dl1 * lw, lu, 1.0f));
-            verts.Add(new(r1, ru, 1.0f));
+            verts.Add(new(Position + dl1 * lw, lu, 1.0f, 1.0f, t));
+            verts.Add(new(r1, ru, 1.0f, -1.0f, t));
         }
 
-        public void BevelJoin(float lw, float rw, float lu, float ru, Point other, ICollection<Vertex> verts)
+        public void BevelJoin(float lw, float rw, float lu, float ru, float t, Point other, ICollection<Vertex> verts)
         {
             Vector2D<float> dl0 = new(other.Determinant.Y, -other.Determinant.X);
             Vector2D<float> dl1 = new(Determinant.Y, -Determinant.X);
 
             if (Flags.HasFlag(PointFlags.Left))
             {
-                BevelJoinLeft(lw, rw, lu, ru, other, dl0, dl1, verts);
+                BevelJoinLeft(lw, rw, lu, ru, t, other, dl0, dl1, verts);
             }
             else
             {
-                BevelJoinRight(lw, rw, lu, ru, other, dl0, dl1, verts);
+                BevelJoinRight(lw, rw, lu, ru, t, other, dl0, dl1, verts);
             }
+        }
+
+        public void InsertSpacer(float dx, float dy, float w, float u0, float u1, float t, Point other, ICollection<Vertex> verts)
+        {
+            float dlx = dy;
+            float dly = -dx;
+            float px = other.Determinant.X;
+            float py = other.Determinant.Y;
+            verts.Add(new(px + dlx * w, py + dly * w, u0, 1.0f, -1.0f, t));
+            verts.Add(new(px - dlx * w, py - dly * w, u1, 1.0f, 1.0f, t));
         }
 
         private void JoinBevelLeft(float lw, float rw, float lu, float ru, Vector2D<float> dl0, Vector2D<float> dl1, Point other, ICollection<Vertex> verts)

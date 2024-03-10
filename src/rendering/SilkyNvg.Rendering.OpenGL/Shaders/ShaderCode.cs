@@ -7,16 +7,18 @@
             #version 150 core
 
             in vec2 vertex;
-            in vec2 tcoord;
+            in vec4 tcoord;
 
             out vec2 pass_vertex;
             out vec2 pass_tcoord;
+			out vec2 uv;
 
             uniform vec2 viewSize;
 
             void main(void) {
 	            pass_vertex = vertex;
-	            pass_tcoord = tcoord;
+	            pass_tcoord = tcoord.xy;
+				uv = 0.5 * tcoord.zw;
 	            gl_Position = vec4(2.0 * vertex.x / viewSize.x - 1.0, 1.0 - 2.0 * vertex.y / viewSize.y, 0, 1);
             }";
 
@@ -25,6 +27,7 @@
 
 			in vec2 pass_vertex;
 			in vec2 pass_tcoord;
+			in vec2 uv;
 
 			out vec4 out_Colour;
 
@@ -104,6 +107,7 @@
 
 			in vec2 pass_vertex;
 			in vec2 pass_tcoord;
+			in vec2 uv;
 
 			out vec4 out_Colour;
 
@@ -119,6 +123,7 @@
 				float feather;
 				float strokeMult;
 				float strokeThr;
+				int lineStyle;
 				int texType;
 				int type;
 			};
@@ -137,6 +142,30 @@
 				return clamp(sc.x, 0.0, 1.0) * clamp(sc.y, 0.0, 1.0);
 			}
 
+			float glow(vec2 uv) {
+				return smoothstep(0.0, 1.0, 1.0 - 2.0 * abs(uv.x));
+			}
+
+			float dashed(vec2 uv) {
+				float fy = fract(uv.y / 4.0);
+				float w = step(fy, 0.5);
+				fy *= 4.0;
+				if (fy >= 1.5) {
+					fy -= 1.5;
+				} else if (fy <= 0.5) {
+					fy = 0.5 - fy;
+				} else {
+					fy = 0.0;
+				}
+				w *= smoothstep(0.0, 1.0, 6.0 * (0.25 - (uv.x * uv.x + fy * fy)));
+				return w;
+			}
+
+			float dotted(vec2 uv) {
+				float fy = 4.0 * fract(uv.y / 4.0) - 0.5;
+				return smoothstep(0.0, 1.0, 6 * (0.25 - (uv.x * uv.x + fy * fy)));
+			}
+
 			float strokeMask() {
 				return min(1.0, (1.0 - abs(pass_tcoord.x * 2.0 - 1.0)) * strokeMult) * pass_tcoord.y;
 			}
@@ -145,6 +174,9 @@
 				float scissor = scissorMask(pass_vertex);
 
 				float strokeAlpha = strokeMask();
+				if (lineStyle == 2) strokeAlpha*=dashed(uv);
+				if (lineStyle == 3) strokeAlpha*=dotted(uv);
+				if (lineStyle == 4) strokeAlpha*=glow(uv);
 				if (strokeAlpha < strokeThr) {
 					discard;
 				}

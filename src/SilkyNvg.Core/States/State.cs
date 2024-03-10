@@ -24,6 +24,8 @@ namespace SilkyNvg.Core.States
         public LineCap LineJoin { get; set; }
 
         public LineCap LineCap { get; set; }
+        
+        public LineStyle LineStyle { get; set; }
 
         public float Alpha { get; set; }
 
@@ -52,6 +54,7 @@ namespace SilkyNvg.Core.States
             StrokeWidth = 1.0f;
             MiterLimit = 10.0f;
             LineCap = LineCap.Butt;
+            LineStyle = LineStyle.Solid;
             LineJoin = LineCap.Miter;
             Alpha = 1.0f;
             Transform = Matrix3X2<float>.Identity;
