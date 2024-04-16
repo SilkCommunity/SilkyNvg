@@ -1,4 +1,6 @@
 # SilkyNvg
+[![NuGet](https://img.shields.io/nuget/v/SilkyNvg)](https://nuget.org/packages/SilkyNvg)
+
 NanoVectorGraphicsExceptItUsesSilkNETNowWooHoo (Thank KoziLord for the description)
 (A port of [memononen/nanovg](https://github.com/memononen/nanovg/) to .NET5.0)
 
