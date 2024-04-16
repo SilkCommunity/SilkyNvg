@@ -4,9 +4,8 @@ using SilkyNvg.Core.Paths;
 
 namespace SilkyNvg.Core.Instructions
 {
-    internal struct LineToInstruction : IInstruction
+    internal class LineToInstruction : IInstruction
     {
-
         private readonly Vector2D<float> _position;
         private readonly PathCache _pathCache;
 
@@ -20,6 +19,5 @@ namespace SilkyNvg.Core.Instructions
         {
             _pathCache.LastPath.AddPoint(_position, PointFlags.Corner);
         }
-
     }
 }

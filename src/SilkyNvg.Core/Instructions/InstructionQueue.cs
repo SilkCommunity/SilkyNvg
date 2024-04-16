@@ -6,7 +6,6 @@ namespace SilkyNvg.Core.Instructions
 {
     internal sealed class InstructionQueue
     {
-
         private const uint INIT_INSTRUCTIONS_SIZE = 256;
 
         private readonly Queue<IInstruction> _instructions = new((int)INIT_INSTRUCTIONS_SIZE);
@@ -59,6 +58,7 @@ namespace SilkyNvg.Core.Instructions
             {
                 _instructions.Dequeue().BuildPaths();
             }
+            
             _nvg.pathCache.FlattenPaths();
         }
 
@@ -66,6 +66,5 @@ namespace SilkyNvg.Core.Instructions
         {
             _instructions.Clear();
         }
-
     }
 }

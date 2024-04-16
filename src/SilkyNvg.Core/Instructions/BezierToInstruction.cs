@@ -5,9 +5,8 @@ using System;
 
 namespace SilkyNvg.Core.Instructions
 {
-    internal struct BezierToInstruction : IInstruction
+    internal class BezierToInstruction : IInstruction
     {
-
         private const byte MAX_TESSELATION_DEPTH = 10;
 
         private readonly Vector2D<float> _p0;

@@ -2,8 +2,6 @@
 {
     internal interface IInstruction
     {
-
         void BuildPaths();
-
     }
 }

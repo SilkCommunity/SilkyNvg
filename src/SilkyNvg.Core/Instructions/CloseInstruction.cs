@@ -2,9 +2,8 @@
 
 namespace SilkyNvg.Core.Instructions
 {
-    internal struct CloseInstruction : IInstruction
+    internal class CloseInstruction : IInstruction
     {
-
         private readonly PathCache _pathCache;
 
         public CloseInstruction(PathCache pathCache)
@@ -16,6 +15,5 @@ namespace SilkyNvg.Core.Instructions
         {
             _pathCache.LastPath.Close();
         }
-
     }
 }
