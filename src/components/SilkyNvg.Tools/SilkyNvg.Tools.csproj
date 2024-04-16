@@ -4,6 +4,7 @@
     <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>SilkyNvg</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Version />
   </PropertyGroup>
 
   <ItemGroup>
