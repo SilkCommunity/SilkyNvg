@@ -1,12 +1,12 @@
 name: Publish to NuGet
 
 on:
-	workflow_dispatch:
-		inputs:
-	    version:
-		    description: 'Version'
-		    required: true
-		    default: ''
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version'
+        required: true
+        default: ''
         type: string
     
 jobs:
