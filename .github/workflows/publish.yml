@@ -1,0 +1,27 @@
+name: Publish to NuGet
+
+on:
+	workflow_dispatch:
+		inputs:
+	    version:
+		    description: 'Version'
+		    required: true
+		    default: ''
+        type: string
+    
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v1
+    - name: Build
+      run: dotnet build -c Release
+    - name: Test
+      run: dotnet test -c Release --no-build
+    - name: Pack nugets
+      run: dotnet pack -c Release --no-build --version-suffix ${{ inputs.username }} --output ./build
+    - name: Push to NuGet
+      run: dotnet nuget push "*.nupkg" --api-key ${{secrets.nuget_api_key}} --source https://api.nuget.org/v3/index.json
