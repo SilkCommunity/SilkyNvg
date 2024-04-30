@@ -12,11 +12,16 @@ namespace SilkyNvg.Rendering.Vulkan.Pipelines
 
         public static Pipeline GetPipeline(PipelineSettings settings, VulkanRenderer renderer)
         {
-            if (!_pipelines.TryGetValue(settings, out _))
+            // Attempt to retrieve the pipeline from the dictionary.
+            if (!_pipelines.TryGetValue(settings, out Pipeline pipeline))
             {
-                _pipelines.Add(settings, new Pipelines.Pipeline(settings, renderer));
+                // If not found, create a new pipeline and add it to the dictionary.
+                pipeline = new Pipelines.Pipeline(settings, renderer);
+                _pipelines.Add(settings, pipeline);
             }
-            return _pipelines[settings];
+
+            // Return the existing or newly created pipeline.
+            return pipeline;
         }
 
         public static unsafe void DestroyAll()
