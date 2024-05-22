@@ -1,8 +1,9 @@
 ﻿using Silk.NET.Vulkan;
+using System;
 
 namespace SilkyNvg.Rendering.Vulkan.Pipelines
 {
-    internal struct PipelineSettings
+    internal struct PipelineSettings : IEquatable<PipelineSettings>
     {
 
         public CullModeFlags CullMode;
@@ -20,6 +21,70 @@ namespace SilkyNvg.Rendering.Vulkan.Pipelines
         public StencilOp BackStencilFailOp;
         public StencilOp BackStencilDepthFailOp;
         public StencilOp BackStencilPassOp;
+
+        public bool Equals(PipelineSettings other)
+        {
+            // Assuming `StencilTestEnable` and `DepthTestEnabled` are commonly toggled
+            return StencilTestEnable == other.StencilTestEnable &&
+                   DepthTestEnabled == other.DepthTestEnabled &&
+                   // Topology and CullMode might be commonly altered in different pipeline configurations
+                   Topology == other.Topology &&
+                   CullMode == other.CullMode &&
+                   // FrontFace changes are less frequent but still critical in defining rendering behavior
+                   FrontFace == other.FrontFace &&
+                   // Masking operations are significant and could vary often
+                   StencilWriteMask == other.StencilWriteMask &&
+                   StencilMask == other.StencilMask &&
+                   StencilRef == other.StencilRef &&
+                   // Colour and stencil operations are likely to be modified frequently
+                   ColourMask == other.ColourMask &&
+                   FrontStencilFailOp == other.FrontStencilFailOp &&
+                   FrontStencilDepthFailOp == other.FrontStencilDepthFailOp &&
+                   FrontStencilPassOp == other.FrontStencilPassOp &&
+                   BackStencilFailOp == other.BackStencilFailOp &&
+                   BackStencilDepthFailOp == other.BackStencilDepthFailOp &&
+                   BackStencilPassOp == other.BackStencilPassOp &&
+                   StencilFunc == other.StencilFunc &&
+                   // CompositeOperation might be less frequently different or more complex to compare
+                   CompositeOperation.Equals(other.CompositeOperation);
+        }
+
+
+        public override bool Equals(object obj)
+        {
+            if (obj is PipelineSettings settings)
+            {
+                return Equals(settings);
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked // Overflow is fine, just wrap
+            {
+                int hash = 17;
+                // Suitable nullity checks etc, for example:
+                hash = hash * 23 + CullMode.GetHashCode();
+                hash = hash * 23 + FrontFace.GetHashCode();
+                hash = hash * 23 + DepthTestEnabled.GetHashCode();
+                hash = hash * 23 + ColourMask.GetHashCode();
+                hash = hash * 23 + StencilWriteMask.GetHashCode();
+                hash = hash * 23 + FrontStencilFailOp.GetHashCode();
+                hash = hash * 23 + FrontStencilDepthFailOp.GetHashCode();
+                hash = hash * 23 + FrontStencilPassOp.GetHashCode();
+                hash = hash * 23 + BackStencilFailOp.GetHashCode();
+                hash = hash * 23 + BackStencilDepthFailOp.GetHashCode();
+                hash = hash * 23 + BackStencilPassOp.GetHashCode();
+                hash = hash * 23 + StencilFunc.GetHashCode();
+                hash = hash * 23 + StencilRef.GetHashCode();
+                hash = hash * 23 + StencilMask.GetHashCode();
+                hash = hash * 23 + StencilTestEnable.GetHashCode();
+                hash = hash * 23 + Topology.GetHashCode();
+                hash = hash * 23 + CompositeOperation.GetHashCode();
+                return hash;
+            }
+        }
 
         public StencilOp StencilFailOp
         {
