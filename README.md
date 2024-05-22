@@ -2,7 +2,7 @@
 [![NuGet](https://img.shields.io/nuget/v/SilkyNvg)](https://nuget.org/packages/SilkyNvg)
 
 NanoVectorGraphicsExceptItUsesSilkNETNowWooHoo (Thank KoziLord for the description)
-(A port of [memononen/nanovg](https://github.com/memononen/nanovg/) to .NET5.0)
+(A port of [memononen/nanovg](https://github.com/memononen/nanovg/) to .NET8.0)
 
 SilkyNvg is a small library providing basic 2D-Drawing functionallity well suited for UI and other such applications. It provides basic shape capabillities like rectangles or circles, as well as the abillity to build custom paths which can either be filled or stroked (lines).
 The colour can either be a colour (`SilkyNvg.Colour`), a paint (`SilkyNvg.Paint`) or an image (`SilkyNvg.Paint`).
