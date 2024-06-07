@@ -1,8 +1,8 @@
 ﻿using Silk.NET.Maths;
 using SilkyNvg.Images;
-using SilkyNvg.Rendering.OpenGL.Textures;
 using System;
 using System.Runtime.InteropServices;
+using SilkyNvg.Graphics;
 
 namespace SilkyNvg.Rendering.OpenGL.Shaders
 {
@@ -21,6 +21,7 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
         private readonly float _feather;
         private readonly float _strokeMult;
         private readonly float _strokeThr;
+        private readonly int _lineStyle;
         private readonly int _texType;
         private readonly int _type;
 
@@ -30,7 +31,7 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
             _type = (int)type;
         }
 
-        public FragUniforms(Paint paint, Scissor scissor, float width, float fringe, float strokeThr, OpenGLRenderer renderer)
+        public FragUniforms(Paint paint, Scissor scissor, LineStyle lineStyle, float width, float fringe, float strokeThr, OpenGLRenderer renderer)
         {
             Matrix3X2<float> invtransform;
 
@@ -112,10 +113,19 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
             }
 
             _paintMat = new Matrix3X4<float>(invtransform);
+
+            _lineStyle = lineStyle switch
+            {
+                LineStyle.Solid => 0,
+                LineStyle.Dashed => 1,
+                LineStyle.Dotted => 2,
+                LineStyle.Glow => 3,
+                _ => 0
+            };
         }
 
-        public FragUniforms(Paint paint, Scissor scissor, float fringe, OpenGLRenderer renderer)
-            : this(paint, scissor, 1.0f, fringe, -1.0f, renderer)
+        public FragUniforms(Paint paint, Scissor scissor, LineStyle lineStyle, float fringe, OpenGLRenderer renderer)
+            : this(paint, scissor, lineStyle, 1.0f, fringe, -1.0f, renderer)
         {
             _type = (int)ShaderType.Img;
         }

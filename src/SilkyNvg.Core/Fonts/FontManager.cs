@@ -5,6 +5,7 @@ using SilkyNvg.Core.States;
 using SilkyNvg.Rendering;
 using System;
 using System.Collections.Generic;
+using SilkyNvg.Graphics;
 
 namespace SilkyNvg.Core.Fonts
 {
@@ -159,7 +160,7 @@ namespace SilkyNvg.Core.Fonts
 
             paint.PremultiplyAlpha(state.Alpha);
 
-            _nvg.renderer.Triangles(paint, state.CompositeOperation, state.Scissor, vertices, _nvg.pixelRatio.FringeWidth);
+            _nvg.renderer.Triangles(paint, state.CompositeOperation, state.Scissor, LineStyle.Solid, vertices, _nvg.pixelRatio.FringeWidth);
 
             _nvg.FrameMeta.Update((uint)vertices.Count / 3, 0, 0, 1);
         }
