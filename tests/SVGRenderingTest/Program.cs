@@ -2,6 +2,7 @@
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using SilkyNvg;
+using SilkyNvg.Extensions.Svg;
 using SilkyNvg.Graphics;
 using SilkyNvg.Paths;
 using SilkyNvg.Rendering.OpenGL;
@@ -16,18 +17,20 @@ namespace OpenGL_Example
 
         private static IWindow window;
 
+        private static string svgXml;
+
         private static void Load()
         {
             gl = window.CreateOpenGL();
 
             OpenGLRenderer nvgRenderer = new(CreateFlags.Antialias | CreateFlags.StencilStrokes | CreateFlags.Debug, gl);
             nvg = Nvg.Create(nvgRenderer);
+
+            nvg.CreateSvgFromFile("./heart.svg");
         }
 
         private static void Render(double d)
         {
-            float delta = (float)d;
-
             Vector2D<float> winSize = window.Size.As<float>();
             Vector2D<float> fbSize = window.FramebufferSize.As<float>();
 
@@ -39,9 +42,16 @@ namespace OpenGL_Example
 
             nvg.BeginFrame(winSize.As<float>(), pxRatio);
 
+            float x = 100.0f, y = 100.0f;
+            float w = 150.0f, h = 350.0f;
+            float cornerRadius = 10.0f;
+
             nvg.BeginPath();
-            nvg.Rect(10.0f, 10.0f, 50.0f, 50.0f);
-            nvg.FillColour(Colour.BlueViolet);
+            nvg.Rect(x - 10.0f, y - 10.0f, w + 20.0f, h + 30.0f);
+            nvg.PathWinding(Solidity.Hole);
+            nvg.RoundedRect(x, y, w, h, cornerRadius);
+            nvg.PathWinding(Solidity.Solid);
+            nvg.FillColour(Colour.Yellow);
             nvg.Fill();
 
             nvg.EndFrame();

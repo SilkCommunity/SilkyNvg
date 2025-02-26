@@ -13,8 +13,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\extensions\SilkyNvg.Extensions.Svg\SilkyNvg.Extensions.Svg.csproj" />
     <ProjectReference Include="..\..\src\rendering\SilkyNvg.Rendering.OpenGL\SilkyNvg.Rendering.OpenGL.csproj" />
     <ProjectReference Include="..\..\src\SilkyNvg\SilkyNvg.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="heart.svg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
