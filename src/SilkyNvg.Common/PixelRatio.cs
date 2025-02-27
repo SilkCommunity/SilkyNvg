@@ -13,7 +13,7 @@
 
         public PixelRatio()
         {
-            DevicePxRatio = 1.0f;
+            SetDevicePixelRatio(1.0f);
         }
 
         public void SetDevicePixelRatio(float pixelRatio)
