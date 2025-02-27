@@ -56,7 +56,7 @@ namespace SilkyNvg.Core.Instructions
             TesselateBezier(p1234, p234, p34, p4, (byte)(level + 1), flags);
         }
 
-        public void BuildPaths()
+        public void BuildPaths(PixelRatio pixelRatio)
         {
             if (_pathCache.LastPath.PointCount > 0)
             {

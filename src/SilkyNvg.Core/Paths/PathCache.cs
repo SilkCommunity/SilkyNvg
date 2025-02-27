@@ -14,20 +14,12 @@ namespace SilkyNvg.Core.Paths
         private const uint INIT_PATHS_SIZE = 16;
 
         private readonly IList<Path> _paths = new List<Path>((int)INIT_PATHS_SIZE);
-        private readonly Nvg _nvg;
 
-        private Box2D<float> _bounds;
+        private Box2D<float> _bounds = default;
 
         public IReadOnlyList<Path> Paths => (IReadOnlyList<Path>)_paths;
 
         public Box2D<float> Bounds => _bounds;
-
-        public PathCache(Nvg nvg)
-        {
-            _nvg = nvg;
-
-            _bounds = default;
-        }
 
         public void Clear()
         {
@@ -46,9 +38,9 @@ namespace SilkyNvg.Core.Paths
             }
         }
 
-        public Path AddPath()
+        public Path AddPath(PixelRatio pixelRatio)
         {
-            Path path = new(Winding.Ccw, _nvg.pixelRatio);
+            Path path = new(Winding.Ccw, pixelRatio);
             _paths.Add(path);
             return path;
         }

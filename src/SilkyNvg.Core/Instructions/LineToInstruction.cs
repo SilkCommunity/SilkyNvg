@@ -16,7 +16,7 @@ namespace SilkyNvg.Core.Instructions
             _pathCache = pathCache;
         }
 
-        public void BuildPaths()
+        public void BuildPaths(PixelRatio pixelRatio)
         {
             _pathCache.LastPath.AddPoint(_position, PointFlags.Corner);
         }

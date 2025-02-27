@@ -1,4 +1,5 @@
-﻿using SilkyNvg.Core.Paths;
+﻿using SilkyNvg.Common;
+using SilkyNvg.Core.Paths;
 using SilkyNvg.Paths;
 
 namespace SilkyNvg.Core.Instructions
@@ -15,7 +16,7 @@ namespace SilkyNvg.Core.Instructions
             _pathCache = pathCache;
         }
 
-        public void BuildPaths()
+        public void BuildPaths(PixelRatio pixelRatio)
         {
             _pathCache.LastPath.Winding = _winding;
         }

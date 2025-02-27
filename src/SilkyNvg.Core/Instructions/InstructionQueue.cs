@@ -57,7 +57,7 @@ namespace SilkyNvg.Core.Instructions
         {
             while (_instructions.Count > 0)
             {
-                _instructions.Dequeue().BuildPaths();
+                _instructions.Dequeue().BuildPaths(_nvg.pixelRatio);
             }
             _nvg.pathCache.FlattenPaths();
         }
