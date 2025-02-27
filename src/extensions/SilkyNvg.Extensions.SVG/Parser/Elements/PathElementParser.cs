@@ -33,12 +33,16 @@ namespace SilkyNvg.Extensions.Svg.Parser.Elements
             {
                 ['M'] = source => ParseMoveTo(source, false),
                 ['m'] = source => ParseMoveTo(source, true),
-
                 ['L'] = source => ParseLineTo(source, false),
                 ['l'] = source => ParseLineTo(source, true),
 
                 ['Z'] = source => ParseClose(),
-                ['z'] = source => ParseClose()
+                ['z'] = source => ParseClose(),
+
+                ['H'] = source => ParseHorizontalLineTo(source, false),
+                ['h'] = source => ParseHorizontalLineTo(source, true),
+                ['V'] = source => ParseVerticalLineTo(source, false),
+                ['v'] = source => ParseVerticalLineTo(source, true)
             };
         }
 
@@ -72,10 +76,39 @@ namespace SilkyNvg.Extensions.Svg.Parser.Elements
             return true;
         }
 
-
         private bool ParseClose()
         {
             _instructions.Add(new CloseInstruction());
+            return true;
+        }
+
+        private bool ParseHorizontalLineTo(StringSource source, bool relative)
+        {
+            var sequence = source.ParseCoordinateSequence();
+            if (sequence == null)
+            {
+                return false;
+            }
+            foreach (var coord in sequence)
+            {
+                _currentPosition = new Vector2D<float>(relative ? (_currentPosition.X + coord) : coord, _currentPosition.Y);
+                _instructions.Add(new LineToInstruction(_currentPosition));
+            }
+            return true;
+        }
+
+        private bool ParseVerticalLineTo(StringSource source, bool relative)
+        {
+            var sequence = source.ParseCoordinateSequence();
+            if (sequence == null)
+            {
+                return false;
+            }
+            foreach (var coord in sequence)
+            {
+                _currentPosition = new Vector2D<float>(_currentPosition.X, relative ? (_currentPosition.Y + coord) : coord);
+                _instructions.Add(new LineToInstruction(_currentPosition));
+            }
             return true;
         }
 
@@ -97,14 +130,6 @@ namespace SilkyNvg.Extensions.Svg.Parser.Elements
                 }
             }
 
-            List<IInstruction> instructions = [
-                new MoveToInstruction(new Vector2D<float>(200.0f, 50.0f)),
-                new LineToInstruction(new Vector2D<float>(300.0f, 50.0f)),
-                new LineToInstruction(new Vector2D<float>(300.0f, 150.0f)),
-                new LineToInstruction(new Vector2D<float>(200.0f, 150.0f)),
-                new LineToInstruction(new Vector2D<float>(200.0f, 50.0f)),
-                new CloseInstruction()
-            ];
             _parser.Shapes.Add(new Shape(_instructions, _parser.State));
         }
 

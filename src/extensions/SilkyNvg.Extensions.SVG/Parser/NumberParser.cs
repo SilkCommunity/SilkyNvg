@@ -72,6 +72,26 @@ namespace SilkyNvg.Extensions.Svg.Parser
             return new Vector2D<float>(x.Value, y.Value);
         }
 
+        internal static IReadOnlyList<float>? ParseCoordinateSequence(this StringSource source)
+        {
+            float? coord = source.ParseCoordinate();
+            if (!coord.HasValue)
+            {
+                return null;
+            }
+            List<float> sequence = [];
+            int idx;
+            do
+            {
+                source.ConsumeCommaWsp();
+                idx = source.Index;
+                sequence.Add(coord.Value);
+                coord = source.ParseCoordinate();
+            } while (coord.HasValue);
+            source.BackTo(idx);
+            return sequence.AsReadOnly();
+        }
+
         internal static IReadOnlyList<Vector2D<float>>? ParseCoordinatePairSequence(this StringSource source)
         {
             Vector2D<float>? pair = source.ParseCoordinatePair();
