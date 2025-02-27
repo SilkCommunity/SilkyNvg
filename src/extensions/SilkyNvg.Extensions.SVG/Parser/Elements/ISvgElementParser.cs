@@ -13,7 +13,7 @@ namespace SilkyNvg.Extensions.Svg.Parser.Elements
 
         static void ParseAttr(AttrParser parser, string? strValue)
         {
-            if (strValue != null)
+            if (!string.IsNullOrEmpty(strValue))
             {
                 parser.Invoke(new StringSource(strValue));
             }

@@ -6,3 +6,5 @@
 [assembly: InternalsVisibleTo("SilkyNvg.Paths", AllInternalsVisible = true)]
 [assembly: InternalsVisibleTo("SilkyNvg.Transforms", AllInternalsVisible = true)]
 [assembly: InternalsVisibleTo("SilkyNvg.Text", AllInternalsVisible = true)]
+
+[assembly: InternalsVisibleTo("SilkyNvg.Extensions.Svg", AllInternalsVisible = true)]

@@ -6,16 +6,16 @@ namespace SilkyNvg.Extensions.Svg;
 public static class NvgSvgEXT
 {
 
-    public static void CreateSvg(this Nvg nvg, string xmlCode)
+    public static SvgImage CreateSvg(this Nvg nvg, string xmlCode)
     {
-        var parser = new SvgParser(nvg);
+        var parser = new SvgParser();
 
         var doc = new XmlDocument();
         doc.LoadXml(xmlCode);
-        parser.Parse(doc.DocumentElement ?? throw new ArgumentException("Failed to parse XML code."));
+        return parser.Parse(doc.DocumentElement ?? throw new ArgumentException("Failed to parse XML code."));
     }
 
-    public static void CreateSvgFromFile(this Nvg nvg, string filename)
+    public static SvgImage? CreateSvgFromFile(this Nvg nvg, string filename)
     {
         string xmlCode;
         try
@@ -24,9 +24,17 @@ public static class NvgSvgEXT
         }
         catch
         {
-            return;
+            return null;
         }
-        CreateSvg(nvg, xmlCode);
+        return CreateSvg(nvg, xmlCode);
+    }
+
+    public static void DrawSvgImage(this Nvg nvg, SvgImage image)
+    {
+        foreach (Shape shape in image.Shapes)
+        {
+            shape.Draw(nvg);
+        }
     }
 
 }

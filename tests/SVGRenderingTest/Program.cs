@@ -6,6 +6,7 @@ using SilkyNvg.Extensions.Svg;
 using SilkyNvg.Graphics;
 using SilkyNvg.Paths;
 using SilkyNvg.Rendering.OpenGL;
+using SilkyNvg.Transforms;
 
 namespace OpenGL_Example
 {
@@ -17,7 +18,7 @@ namespace OpenGL_Example
 
         private static IWindow window;
 
-        private static string svgXml;
+        private static SvgImage svg;
 
         private static void Load()
         {
@@ -26,7 +27,7 @@ namespace OpenGL_Example
             OpenGLRenderer nvgRenderer = new(CreateFlags.Antialias | CreateFlags.StencilStrokes | CreateFlags.Debug, gl);
             nvg = Nvg.Create(nvgRenderer);
 
-            nvg.CreateSvgFromFile("./heart.svg");
+            svg = nvg.CreateSvgFromFile("./heart.svg") ?? throw new InvalidOperationException("Failed to parser Svg");
         }
 
         private static void Render(double d)
@@ -42,17 +43,18 @@ namespace OpenGL_Example
 
             nvg.BeginFrame(winSize.As<float>(), pxRatio);
 
-            float x = 100.0f, y = 100.0f;
-            float w = 150.0f, h = 350.0f;
-            float cornerRadius = 10.0f;
-
             nvg.BeginPath();
-            nvg.Rect(x - 10.0f, y - 10.0f, w + 20.0f, h + 30.0f);
-            nvg.PathWinding(Solidity.Hole);
-            nvg.RoundedRect(x, y, w, h, cornerRadius);
-            nvg.PathWinding(Solidity.Solid);
-            nvg.FillColour(Colour.Yellow);
-            nvg.Fill();
+            nvg.MoveTo(200.0f, 50.0f);
+            nvg.LineTo(300.0f, 50.0f);
+            nvg.LineTo(300.0f, 150.0f);
+            nvg.LineTo(200.0f, 150.0f);
+            nvg.LineTo(200.0f, 50.0f);
+            nvg.ClosePath();
+
+            nvg.StrokeColour(Colour.Black);
+            nvg.Stroke();
+
+            nvg.DrawSvgImage(svg);
 
             nvg.EndFrame();
         }
