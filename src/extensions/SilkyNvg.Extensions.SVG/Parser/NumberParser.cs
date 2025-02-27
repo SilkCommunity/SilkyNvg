@@ -1,5 +1,7 @@
-﻿using SilkyNvg.Extensions.Svg.Parser.Utils;
+﻿using Silk.NET.Maths;
+using SilkyNvg.Extensions.Svg.Parser.Utils;
 using System.Globalization;
+using System.Text;
 
 namespace SilkyNvg.Extensions.Svg.Parser
 {
@@ -13,6 +15,81 @@ namespace SilkyNvg.Extensions.Svg.Parser
                 return number;
             }
             return null;
+        }
+
+        internal static string ReadDigitString(this StringSource source)
+        {
+            var builder = new StringBuilder();
+            while (source.Current.IsDigit())
+            {
+                builder.Append(source.Current);
+                source.Next();
+            }
+            return builder.ToString();
+        }
+
+        internal static float? ParseCoordinate(this StringSource source)
+        {
+            float sign = 1.0f;
+            if (source.Current == Symbols.PLUS)
+            {
+                source.Next();
+                sign = 1.0f;
+            }
+            else if (source.Current == Symbols.MINUS)
+            {
+                source.Next();
+                sign = -1.0f;
+            }
+
+            string num = ReadDigitString(source);
+            if (source.Current == Symbols.DOT)
+            {
+                source.Next();
+                num += "." + ReadDigitString(source);
+            }
+
+            if (float.TryParse(num, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out float value))
+            {
+                return value * sign;
+            }
+            return null;
+        }
+
+        internal static Vector2D<float>? ParseCoordinatePair(this StringSource source)
+        {
+            float? x = source.ParseCoordinate();
+            if (!x.HasValue)
+            {
+                return null;
+            }
+            source.ConsumeCommaWsp();
+            float? y = source.ParseCoordinate();
+            if (!y.HasValue)
+            {
+                return null;
+            }
+            return new Vector2D<float>(x.Value, y.Value);
+        }
+
+        internal static IReadOnlyList<Vector2D<float>>? ParseCoordinatePairSequence(this StringSource source)
+        {
+            Vector2D<float>? pair = source.ParseCoordinatePair();
+            if (!pair.HasValue)
+            {
+                return null;
+            }
+            List<Vector2D<float>> sequence = [];
+            int idx;
+            do
+            {
+                source.ConsumeCommaWsp();
+                idx = source.Index;
+                sequence.Add(pair.Value);
+                pair = source.ParseCoordinatePair();
+            } while (pair.HasValue);
+            source.BackTo(idx);
+            return sequence.AsReadOnly();
         }
 
         internal static float?[] ParseNumberList(this StringSource source)
