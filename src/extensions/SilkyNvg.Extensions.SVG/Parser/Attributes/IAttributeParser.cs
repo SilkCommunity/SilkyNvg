@@ -1,9 +1,11 @@
-﻿namespace SilkyNvg.Extensions.Svg.Parser.Attributes
+﻿using SilkyNvg.Extensions.Svg.Parser.Utils;
+
+namespace SilkyNvg.Extensions.Svg.Parser.Attributes
 {
     internal interface IAttributeParser
     {
 
-        void Parse(string content);
+        void Parse(StringSource content, ref AttribState state);
 
     }
 }

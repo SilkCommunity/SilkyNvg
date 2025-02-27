@@ -28,6 +28,8 @@ namespace SilkyNvg.Extensions.Svg.Parser.Attributes
         internal bool HasStroke;
         internal bool IsVisible;
 
+        internal Rectangle<float> Viewport;
+
         internal static AttribState InitialState()
         {
             return new AttribState
@@ -46,7 +48,9 @@ namespace SilkyNvg.Extensions.Svg.Parser.Attributes
                 FillRule = FillRule.Nonzero,
                 HasFill = true,
                 HasStroke = false,
-                IsVisible = true
+                IsVisible = true,
+
+                Viewport = default
             };
         }
 

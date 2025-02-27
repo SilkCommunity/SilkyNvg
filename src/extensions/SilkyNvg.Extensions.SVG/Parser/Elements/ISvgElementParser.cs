@@ -1,4 +1,6 @@
-﻿using System.Xml;
+﻿using SilkyNvg.Extensions.Svg.Parser.Attributes;
+using SilkyNvg.Extensions.Svg.Parser.Utils;
+using System.Xml;
 
 namespace SilkyNvg.Extensions.Svg.Parser.Elements
 {
@@ -6,6 +8,16 @@ namespace SilkyNvg.Extensions.Svg.Parser.Elements
     {
 
         void Parse(XmlElement element);
+
+        delegate void AttrParser(StringSource content);
+
+        static void ParseAttr(AttrParser parser, string? strValue)
+        {
+            if (strValue != null)
+            {
+                parser.Invoke(new StringSource(strValue));
+            }
+        }
 
     }
 }

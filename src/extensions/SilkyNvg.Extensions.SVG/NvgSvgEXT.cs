@@ -12,7 +12,7 @@ public static class NvgSvgEXT
 
         var doc = new XmlDocument();
         doc.LoadXml(xmlCode);
-        parser.ParseSvgElement(doc.DocumentElement ?? throw new ArgumentException("Failed to parse XML code."));
+        parser.Parse(doc.DocumentElement ?? throw new ArgumentException("Failed to parse XML code."));
     }
 
     public static void CreateSvgFromFile(this Nvg nvg, string filename)

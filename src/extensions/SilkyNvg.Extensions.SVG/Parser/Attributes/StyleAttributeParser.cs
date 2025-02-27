@@ -1,7 +1,9 @@
-﻿namespace SilkyNvg.Extensions.Svg.Parser.Attributes
+﻿using SilkyNvg.Extensions.Svg.Parser.Utils;
+
+namespace SilkyNvg.Extensions.Svg.Parser.Attributes
 {
     internal class StyleAttributeParser : IAttributeParser
     {
-        public void Parse(string content) { }
+        public void Parse(StringSource content, ref AttribState state) { }
     }
 }

@@ -2,11 +2,6 @@
 using SilkyNvg.Core.Paths;
 using SilkyNvg.Extensions.Svg.Parser.Attributes;
 using SilkyNvg.Extensions.Svg.Parser.Elements;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 
 namespace SilkyNvg.Extensions.Svg.Parser
@@ -20,15 +15,19 @@ namespace SilkyNvg.Extensions.Svg.Parser
 
         internal readonly AttribStack Attribs;
         internal readonly PathCache PathCache;
-        internal readonly Rectangle<float> Viewport;
 
         private readonly Dictionary<string, ISvgElementParser> _elementParsers;
+
+        internal float? Width;
+        internal float? Height;
+
+        internal AttribState State;
 
         internal SvgParser(Nvg nvg)
         {
             Attribs = new();
             PathCache = new(nvg);
-            Viewport = default;
+            Width = Height = null;
 
             _elementParsers = new()
             {
@@ -40,17 +39,21 @@ namespace SilkyNvg.Extensions.Svg.Parser
 
         private void ParseElement(XmlElement element)
         {
-            Attribs.ParseAttribs(element.Attributes);
+            State = Attribs.ParseAttribs(element.Attributes);
             if (!_elementParsers.TryGetValue(element.Name, out var elementParser))
             {
                 return;
             }
             elementParser.Parse(element);
+            Attribs.Push(State);
         }
 
         private void ParseChildren(XmlNodeList children)
         {
-
+            foreach (XmlElement child in children)
+            {
+                ParseSvgElement(child);
+            }
         }
 
         private void EndElement(XmlElement _)
@@ -58,11 +61,31 @@ namespace SilkyNvg.Extensions.Svg.Parser
             Attribs.Pop();
         }
 
-        internal void ParseSvgElement(XmlElement element)
+        private void ParseSvgElement(XmlElement element)
         {
             ParseElement(element);
             ParseChildren(element.ChildNodes);
             EndElement(element);
+        }
+
+        internal void PathMoveTo(float x, float y)
+        {
+            PathCache.AddPath();
+        }
+
+        internal void Parse(XmlElement top)
+        {
+            ParseElement(top);
+            if (!Width.HasValue)
+            {
+                Width = Attribs.Top.Viewport.Size.X;
+            }
+            if (!Height.HasValue)
+            {
+                Height = Attribs.Top.Viewport.Size.Y;
+            }
+            ParseChildren(top.ChildNodes);
+            EndElement(top);
         }
 
     }
