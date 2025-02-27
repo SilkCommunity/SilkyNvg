@@ -32,7 +32,8 @@ namespace SilkyNvg.Paths
         /// </summary>
         public static void MoveTo(this Nvg nvg, Vector2D<float> p)
         {
-            nvg.instructionQueue.AddMoveTo(p);
+            Matrix3X2<float> transform = nvg.stateStack.CurrentState.Transform;
+            nvg.instructionQueue.AddMoveTo(p, transform);
         }
 
         /// <inheritdoc cref="MoveTo(Nvg, Vector2D{float})"/><br/>
@@ -44,7 +45,8 @@ namespace SilkyNvg.Paths
         /// </summary>
         public static void LineTo(this Nvg nvg, Vector2D<float> p)
         {
-            nvg.instructionQueue.AddLineTo(p);
+            Matrix3X2<float> transform = nvg.stateStack.CurrentState.Transform;
+            nvg.instructionQueue.AddLineTo(p, transform);
         }
 
         /// <inheritdoc cref="LineTo(Nvg, Vector2D{float})"/><br/>
@@ -56,7 +58,8 @@ namespace SilkyNvg.Paths
         /// </summary>
         public static void BezierTo(this Nvg nvg, Vector2D<float> cp0, Vector2D<float> cp1, Vector2D<float> p)
         {
-            nvg.instructionQueue.AddBezierTo(cp0, cp1, p);
+            Matrix3X2<float> transform = nvg.stateStack.CurrentState.Transform;
+            nvg.instructionQueue.AddBezierTo(cp0, cp1, p, transform);
         }
 
         /// <inheritdoc cref="BezierTo(Nvg, Vector2D{float}, Vector2D{float}, Vector2D{float})"/><br/>
@@ -69,10 +72,11 @@ namespace SilkyNvg.Paths
         public static void QuadTo(this Nvg nvg, Vector2D<float> cp, Vector2D<float> p)
         {
             Vector2D<float> lastPos = nvg.instructionQueue.EndPosition;
+            Matrix3X2<float> transform = nvg.stateStack.CurrentState.Transform;
             nvg.instructionQueue.AddBezierTo(
                 lastPos + 2.0f / 3.0f * (cp - lastPos),
                 p + 2.0f / 3.0f * (cp - p),
-                p
+                p, transform
             );
         }
 
@@ -178,6 +182,7 @@ namespace SilkyNvg.Paths
             Vector2D<float> pTan = default;
 
             InstructionQueue queue = nvg.instructionQueue;
+            Matrix3X2<float> transform = nvg.stateStack.CurrentState.Transform;
 
             bool line = queue.Count > 0;
 
@@ -231,16 +236,16 @@ namespace SilkyNvg.Paths
                 {
                     if (line)
                     {
-                        queue.AddLineTo(pos);
+                        queue.AddLineTo(pos, transform);
                     }
                     else
                     {
-                        queue.AddMoveTo(pos);
+                        queue.AddMoveTo(pos, transform);
                     }
                 }
                 else
                 {
-                    queue.AddBezierTo(pPos + pTan, pos - tan, pos);
+                    queue.AddBezierTo(pPos + pTan, pos - tan, pos, transform);
                 }
 
                 pPos = pos;
@@ -273,10 +278,11 @@ namespace SilkyNvg.Paths
         public static void Rect(this Nvg nvg, Rectangle<float> rect)
         {
             InstructionQueue queue = nvg.instructionQueue;
-            queue.AddMoveTo(rect.Origin);
-            queue.AddLineTo(new(rect.Origin.X, rect.Max.Y));
-            queue.AddLineTo(rect.Max);
-            queue.AddLineTo(new(rect.Max.X, rect.Origin.Y));
+            Matrix3X2<float> transform = nvg.stateStack.CurrentState.Transform;
+            queue.AddMoveTo(rect.Origin, transform);
+            queue.AddLineTo(new(rect.Origin.X, rect.Max.Y), transform);
+            queue.AddLineTo(rect.Max, transform);
+            queue.AddLineTo(new(rect.Max.X, rect.Origin.Y), transform);
             queue.AddClose();
         }
 
@@ -316,6 +322,7 @@ namespace SilkyNvg.Paths
             else
             {
                 InstructionQueue queue = nvg.instructionQueue;
+                Matrix3X2<float> transform = nvg.stateStack.CurrentState.Transform;
 
                 float factor = 1 - KAPPA90;
                 Vector2D<float> half = Vector2D.Abs(rect.Size) * 0.5f;
@@ -323,30 +330,34 @@ namespace SilkyNvg.Paths
                 Vector2D<float> rBR = new(MathF.Min(radBottomRight, half.X) * Maths.Sign(rect.Size.X),  MathF.Min(radBottomRight, half.Y) * Maths.Sign(rect.Size.Y));
                 Vector2D<float> rTR = new(MathF.Min(radTopRight, half.X) * Maths.Sign(rect.Size.X),     MathF.Min(radTopRight, half.Y) * Maths.Sign(rect.Size.Y));
                 Vector2D<float> rTL = new(MathF.Min(radTopLeft, half.X) * Maths.Sign(rect.Size.X),      MathF.Min(radTopLeft, half.Y) * Maths.Sign(rect.Size.Y));
-                queue.AddMoveTo(new(rect.Origin.X, rect.Origin.Y + rTL.Y));
-                queue.AddLineTo(new(rect.Origin.X, rect.Origin.Y + rect.Size.Y - rBL.Y));
+                queue.AddMoveTo(new(rect.Origin.X, rect.Origin.Y + rTL.Y), transform);
+                queue.AddLineTo(new(rect.Origin.X, rect.Origin.Y + rect.Size.Y - rBL.Y), transform);
                 queue.AddBezierTo(
                     new(rect.Origin.X,                  rect.Origin.Y + rect.Size.Y - rBL.Y * factor),
                     new(rect.Origin.X + rBL.X * factor, rect.Origin.Y + rect.Size.Y),
-                    new(rect.Origin.X + rBL.X,          rect.Origin.Y + rect.Size.Y)
+                    new(rect.Origin.X + rBL.X,          rect.Origin.Y + rect.Size.Y),
+                    transform
                 );
-                queue.AddLineTo(new(rect.Origin.X + rect.Size.X - rBR.X, rect.Origin.Y + rect.Size.Y));
+                queue.AddLineTo(new(rect.Origin.X + rect.Size.X - rBR.X, rect.Origin.Y + rect.Size.Y), transform);
                 queue.AddBezierTo(
                     new(rect.Origin.X + rect.Size.X - rBR.X * factor,   rect.Origin.Y + rect.Size.Y),
                     new(rect.Origin.X + rect.Size.X,                    rect.Origin.Y + rect.Size.Y - rBR.Y * factor),
-                    new(rect.Origin.X + rect.Size.X,                    rect.Origin.Y + rect.Size.Y - rBR.Y)
+                    new(rect.Origin.X + rect.Size.X,                    rect.Origin.Y + rect.Size.Y - rBR.Y),
+                    transform
                 );
-                queue.AddLineTo(new(rect.Origin.X + rect.Size.X, rect.Origin.Y + rTR.Y));
+                queue.AddLineTo(new(rect.Origin.X + rect.Size.X, rect.Origin.Y + rTR.Y), transform);
                 queue.AddBezierTo(
                     new(rect.Origin.X + rect.Size.X,                    rect.Origin.Y + rTR.Y * factor),
                     new(rect.Origin.X + rect.Size.X - rTR.X * factor,   rect.Origin.Y),
-                    new(rect.Origin.X + rect.Size.X - rTR.X,            rect.Origin.Y)
+                    new(rect.Origin.X + rect.Size.X - rTR.X,            rect.Origin.Y),
+                    transform
                 );
-                queue.AddLineTo(new(rect.Origin.X + rTL.X, rect.Origin.Y));
+                queue.AddLineTo(new(rect.Origin.X + rTL.X, rect.Origin.Y), transform);
                 queue.AddBezierTo(
                     new(rect.Origin.X + rTL.X * factor, rect.Origin.Y),
                     new(rect.Origin.X,                  rect.Origin.Y + rTL.Y * factor),
-                    new(rect.Origin.X,                  rect.Origin.Y + rTL.Y)
+                    new(rect.Origin.X,                  rect.Origin.Y + rTL.Y),
+                    transform
                 );
                 queue.AddClose();
             }
@@ -366,23 +377,28 @@ namespace SilkyNvg.Paths
         public static void Ellipse(this Nvg nvg, Vector2D<float> c, float rx, float ry)
         {
             InstructionQueue queue = nvg.instructionQueue;
-            queue.AddMoveTo(new(c.X - rx, c.Y));
+            Matrix3X2<float> transform = nvg.stateStack.CurrentState.Transform;
+            queue.AddMoveTo(new(c.X - rx, c.Y), transform);
             queue.AddBezierTo(
                 new(c.X - rx,           c.Y + ry * KAPPA90),
                 new(c.X - rx * KAPPA90, c.Y + ry),
-                new(c.X,                c.Y + ry));
+                new(c.X,                c.Y + ry),
+                transform);
             queue.AddBezierTo(
                 new(c.X + rx * KAPPA90, c.Y + ry),
                 new(c.X + rx,           c.Y + ry * KAPPA90),
-                new(c.X + rx,           c.Y));
+                new(c.X + rx,           c.Y),
+                transform);
             queue.AddBezierTo(
                 new(c.X + rx,           c.Y - ry * KAPPA90),
                 new(c.X + rx * KAPPA90, c.Y - ry),
-                new(c.X,                c.Y - ry));
+                new(c.X,                c.Y - ry),
+                transform);
             queue.AddBezierTo(
                 new(c.X - rx * KAPPA90, c.Y - ry),
                 new(c.X - rx,           c.Y - ry * KAPPA90),
-                new(c.X - rx,           c.Y));
+                new(c.X - rx,           c.Y),
+                transform);
             queue.AddClose();
         }
 
@@ -410,7 +426,7 @@ namespace SilkyNvg.Paths
             State state = nvg.stateStack.CurrentState;
             Paint fillPaint = state.Fill;
 
-            nvg.instructionQueue.FlattenPaths();
+            nvg.instructionQueue.FlattenPaths(nvg.pixelRatio, nvg.pathCache);
 
             if (nvg.renderer.EdgeAntiAlias && nvg.stateStack.CurrentState.ShapeAntiAlias)
             {
@@ -450,7 +466,7 @@ namespace SilkyNvg.Paths
 
             strokePaint.PremultiplyAlpha(state.Alpha);
 
-            nvg.instructionQueue.FlattenPaths();
+            nvg.instructionQueue.FlattenPaths(nvg.pixelRatio, nvg.pathCache);
 
             if (nvg.renderer.EdgeAntiAlias && state.ShapeAntiAlias)
             {

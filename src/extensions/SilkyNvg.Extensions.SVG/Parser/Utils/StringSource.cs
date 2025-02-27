@@ -103,6 +103,34 @@ namespace SilkyNvg.Extensions.Svg.Parser.Utils
             return false;
         }
 
+        /**
+         * Consume Wsp and / or comma delimiters, such that the next call
+         * to Next() will not return wsp.
+         * Returns true if any delimiter or wsp was seen.
+         */
+        internal bool ConsumeCommaWsp()
+        {
+            bool seen = ConsumeWsp();
+            if (Next() == Symbols.COMMA)
+            {
+                seen = true;
+            }
+            ConsumeWsp();
+            return seen;
+        }
+
+        /**
+         * Consume Wsp, such that the next call to Next() will not
+         * return wsp.
+         * Returns true if any wsp was seen.
+         */
+        internal bool ConsumeWsp()
+        {
+            while (Next().IsWhiteSpaceCharacter()) ;
+            Back();
+            return Current.IsWhiteSpaceCharacter();
+        }
+
         public override bool Equals(object? obj)
         {
             return (obj is StringSource source) && Equals(source);

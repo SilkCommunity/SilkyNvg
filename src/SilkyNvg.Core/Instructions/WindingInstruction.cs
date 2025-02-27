@@ -8,17 +8,15 @@ namespace SilkyNvg.Core.Instructions
     {
 
         private readonly Winding _winding;
-        private readonly PathCache _pathCache;
 
-        public WindingInstruction(Winding winding, PathCache pathCache)
+        public WindingInstruction(Winding winding)
         {
             _winding = winding;
-            _pathCache = pathCache;
         }
 
-        public void BuildPaths(PixelRatio pixelRatio)
+        public void BuildPaths(PixelRatio pixelRatio, PathCache pathCache)
         {
-            _pathCache.LastPath.Winding = _winding;
+            pathCache.LastPath.Winding = _winding;
         }
 
     }

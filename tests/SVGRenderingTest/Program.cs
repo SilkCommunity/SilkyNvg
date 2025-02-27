@@ -30,6 +30,8 @@ namespace OpenGL_Example
             svg = nvg.CreateSvgFromFile("./heart.svg") ?? throw new InvalidOperationException("Failed to parser Svg");
         }
 
+        static double dl = 0;
+
         private static void Render(double d)
         {
             Vector2D<float> winSize = window.Size.As<float>();
@@ -51,11 +53,11 @@ namespace OpenGL_Example
             nvg.LineTo(200.0f, 50.0f);
             nvg.ClosePath();
 
-            nvg.StrokeWidth(1.0f);
+            nvg.StrokeWidth(10.0f);
             nvg.StrokeColour(Colour.Yellow);
             nvg.Stroke();
 
-            nvg.DrawSvgImage(svg);
+            //nvg.DrawSvgImage(svg);
 
             nvg.EndFrame();
         }

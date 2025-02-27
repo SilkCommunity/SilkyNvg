@@ -31,7 +31,7 @@ namespace SilkyNvg
         {
             this.renderer = renderer;
 
-            instructionQueue = new InstructionQueue(this);
+            instructionQueue = new InstructionQueue();
             pathCache = new PathCache();
             stateStack = new StateStack();
             pixelRatio = new PixelRatio();

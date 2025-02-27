@@ -13,7 +13,6 @@ namespace SilkyNvg.Extensions.Svg.Parser
         internal readonly List<Shape> Shapes = [];
 
         internal readonly AttribStack Attribs;
-        internal readonly PathCache PathCache;
 
         internal readonly PixelRatio PixelRatio;
 
@@ -27,7 +26,6 @@ namespace SilkyNvg.Extensions.Svg.Parser
         internal SvgParser()
         {
             Attribs = new();
-            PathCache = new();
             PixelRatio = new();
 
             Width = Height = null;
@@ -72,22 +70,6 @@ namespace SilkyNvg.Extensions.Svg.Parser
             EndElement(element);
         }
 
-        internal void PathMoveTo(Vector2D<float> position)
-        {
-            PathCache.AddPath(PixelRatio);
-            PathCache.LastPath.AddPoint(Vector2D.Transform(position, State.Transform), PointFlags.Corner);
-        }
-
-        internal void PathLineTo(Vector2D<float> position)
-        {
-            PathCache.LastPath.AddPoint(Vector2D.Transform(position, State.Transform), PointFlags.Corner);
-        }
-
-        internal void PathClose()
-        {
-            PathCache.LastPath.Close();
-        }
-
         internal SvgImage Parse(XmlElement top)
         {
             ParseElement(top);
@@ -101,7 +83,7 @@ namespace SilkyNvg.Extensions.Svg.Parser
             }
             ParseChildren(top.ChildNodes);
             EndElement(top);
-            return new SvgImage([.. Shapes], (float)Width, (float)Height);
+            return new SvgImage(Shapes.ToArray(), (float)Width, (float)Height);
         }
 
     }

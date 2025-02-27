@@ -8,18 +8,16 @@ namespace SilkyNvg.Core.Instructions
     {
 
         private readonly Vector2D<float> _position;
-        private readonly PathCache _pathCache;
 
-        public MoveToInstruction(Vector2D<float> position, PathCache pathCache)
+        public MoveToInstruction(Vector2D<float> position, Matrix3X2<float> transform)
         {
-            _position = position;
-            _pathCache = pathCache;
+            _position = Vector2D.Transform(position, transform);
         }
 
-        public void BuildPaths(PixelRatio pixelRatio)
+        public void BuildPaths(PixelRatio pixelRatio, PathCache pathCache)
         {
-            _pathCache.AddPath(pixelRatio);
-            _pathCache.LastPath.AddPoint(_position, PointFlags.Corner);
+            pathCache.AddPath(pixelRatio);
+            pathCache.LastPath.AddPoint(_position, PointFlags.Corner);
         }
 
     }

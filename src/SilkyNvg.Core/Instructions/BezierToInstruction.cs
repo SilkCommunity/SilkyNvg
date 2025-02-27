@@ -14,20 +14,15 @@ namespace SilkyNvg.Core.Instructions
         private readonly Vector2D<float> _p1;
         private readonly Vector2D<float> _p2;
 
-        private readonly float _tessTol;
-        private readonly PathCache _pathCache;
-
-        public BezierToInstruction(Vector2D<float> p0, Vector2D<float> p1, Vector2D<float> p2, float tessTol, PathCache pathCache)
+        public BezierToInstruction(Vector2D<float> p0, Vector2D<float> p1, Vector2D<float> p2, Matrix3X2<float> transform)
         {
-            _p0 = p0;
-            _p1 = p1;
-            _p2 = p2;
-
-            _tessTol = tessTol;
-            _pathCache = pathCache;
+            _p0 = Vector2D.Transform(p0, transform);
+            _p1 = Vector2D.Transform(p1, transform);
+            _p2 = Vector2D.Transform(p2, transform);
         }
 
-        private void TesselateBezier(Vector2D<float> p1, Vector2D<float> p2, Vector2D<float> p3, Vector2D<float> p4, byte level, PointFlags flags)
+        private void TesselateBezier(Vector2D<float> p1, Vector2D<float> p2, Vector2D<float> p3, Vector2D<float> p4,
+            byte level, float tessTol, PointFlags flags, PathCache pathCache)
         {
             if (level > MAX_TESSELATION_DEPTH)
             {
@@ -43,25 +38,25 @@ namespace SilkyNvg.Core.Instructions
             float d2 = MathF.Abs((p2.X - p4.X) * d.Y - (p2.Y - p4.Y) * d.X);
             float d3 = MathF.Abs((p3.X - p4.X) * d.Y - (p3.Y - p4.Y) * d.X);
 
-            if ((d2 + d3) * (d2 + d3) < _tessTol * (d.X * d.X + d.Y * d.Y))
+            if ((d2 + d3) * (d2 + d3) < tessTol * (d.X * d.X + d.Y * d.Y))
             {
-                _pathCache.LastPath.AddPoint(p4, flags);
+                pathCache.LastPath.AddPoint(p4, flags);
                 return;
             }
 
             Vector2D<float> p234 = (p23 + p34) * 0.5f;
             Vector2D<float> p1234 = (p123 + p234) * 0.5f;
 
-            TesselateBezier(p1, p12, p123, p1234, (byte)(level + 1), 0);
-            TesselateBezier(p1234, p234, p34, p4, (byte)(level + 1), flags);
+            TesselateBezier(p1, p12, p123, p1234, (byte)(level + 1), tessTol, 0,        pathCache);
+            TesselateBezier(p1234, p234, p34, p4, (byte)(level + 1), tessTol, flags,    pathCache);
         }
 
-        public void BuildPaths(PixelRatio pixelRatio)
+        public void BuildPaths(PixelRatio pixelRatio, PathCache pathCache)
         {
-            if (_pathCache.LastPath.PointCount > 0)
+            if (pathCache.LastPath.PointCount > 0)
             {
-                Vector2D<float> last = _pathCache.LastPath.LastPoint;
-                TesselateBezier(last, _p0, _p1, _p2, 0, PointFlags.Corner);
+                Vector2D<float> last = pathCache.LastPath.LastPoint;
+                TesselateBezier(last, _p0, _p1, _p2, 0, pixelRatio.TessTol, PointFlags.Corner, pathCache);
             }
         }
 
