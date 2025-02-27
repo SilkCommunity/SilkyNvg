@@ -23,6 +23,18 @@ namespace SilkyNvg.Extensions.Svg.Parser
 
         internal AttribState State;
 
+        internal Shape? LastShape
+        {
+            get
+            {
+                if (Shapes.Count > 0)
+                {
+                    return Shapes[^1];
+                }
+                return null;
+            }
+        }
+
         internal SvgParser()
         {
             Attribs = new();

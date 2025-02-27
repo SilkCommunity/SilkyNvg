@@ -50,6 +50,19 @@ namespace SilkyNvg.Core.Instructions
             _instructions.Enqueue(new WindingInstruction(winding));
         }
 
+        internal void Add(IInstruction instruction)
+        {
+            _instructions.Enqueue(instruction);
+        }
+
+        internal void AddRange(IList<IInstruction> instructions)
+        {
+            for (int i = 0; i <  instructions.Count; i++)
+            {
+                Add(instructions[i]);
+            }
+        }
+
         public void FlattenPaths(Matrix3X2<float> transform, PixelRatio pixelRatio, PathCache pathCache)
         {
             while (_instructions.Count > 0)

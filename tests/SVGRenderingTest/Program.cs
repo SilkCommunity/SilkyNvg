@@ -57,7 +57,7 @@ namespace OpenGL_Example
             nvg.StrokeColour(Colour.Yellow);
             nvg.Stroke();
 
-            //nvg.DrawSvgImage(svg);
+            nvg.DrawSvgImage(svg);
 
             nvg.EndFrame();
         }

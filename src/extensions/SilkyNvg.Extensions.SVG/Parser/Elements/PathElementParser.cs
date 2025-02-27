@@ -1,4 +1,5 @@
 ﻿using Silk.NET.Maths;
+using SilkyNvg.Core.Instructions;
 using SilkyNvg.Extensions.Svg.Parser.Attributes;
 using SilkyNvg.Extensions.Svg.Parser.Constants;
 using SilkyNvg.Extensions.Svg.Parser.Utils;
@@ -41,7 +42,15 @@ namespace SilkyNvg.Extensions.Svg.Parser.Elements
         private void ParseD(StringSource content)
         {
             _currentPosition = Vector2D<float>.Zero;
-
+            List<IInstruction> instructions = [
+                new MoveToInstruction(new Vector2D<float>(200.0f, 50.0f)),
+                new LineToInstruction(new Vector2D<float>(300.0f, 50.0f)),
+                new LineToInstruction(new Vector2D<float>(300.0f, 150.0f)),
+                new LineToInstruction(new Vector2D<float>(200.0f, 150.0f)),
+                new LineToInstruction(new Vector2D<float>(200.0f, 50.0f)),
+                new CloseInstruction()
+            ];
+            _parser.Shapes.Add(new Shape(instructions, _parser.State));
         }
 
         public void Parse(XmlElement element)
