@@ -9,14 +9,14 @@ namespace SilkyNvg.Core.Instructions
 
         private readonly Vector2D<float> _position;
 
-        public LineToInstruction(Vector2D<float> position, Matrix3X2<float> transform)
+        public LineToInstruction(Vector2D<float> position)
         {
-            _position = Vector2D.Transform(position, transform);
+            _position = position;
         }
 
-        public void BuildPaths(PixelRatio pixelRatio, PathCache pathCache)
+        public void BuildPaths(Matrix3X2<float> transform, PixelRatio pixelRatio, PathCache pathCache)
         {
-            pathCache.LastPath.AddPoint(_position, PointFlags.Corner);
+            pathCache.LastPath.AddPoint(Vector2D.Transform(_position, transform), PointFlags.Corner);
         }
 
     }

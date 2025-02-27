@@ -22,22 +22,22 @@ namespace SilkyNvg.Core.Instructions
             EndPosition = default;
         }
 
-        public void AddMoveTo(Vector2D<float> pos, Matrix3X2<float> transform)
+        public void AddMoveTo(Vector2D<float> pos)
         {
             EndPosition = pos;
-            _instructions.Enqueue(new MoveToInstruction(pos, transform));
+            _instructions.Enqueue(new MoveToInstruction(pos));
         }
 
-        public void AddLineTo(Vector2D<float> pos, Matrix3X2<float> transform)
+        public void AddLineTo(Vector2D<float> pos)
         {
             EndPosition = pos;
-            _instructions.Enqueue(new LineToInstruction(pos, transform));
+            _instructions.Enqueue(new LineToInstruction(pos));
         }
 
-        public void AddBezierTo(Vector2D<float> p0, Vector2D<float> p1, Vector2D<float> p2, Matrix3X2<float> transform)
+        public void AddBezierTo(Vector2D<float> p0, Vector2D<float> p1, Vector2D<float> p2)
         {
             EndPosition = p2;
-            _instructions.Enqueue(new BezierToInstruction(p0, p1, p2, transform));
+            _instructions.Enqueue(new BezierToInstruction(p0, p1, p2));
         }
 
         public void AddClose()
@@ -50,11 +50,11 @@ namespace SilkyNvg.Core.Instructions
             _instructions.Enqueue(new WindingInstruction(winding));
         }
 
-        public void FlattenPaths(PixelRatio pixelRatio, PathCache pathCache)
+        public void FlattenPaths(Matrix3X2<float> transform, PixelRatio pixelRatio, PathCache pathCache)
         {
             while (_instructions.Count > 0)
             {
-                _instructions.Dequeue().BuildPaths(pixelRatio, pathCache);
+                _instructions.Dequeue().BuildPaths(transform, pixelRatio, pathCache);
             }
             pathCache.FlattenPaths();
         }

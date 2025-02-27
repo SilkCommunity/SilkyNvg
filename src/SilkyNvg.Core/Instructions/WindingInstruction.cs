@@ -1,4 +1,5 @@
-﻿using SilkyNvg.Common;
+﻿using Silk.NET.Maths;
+using SilkyNvg.Common;
 using SilkyNvg.Core.Paths;
 using SilkyNvg.Paths;
 
@@ -14,7 +15,7 @@ namespace SilkyNvg.Core.Instructions
             _winding = winding;
         }
 
-        public void BuildPaths(PixelRatio pixelRatio, PathCache pathCache)
+        public void BuildPaths(Matrix3X2<float> transform, PixelRatio pixelRatio, PathCache pathCache)
         {
             pathCache.LastPath.Winding = _winding;
         }

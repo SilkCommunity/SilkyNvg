@@ -1,4 +1,5 @@
-﻿using SilkyNvg.Common;
+﻿using Silk.NET.Maths;
+using SilkyNvg.Common;
 using SilkyNvg.Core.Paths;
 
 namespace SilkyNvg.Core.Instructions
@@ -8,7 +9,7 @@ namespace SilkyNvg.Core.Instructions
 
         public CloseInstruction() { }
 
-        public void BuildPaths(PixelRatio pixelRatio, PathCache pathCache)
+        public void BuildPaths(Matrix3X2<float> transform, PixelRatio pixelRatio, PathCache pathCache)
         {
             pathCache.LastPath.Close();
         }
