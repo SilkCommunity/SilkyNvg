@@ -22,18 +22,27 @@ namespace SilkyNvg.Extensions.Svg
 
         internal void Draw(Nvg nvg)
         {
+            if (_attribs.HasFill)
+            {
+
+            }
+            if (_attribs.HasStroke)
+            {
+
+            }
+
             nvg.instructionQueue.Clear();
             nvg.pathCache.Clear();
 
             nvg.instructionQueue.AddRange(_instructions);
 
             nvg.instructionQueue.FlattenPaths(nvg.stateStack.CurrentState.Transform, nvg.pixelRatio, nvg.pathCache);
-            nvg.pathCache.ExpandStroke(_attribs.StrokeWidth * 0.5f, 0.0f, _attribs.StrokeLineCap, _attribs.StrokeLineJoin, _attribs.MiterLimit, nvg.pixelRatio);
+            nvg.pathCache.ExpandFill(0.0f, Graphics.LineCap.Miter, 2.4f, nvg.pixelRatio);
 
-            nvg.renderer.Stroke(_attribs.StrokePaint,
+            nvg.renderer.Fill(_attribs.FillPaint,
             new CompositeOperationState(CompositeOperation.SourceOver),
             new Scissor(new Vector2D<float>(-1.0f)),
-                1.0f, _attribs.StrokeWidth, nvg.pathCache.Paths);
+                nvg.pixelRatio.FringeWidth, nvg.pathCache.Bounds, nvg.pathCache.Paths);
         }
 
     }

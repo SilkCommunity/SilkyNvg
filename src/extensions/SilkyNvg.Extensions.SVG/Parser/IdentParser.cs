@@ -77,5 +77,51 @@ namespace SilkyNvg.Extensions.Svg.Parser
             return false;
         }
 
+        internal static bool IsFunction(this StringSource source, string name)
+        {
+            int rest = source.Content.Length - source.Index;
+
+            if (rest >= name.Length + 2)
+            {
+                int length = 0;
+                char current = source.Current;
+                int pos = source.Index;
+
+                while (length < name.Length)
+                {
+                    if ((current == Symbols.BACKSLASH) && source.IsValidEscape())
+                    {
+                        string next = source.ConsumeEscape();
+
+                        if (next.Length != 1)
+                        {
+                            break;
+                        }
+
+                        current = next[0];
+                    }
+
+                    if (char.ToLowerInvariant(current) != char.ToLowerInvariant(name[length]))
+                    {
+                        break;
+                    }
+
+                    length++;
+                    current = source.Next();
+                }
+
+                if ((length == name.Length) && (current == Symbols.OPEN_PARENS))
+                {
+                    source.Next();
+                    source.ConsumeWsp();
+                    return true;
+                }
+
+                source.BackTo(pos);
+            }
+
+            return false;
+        }
+
     }
 }

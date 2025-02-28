@@ -7,9 +7,12 @@ namespace SilkyNvg.Extensions.Svg.Parser.Attributes
     internal class AttribStack
     {
 
-        private readonly Dictionary<string, IAttributeParser> Parsers = new()
+        private delegate void AttributeParser(StringSource source, ref AttribState state);
+
+        private readonly Dictionary<string, AttributeParser> Parsers = new()
         {
-            [SvgAttributes.Display] = new DisplayAttributeParser()
+            [SvgAttributes.Display] = DisplayAttributeParser,
+            [SvgAttributes.Fill] = FillAttributeParser
         };
 
         private readonly Stack<AttribState> _stack = new();
@@ -50,10 +53,30 @@ namespace SilkyNvg.Extensions.Svg.Parser.Attributes
                 if (Parsers.TryGetValue(name, out var parser))
                 {
                     var content = new StringSource(attrib.Value);
-                    parser.Parse(content, ref currentState);
+                    parser.Invoke(content, ref currentState);
                 }
             }
             return currentState;
+        }
+
+        private static void FillAttributeParser(StringSource source, ref AttribState state)
+        {
+            if (source.Content == CssKeywords.None)
+            {
+                state.HasFill = false;
+            }
+            else
+            {
+                state.FillPaint = new Paint(Colour.DarkMagenta);
+            }
+        }
+
+        private static void DisplayAttributeParser(StringSource source, ref AttribState state)
+        {
+            if (source.Content == CssKeywords.None)
+            {
+                state.IsVisible = false;
+            }
         }
 
     }
