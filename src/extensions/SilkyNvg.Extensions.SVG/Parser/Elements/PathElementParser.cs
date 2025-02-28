@@ -18,14 +18,13 @@ namespace SilkyNvg.Extensions.Svg.Parser.Elements
 
         private delegate bool ParseInstruction(StringSource source);
 
-        private readonly List<IInstruction> _instructions = new();
-        private readonly StringBuilder _buffer = new();
+        private readonly List<IInstruction> _instructions = [];
 
         private readonly Dictionary<char, ParseInstruction> _instructionParsers;
         private readonly SvgParser _parser;
 
         private Vector2D<float> _currentPosition;
-        private Vector2D<float>? _lastControlPoint;
+        private Vector2D<float>? _lastControlPointCS, _lastControlPointQT;
 
         internal PathElementParser(SvgParser parser)
         {
@@ -48,7 +47,12 @@ namespace SilkyNvg.Extensions.Svg.Parser.Elements
                 ['C'] = source => ParseCurveTo(source, false),
                 ['c'] = source => ParseCurveTo(source, true),
                 ['S'] = source => ParseSmoothCurveTo(source, false),
-                ['s'] = source => ParseSmoothCurveTo(source, true)
+                ['s'] = source => ParseSmoothCurveTo(source, true),
+
+                ['Q'] = source => ParseQuadraticBezierCurveTo(source, false),
+                ['q'] = source => ParseQuadraticBezierCurveTo(source, true),
+                ['T'] = source => ParseSmoothQuadraticBezierCurveTo(source, false),
+                ['t'] = source => ParseSmoothQuadraticBezierCurveTo(source, true)
             };
         }
 
@@ -139,7 +143,7 @@ namespace SilkyNvg.Extensions.Svg.Parser.Elements
                 Vector2D<float> p1 = relative ? (_currentPosition + triplet[1]) : triplet[1];
                 Vector2D<float> p2 = relative ? (_currentPosition + triplet[2]) : triplet[2];
                 _instructions.Add(new BezierToInstruction(p0, p1, p2));
-                _lastControlPoint = p1;
+                _lastControlPointCS = p1;
             }
             _currentPosition = sequence[^1][2];
             return true;
@@ -147,7 +151,7 @@ namespace SilkyNvg.Extensions.Svg.Parser.Elements
 
         private bool ParseSmoothCurveTo(StringSource source, bool relative)
         {
-            var sequence = ParseSmoothCurveToCoordinateSequence(source);
+            var sequence = source.ParseCoordinatePairDoubleSequence();
             if (sequence == null)
             {
                 return false;
@@ -155,24 +159,77 @@ namespace SilkyNvg.Extensions.Svg.Parser.Elements
             Vector2D<float> current = _currentPosition;
             foreach (var @double in sequence)
             {
-                Vector2D<float> lastCP2 = _lastControlPoint ?? current;
+                Vector2D<float> lastCP2 = _lastControlPointCS ?? current;
 
                 Vector2D<float> p0 = 2 * current - lastCP2; // = current - (lastCP2 - current)
                 Vector2D<float> p1 = relative ? (_currentPosition + @double[0]) : @double[0];
                 Vector2D<float> p2 = relative ? (_currentPosition + @double[1]) : @double[1];
                 _instructions.Add(new BezierToInstruction(p0, p1, p2));
 
-                _lastControlPoint = p1;
+                _lastControlPointCS = p1;
                 current = p2;
             }
             _currentPosition = current;
             return true;
         }
 
+        private bool ParseQuadraticBezierCurveTo(StringSource source, bool relative)
+        {
+            var sequence = source.ParseCoordinatePairDoubleSequence();
+            if (sequence == null)
+            {
+                return false;
+            }
+            foreach (var @double in sequence)
+            {
+                Vector2D<float> p0 = relative ? (_currentPosition + @double[0]) : @double[0];
+                Vector2D<float> p1 = relative ? (_currentPosition + @double[1]) : @double[1];
+
+                // Convert to cubic Bezier
+                Vector2D<float> cp0 = _currentPosition + 2.0f / 3.0f * (p0 - _currentPosition);
+                Vector2D<float> cp1 = p1 + 2.0f / 3.0f * (p0 - p1);
+
+                _instructions.Add(new BezierToInstruction(cp0, cp1, p1));
+
+                _lastControlPointQT = p0;
+            }
+            _currentPosition = sequence[^1][1];
+            return true;
+        }
+
+        private bool ParseSmoothQuadraticBezierCurveTo(StringSource source, bool relative)
+        {
+            var sequence = source.ParseCoordinatePairSequence();
+            if (sequence == null)
+            {
+                return false;
+            }
+            Vector2D<float> current = _currentPosition;
+            foreach (var coord in sequence)
+            {
+                Vector2D<float> lastCP = _lastControlPointQT ?? current;
+
+                Vector2D<float> p0 = 2 * current - lastCP;
+                Vector2D<float> p1 = relative ? (_currentPosition + coord) : coord;
+
+                // Convert to cubic Bezier
+                Vector2D<float> cp0 = _currentPosition + 2.0f / 3.0f * (p0 - _currentPosition);
+                Vector2D<float> cp1 = p1 + 2.0f / 3.0f * (p0 - p1);
+
+                _instructions.Add(new BezierToInstruction(cp0, cp1, p1));
+
+                _lastControlPointQT = p0;
+                current = p1;
+            }
+            _currentPosition = sequence[^1];
+            return true;
+        }
+
         private void ParseD(StringSource content)
         {
             _currentPosition = Vector2D<float>.Zero;
-            _lastControlPoint = null;
+            _lastControlPointCS = _lastControlPointQT = null;
+            _instructions.Clear();
             while (!content.IsDone)
             {
                 content.ConsumeWsp();
@@ -189,9 +246,14 @@ namespace SilkyNvg.Extensions.Svg.Parser.Elements
                 }
 
                 // We need the last Bezier's CP for S curve instruction. Delete them an instruction afterwards.
-                if ((instructionName != 'C') & (instructionName != 'c') & (instructionName != 'S') & (instructionName != 's'))
+                if ((instructionName != 'C') && (instructionName != 'c') && (instructionName != 'S') && (instructionName != 's'))
                 {
-                    _lastControlPoint = null;
+                    _lastControlPointCS = null;
+                }
+                // We need the last Bezier's CP for T curve instruction. Delete them an instruction afterwards.
+                if ((instructionName != 'Q') && (instructionName != 'q') && (instructionName != 'T') && (instructionName != 't'))
+                {
+                    _lastControlPointQT = null;
                 }
             }
 
@@ -235,26 +297,6 @@ namespace SilkyNvg.Extensions.Svg.Parser.Elements
                 sequence.Add(triplet);
                 triplet = source.ParseCoordinatePairTriplet();
             } while (triplet != null);
-            source.BackTo(idx);
-            return sequence.AsReadOnly();
-        }
-
-        internal static IReadOnlyList<Vector2D<float>[]>? ParseSmoothCurveToCoordinateSequence(StringSource source)
-        {
-            Vector2D<float>[]? @double = source.ParseCoordinatePairDouble();
-            if (@double == null)
-            {
-                return null;
-            }
-            List<Vector2D<float>[]> sequence = [];
-            int idx;
-            do
-            {
-                source.ConsumeCommaWsp();
-                idx = source.Index;
-                sequence.Add(@double);
-                @double = source.ParseCoordinatePairDouble();
-            } while (@double != null);
             source.BackTo(idx);
             return sequence.AsReadOnly();
         }

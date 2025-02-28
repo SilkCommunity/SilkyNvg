@@ -150,6 +150,26 @@ namespace SilkyNvg.Extensions.Svg.Parser
             return sequence.AsReadOnly();
         }
 
+        internal static IReadOnlyList<Vector2D<float>[]>? ParseCoordinatePairDoubleSequence(this StringSource source)
+        {
+            Vector2D<float>[]? @double = source.ParseCoordinatePairDouble();
+            if (@double == null)
+            {
+                return null;
+            }
+            List<Vector2D<float>[]> sequence = [];
+            int idx;
+            do
+            {
+                source.ConsumeCommaWsp();
+                idx = source.Index;
+                sequence.Add(@double);
+                @double = source.ParseCoordinatePairDouble();
+            } while (@double != null);
+            source.BackTo(idx);
+            return sequence.AsReadOnly();
+        }
+
         internal static float?[] ParseNumberList(this StringSource source)
         {
             IReadOnlyList<StringSource> potentialNumbers = source.ParseList();

@@ -46,14 +46,20 @@ namespace OpenGL_Example
             nvg.BeginFrame(winSize.As<float>(), pxRatio);
 
             nvg.BeginPath();
-            nvg.MoveTo(200.0f, 50.0f);
-            nvg.LineTo(300.0f, 50.0f);
-            nvg.LineTo(300.0f, 150.0f);
-            nvg.LineTo(200.0f, 150.0f);
-            nvg.LineTo(200.0f, 50.0f);
-            nvg.ClosePath();
 
-            nvg.StrokeWidth(10.0f);
+            var q0 = new Vector2D<float>(200.0f, 300.0f);
+            var q1 = new Vector2D<float>(400.0f, 50.0f);
+            var q2 = new Vector2D<float>(600.0f, 300.0f);
+
+            var c0 = q0;
+            var c3 = q2;
+            var c1 = q0 + 2.0f / 3.0f * (q1 - q0);
+            var c2 = q2 + 2.0f / 3.0f * (q1 - q2);
+
+            nvg.MoveTo(c0);
+            nvg.BezierTo(c1, c2, c3);
+
+            nvg.StrokeWidth(2.0f);
             nvg.StrokeColour(Colour.Yellow);
             nvg.Stroke();
 
