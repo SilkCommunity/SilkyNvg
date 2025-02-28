@@ -25,11 +25,11 @@ namespace SilkyNvg.Extensions.Svg.Parser
         private static Length? GetLength(Unit? value)
         {
             if ((value != null) &&
-                float.TryParse(value.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out float result))
+                float.TryParse(value.Value.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out float result))
             {
-                if (!LengthUnitNames.TryGetValue(value.Dimension, out LengthType unit))
+                if (!LengthUnitNames.TryGetValue(value.Value.Dimension, out LengthType unit))
                 {
-                    if (value.Dimension == string.Empty)
+                    if (value.Value.Dimension == string.Empty)
                     {
                         unit = LengthType.Number;
                     }
