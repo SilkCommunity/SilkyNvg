@@ -11,12 +11,12 @@ namespace SilkyNvg.Extensions.Svg
     internal class Shape
     {
 
-        private readonly List<IInstruction> _instructions;
+        private readonly IInstruction[] _instructions;
         private readonly AttribState _attribs;
 
         internal Shape(List<IInstruction> instructions, AttribState attribs)
         {
-            _instructions = instructions;
+            _instructions = instructions.ToArray();
             _attribs = attribs;
         }
 

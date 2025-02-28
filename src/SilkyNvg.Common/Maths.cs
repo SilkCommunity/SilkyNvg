@@ -112,5 +112,18 @@ namespace SilkyNvg.Common
             return det < 0.0f;
         }
 
+        internal static float VecAngle(Vector2D<float> u, Vector2D<float> v)
+        {
+            float r = Vector2D.Dot(u, v) / (u.Length * v.Length);
+            r = MathF.Max(r, -1.0f);
+            r = MathF.Min(r, 1.0f);
+            return ((u.X * v.Y < u.Y * v.X) ? (-1.0f) : 1.0f) * MathF.Acos(r);
+        }
+
+        internal static float Square(float x)
+        {
+            return x * x;
+        }
+
     }
 }
