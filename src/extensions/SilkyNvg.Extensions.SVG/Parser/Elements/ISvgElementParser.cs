@@ -1,5 +1,4 @@
-﻿using SilkyNvg.Extensions.Svg.Parser.Attributes;
-using SilkyNvg.Extensions.Svg.Parser.Utils;
+﻿using AngleSharp.Text;
 using System.Xml;
 
 namespace SilkyNvg.Extensions.Svg.Parser.Elements

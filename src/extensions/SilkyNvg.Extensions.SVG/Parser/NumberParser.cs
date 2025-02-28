@@ -1,4 +1,6 @@
-﻿using Silk.NET.Maths;
+﻿using AngleSharp.Css.Parser;
+using AngleSharp.Text;
+using Silk.NET.Maths;
 using SilkyNvg.Extensions.Svg.Parser.Utils;
 using System.Globalization;
 using System.Text;
@@ -7,15 +9,6 @@ namespace SilkyNvg.Extensions.Svg.Parser
 {
     internal static class NumberParser
     {
-
-        internal static float? ParseNumber(this StringSource source)
-        {
-            if (float.TryParse(source.Content, NumberStyles.Float, CultureInfo.InvariantCulture, out float number))
-            {
-                return number;
-            }
-            return null;
-        }
 
         internal static string ReadDigitString(this StringSource source)
         {
@@ -31,19 +24,19 @@ namespace SilkyNvg.Extensions.Svg.Parser
         internal static float? ParseCoordinate(this StringSource source)
         {
             float sign = 1.0f;
-            if (source.Current == Symbols.PLUS)
+            if (source.Current == Symbols.Plus)
             {
                 source.Next();
                 sign = 1.0f;
             }
-            else if (source.Current == Symbols.MINUS)
+            else if (source.Current == Symbols.Minus)
             {
                 source.Next();
                 sign = -1.0f;
             }
 
             string num = ReadDigitString(source);
-            if (source.Current == Symbols.DOT)
+            if (source.Current == Symbols.Dot)
             {
                 source.Next();
                 num += "." + ReadDigitString(source);
@@ -168,17 +161,6 @@ namespace SilkyNvg.Extensions.Svg.Parser
             } while (@double != null);
             source.BackTo(idx);
             return sequence.AsReadOnly();
-        }
-
-        internal static float?[] ParseNumberList(this StringSource source)
-        {
-            IReadOnlyList<StringSource> potentialNumbers = source.ParseList();
-            float?[] result = new float?[potentialNumbers.Count];
-            for (int i = 0; i < result.Length; i++)
-            {
-                result[i] = ParseNumber(potentialNumbers[i]);
-            }
-            return result;
         }
 
     }

@@ -1,10 +1,11 @@
-﻿using Silk.NET.Maths;
+﻿using AngleSharp.Css;
+using Silk.NET.Maths;
 using SilkyNvg.Extensions.Svg.Rendering;
 using SilkyNvg.Graphics;
 
 namespace SilkyNvg.Extensions.Svg.Parser.Attributes
 {
-    internal struct AttribState
+    internal struct AttribState : IRenderDimensions
     {
 
         internal string Id;
@@ -28,7 +29,13 @@ namespace SilkyNvg.Extensions.Svg.Parser.Attributes
         internal bool HasStroke;
         internal bool IsVisible;
 
-        internal Rectangle<float> Viewport;
+        internal SvgViewport Viewport;
+
+        public readonly double RenderWidth => Viewport.Width;
+
+        public readonly double RenderHeight => Viewport.Height;
+
+        readonly double IRenderDimensions.FontSize => FontSize;
 
         internal static AttribState InitialState()
         {

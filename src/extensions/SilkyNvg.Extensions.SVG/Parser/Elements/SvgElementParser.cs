@@ -1,8 +1,7 @@
-﻿using Silk.NET.Maths;
-using SilkyNvg.Extensions.Svg.Parser.Attributes;
+﻿using AngleSharp.Css;
+using AngleSharp.Css.Values;
+using AngleSharp.Text;
 using SilkyNvg.Extensions.Svg.Parser.Constants;
-using SilkyNvg.Extensions.Svg.Parser.DataTypes;
-using SilkyNvg.Extensions.Svg.Parser.Utils;
 using System.Xml;
 
 namespace SilkyNvg.Extensions.Svg.Parser.Elements
@@ -12,32 +11,25 @@ namespace SilkyNvg.Extensions.Svg.Parser.Elements
 
         private void ParseWidth(StringSource content)
         {
-            if (parser.Width.HasValue)
+            if (!Length.TryParse(content.Content, out Length width))
             {
                 return;
             }
-            Length width = UnitParser.ParseLength(content) ?? Length.Zero;
-            parser.Width = width.ToPixel(parser.State.Viewport, directionality: Directionality.Horizontal);
+            parser.Width = (float)width.ToPixel(parser.State, RenderMode.Horizontal);
         }
 
         private void ParseHeight(StringSource content)
         {
-            if (parser.Height.HasValue)
+            if (!Length.TryParse(content.Content, out Length height))
             {
                 return;
             }
-            Length height = UnitParser.ParseLength(content) ?? Length.Zero;
-            parser.Height = height.ToPixel(parser.State.Viewport, directionality: Directionality.Horizontal);
+            parser.Height = (float)height.ToPixel(parser.State, RenderMode.Vertical);
         }
 
         private void ParseViewBox(StringSource content)
         {
-            float?[] values = content.ParseNumberList();
 
-            parser.State.Viewport = new Rectangle<float>(
-                values[0] ?? 0f, values[1] ?? 0f,
-                values[2] ?? 0f, values[3] ?? 0f
-            );
         }
 
         public void Parse(XmlElement element)

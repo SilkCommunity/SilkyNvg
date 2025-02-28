@@ -1,4 +1,6 @@
-﻿using Silk.NET.Maths;
+﻿using AngleSharp.Css.Parser;
+using AngleSharp.Text;
+using Silk.NET.Maths;
 using SilkyNvg.Common;
 using SilkyNvg.Core.Instructions;
 using SilkyNvg.Extensions.Svg.Parser.Constants;
@@ -362,14 +364,13 @@ namespace SilkyNvg.Extensions.Svg.Parser.Elements
             _instructions.Clear();
             while (!content.IsDone)
             {
-                content.ConsumeWsp();
+                content.SkipSpaces();
                 char instructionName = content.Current;
                 if (!_instructionParsers.TryGetValue(instructionName, out ParseInstruction? instructionParser))
                 {
                     return;
                 }
-                content.Next(); // Instruction name
-                content.ConsumeWsp();
+                content.SkipCurrentAndSpaces(); // instruction name
                 if (!instructionParser.Invoke(content))
                 {
                     return;

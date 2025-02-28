@@ -18,8 +18,8 @@ namespace SilkyNvg.Extensions.Svg.Parser
 
         private readonly Dictionary<string, ISvgElementParser> _elementParsers;
 
-        internal float? Width;
-        internal float? Height;
+        internal float Width;
+        internal float Height;
 
         internal AttribState State;
 
@@ -40,7 +40,9 @@ namespace SilkyNvg.Extensions.Svg.Parser
             Attribs = new();
             PixelRatio = new();
 
-            Width = Height = null;
+            // initialise to size 100, so that something might show up
+            // if an svg (incorrectly) doesn't specify a size.
+            Width = Height = 100;
 
             _elementParsers = new()
             {
@@ -85,14 +87,6 @@ namespace SilkyNvg.Extensions.Svg.Parser
         internal SvgImage Parse(XmlElement top)
         {
             ParseElement(top);
-            if (!Width.HasValue)
-            {
-                Width = Attribs.Top.Viewport.Size.X;
-            }
-            if (!Height.HasValue)
-            {
-                Height = Attribs.Top.Viewport.Size.Y;
-            }
             ParseChildren(top.ChildNodes);
             EndElement(top);
             return new SvgImage(Shapes.ToArray(), (float)Width, (float)Height);
