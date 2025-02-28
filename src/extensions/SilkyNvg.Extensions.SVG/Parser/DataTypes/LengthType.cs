@@ -4,6 +4,7 @@
     {
 
         Unknown = 0,
+        Number = 1,
         Percentage = 2,
         EMs = 3,
         EXs = 4,

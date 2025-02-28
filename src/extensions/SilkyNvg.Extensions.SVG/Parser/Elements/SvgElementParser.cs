@@ -16,7 +16,7 @@ namespace SilkyNvg.Extensions.Svg.Parser.Elements
             {
                 return;
             }
-            Length width = LengthParser.ParseLength(content);
+            Length width = UnitParser.ParseLength(content) ?? Length.Zero;
             parser.Width = width.ToPixel(parser.State.Viewport, directionality: Directionality.Horizontal);
         }
 
@@ -26,7 +26,7 @@ namespace SilkyNvg.Extensions.Svg.Parser.Elements
             {
                 return;
             }
-            Length height = LengthParser.ParseLength(content);
+            Length height = UnitParser.ParseLength(content) ?? Length.Zero;
             parser.Height = height.ToPixel(parser.State.Viewport, directionality: Directionality.Horizontal);
         }
 

@@ -20,7 +20,7 @@ namespace SilkyNvg.Extensions.Svg.Parser.DataTypes
         internal readonly LengthType Unit;
 
         internal bool IsAbsolute => (Unit == LengthType.In) || (Unit == LengthType.Mm) || (Unit == LengthType.Pc)
-            || (Unit == LengthType.Px) || (Unit == LengthType.Pt) || (Unit == LengthType.Cm);
+            || (Unit == LengthType.Px) || (Unit == LengthType.Pt) || (Unit == LengthType.Cm) || (Unit == LengthType.Number);
 
         internal bool IsRelative => !IsAbsolute;
 
@@ -43,6 +43,7 @@ namespace SilkyNvg.Extensions.Svg.Parser.DataTypes
                 LengthType.Percentage => ValueInSpecifiedUnits * 0.01f * (directionality == Directionality.Vertical ? bounds.Size.Y : bounds.Size.X),// Default to horizontal directionality
                 LengthType.EMs => ValueInSpecifiedUnits * fontSize,
                 LengthType.EXs => ValueInSpecifiedUnits * fontSize * 0.5f,
+                LengthType.Number => ValueInSpecifiedUnits,
                 _ => throw new InvalidOperationException("Unsupported unit cannot be converted"),
             };
         }

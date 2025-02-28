@@ -1,24 +1,43 @@
 ﻿using SilkyNvg.Extensions.Svg.Parser.Constants;
 using SilkyNvg.Extensions.Svg.Parser.DataTypes;
 using SilkyNvg.Extensions.Svg.Parser.Utils;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace SilkyNvg.Extensions.Svg.Parser
 {
-    internal static class LengthParser
+    internal static class UnitParser
     {
 
-        private static Length? GetLength((string, LengthType)? value)
+        private static readonly Dictionary<string, LengthType> LengthUnitNames = new()
         {
-            if (value.HasValue &&
-                float.TryParse(value.Value.Item1, NumberStyles.Float, CultureInfo.InvariantCulture, out float result))
+            [Symbols.PERCENT.ToString()] = LengthType.Percentage,
+            ["em"] = LengthType.EMs,
+            ["ex"] = LengthType.EXs,
+            ["px"] = LengthType.Px,
+            ["cm"] = LengthType.Cm,
+            ["mm"] = LengthType.Mm,
+            ["in"] = LengthType.In,
+            ["pt"] = LengthType.Pt,
+            ["pc"] = LengthType.Pc
+        };
+
+        private static Length? GetLength(Unit? value)
+        {
+            if ((value != null) &&
+                float.TryParse(value.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out float result))
             {
-                LengthType unit = value.Value.Item2;
+                if (!LengthUnitNames.TryGetValue(value.Dimension, out LengthType unit))
+                {
+                    if (value.Dimension == string.Empty)
+                    {
+                        unit = LengthType.Number;
+                    }
+                    else
+                    {
+                        unit = LengthType.Unknown;
+                    }
+                }
                 return new Length(result, unit);
             }
             return null;
@@ -27,7 +46,7 @@ namespace SilkyNvg.Extensions.Svg.Parser
         private static bool IsDimension(StringSource source, char current)
             => (current != 'e') && (current != 'E') && (current.IsNameStart() || source.IsValidEscape());
 
-        private static (string, LengthType) Dimension(StringSource source, string number, StringBuilder buffer)
+        private static Unit? Dimension(StringSource source, string number, StringBuilder buffer)
         {
             char current = source.Current;
 
@@ -44,15 +63,14 @@ namespace SilkyNvg.Extensions.Svg.Parser
                 }
                 else
                 {
-                    bool success = Enum.TryParse(buffer.ToString(), true, out LengthType result);
-                    return (number, success ? result : LengthType.Unknown);
+                    return new Unit(number, buffer.ToString());
                 }
 
                 current = source.Next();
             }
         }
 
-        private static (string, LengthType) SciNotation(StringSource source, StringBuilder buffer)
+        private static Unit? SciNotation(StringSource source, StringBuilder buffer)
         {
             while (true)
             {
@@ -69,12 +87,12 @@ namespace SilkyNvg.Extensions.Svg.Parser
                 }
                 else
                 {
-                    return (buffer.ToString(), LengthType.Px); // default to user units (px)
+                    return new Unit(buffer.ToString(), string.Empty);
                 }
             }
         }
 
-        private static (string, LengthType) NumberDash(StringSource source, StringBuilder buffer)
+        private static Unit? NumberDash(StringSource source, StringBuilder buffer)
         {
             char current = source.Next();
 
@@ -86,11 +104,11 @@ namespace SilkyNvg.Extensions.Svg.Parser
             else
             {
                 source.Back();
-                return (buffer.ToString(), LengthType.Px); // default to user units (px)
+                return new Unit(buffer.ToString(), string.Empty);
             }
         }
 
-        private static (string, LengthType) NumberExponential(StringSource source, StringBuilder buffer)
+        private static Unit? NumberExponential(StringSource source, StringBuilder buffer)
         {
             char letter = source.Current;
             char current = source.Next();
@@ -118,7 +136,7 @@ namespace SilkyNvg.Extensions.Svg.Parser
             return Dimension(source, number, buffer.Clear().Append(letter));
         }
 
-        private static (string, LengthType) UnitRest(StringSource source, StringBuilder buffer)
+        private static Unit? UnitRest(StringSource source, StringBuilder buffer)
         {
             char current = source.Next();
 
@@ -150,21 +168,21 @@ namespace SilkyNvg.Extensions.Svg.Parser
                         buffer.Append(Symbols.DOT).Append(current);
                         return UnitFraction(source, buffer);
                     }
-                    return (buffer.ToString(), LengthType.Px); // default to user units (px)
+                    return new Unit(buffer.ToString(), string.Empty); // default to user units (px)
                 case '%':
                     source.Next();
-                    return (buffer.ToString(), LengthType.Percentage);
+                    return new Unit(buffer.ToString(), "%");
                 case 'e':
                 case 'E':
                     return NumberExponential(source, buffer);
                 case Symbols.MINUS:
                     return NumberDash(source, buffer);
                 default:
-                    return (buffer.ToString(), LengthType.Px); // default to user units (px)
+                    return new Unit(buffer.ToString(), string.Empty);
             }
         }
 
-        private static (string, LengthType) UnitFraction(StringSource source, StringBuilder buffer)
+        private static Unit? UnitFraction(StringSource source, StringBuilder buffer)
         {
             char current = source.Next();
 
@@ -194,15 +212,15 @@ namespace SilkyNvg.Extensions.Svg.Parser
                     return NumberExponential(source, buffer);
                 case '%':
                     source.Next();
-                    return (buffer.ToString(), LengthType.Percentage);
+                    return new Unit(buffer.ToString(), "%");
                 case Symbols.MINUS:
                     return NumberDash(source, buffer);
                 default:
-                    return (buffer.ToString(), LengthType.Px); // default to user units (px)
+                    return new Unit(buffer.ToString(), string.Empty);
             }
         }
 
-        private static (string, LengthType)? UnitStart(StringSource source)
+        private static Unit? UnitStart(StringSource source)
         {
             char current = source.Current;
 
@@ -232,12 +250,12 @@ namespace SilkyNvg.Extensions.Svg.Parser
             return null;
         }
 
-        internal static (string, LengthType)? ParseUnit(this StringSource source)
+        internal static Unit? ParseUnit(this StringSource source)
         {
             int pos = source.Index;
-            (string, LengthType)? result = UnitStart(source);
+            Unit? result = UnitStart(source);
 
-            if (!result.HasValue)
+            if (result == null)
             {
                 source.BackTo(pos);
             }
@@ -263,11 +281,17 @@ namespace SilkyNvg.Extensions.Svg.Parser
             return null;
         }
 
-        internal static Length ParseLength(this StringSource source)
+        internal static Length? ParseLength(this StringSource source)
         {
-            (string, LengthType)? value = source.ParseUnit();
-            return GetLength(value) ?? ParseAutoLength(source) ??
-                ParseNormalLength(source) ?? throw new InvalidOperationException("Failed to parse length");
+            Unit? value = source.ParseUnit();
+            Length? length = GetLength(value);
+
+            if (!length.HasValue)
+            {
+                return null;
+            }
+
+            return length.Value;
         }
 
     }
