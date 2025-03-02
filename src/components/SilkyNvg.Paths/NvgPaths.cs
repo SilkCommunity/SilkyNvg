@@ -408,22 +408,9 @@ namespace SilkyNvg.Paths
         public static void Fill(this Nvg nvg)
         {
             State state = nvg.stateStack.CurrentState;
-            Paint fillPaint = state.Fill;
 
-            nvg.instructionQueue.FlattenPaths(state.Transform, nvg.pixelRatio, nvg.pathCache);
-
-            if (nvg.renderer.EdgeAntiAlias && nvg.stateStack.CurrentState.ShapeAntiAlias)
-            {
-                nvg.pathCache.ExpandFill(nvg.pixelRatio.FringeWidth, Graphics.LineCap.Miter, 2.4f, nvg.pixelRatio);
-            }
-            else
-            {
-                nvg.pathCache.ExpandFill(0.0f, Graphics.LineCap.Miter, 2.4f, nvg.pixelRatio);
-            }
-
-            fillPaint.PremultiplyAlpha(nvg.stateStack.CurrentState.Alpha);
-
-            nvg.renderer.Fill(fillPaint, state.CompositeOperation, state.Scissor, nvg.pixelRatio.FringeWidth, nvg.pathCache.Bounds, nvg.pathCache.Paths);
+            nvg.instructionQueue.RenderFill(state.Fill, state.ShapeAntiAlias, state.Alpha, state.CompositeOperation,
+                state.Scissor, state.Transform, nvg.pixelRatio, nvg.pathCache, nvg.renderer);
 
             foreach (Path path in nvg.pathCache.Paths)
             {
@@ -437,31 +424,9 @@ namespace SilkyNvg.Paths
         public static void Stroke(this Nvg nvg)
         {
             State state = nvg.stateStack.CurrentState;
-            float scale = Maths.GetAverageScale(state.Transform);
-            float strokeWidth = Maths.Clamp(state.StrokeWidth * scale, 0.0f, 200.0f);
-            Paint strokePaint = state.Stroke;
 
-            if (strokeWidth < nvg.pixelRatio.FringeWidth)
-            {
-                float alpha = Maths.Clamp(strokeWidth / nvg.pixelRatio.FringeWidth, 0.0f, 1.0f);
-                strokePaint.PremultiplyAlpha(alpha * alpha);
-                strokeWidth = nvg.pixelRatio.FringeWidth;
-            }
-
-            strokePaint.PremultiplyAlpha(state.Alpha);
-
-            nvg.instructionQueue.FlattenPaths(state.Transform, nvg.pixelRatio, nvg.pathCache);
-
-            if (nvg.renderer.EdgeAntiAlias && state.ShapeAntiAlias)
-            {
-                nvg.pathCache.ExpandStroke(strokeWidth * 0.5f, nvg.pixelRatio.FringeWidth, state.LineCap, state.LineJoin, state.MiterLimit, nvg.pixelRatio);
-            }
-            else
-            {
-                nvg.pathCache.ExpandStroke(strokeWidth * 0.5f, 0.0f, state.LineCap, state.LineJoin, state.MiterLimit, nvg.pixelRatio);
-            }
-
-            nvg.renderer.Stroke(strokePaint, state.CompositeOperation, state.Scissor, nvg.pixelRatio.FringeWidth, strokeWidth, nvg.pathCache.Paths);
+            nvg.instructionQueue.RenderStroke(state.Stroke, state.ShapeAntiAlias, state.StrokeWidth, state.Alpha, state.LineCap,
+                state.LineJoin, state.MiterLimit, state.CompositeOperation, state.Scissor, state.Transform, nvg.pixelRatio, nvg.pathCache, nvg.renderer);
 
             foreach (Path path in nvg.pathCache.Paths)
             {

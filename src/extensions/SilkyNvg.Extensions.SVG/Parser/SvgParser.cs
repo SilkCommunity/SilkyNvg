@@ -23,6 +23,8 @@ namespace SilkyNvg.Extensions.Svg.Parser
 
         internal AttribState State;
 
+        internal XmlDocument Document { get; }
+
         internal Shape? LastShape
         {
             get
@@ -35,9 +37,11 @@ namespace SilkyNvg.Extensions.Svg.Parser
             }
         }
 
-        internal SvgParser()
+        internal SvgParser(XmlDocument document)
         {
-            Attribs = new();
+            Document = document;
+
+            Attribs = new(this);
             PixelRatio = new();
 
             // initialise to size 100, so that something might show up
@@ -56,11 +60,10 @@ namespace SilkyNvg.Extensions.Svg.Parser
         private void ParseElement(XmlElement element)
         {
             State = Attribs.ParseAttribs(element.Attributes);
-            if (!_elementParsers.TryGetValue(element.Name, out var elementParser))
+            if (_elementParsers.TryGetValue(element.Name, out var elementParser))
             {
-                return;
+                elementParser.Parse(element);
             }
-            elementParser.Parse(element);
             Attribs.Push(State);
         }
 
@@ -84,8 +87,32 @@ namespace SilkyNvg.Extensions.Svg.Parser
             EndElement(element);
         }
 
-        internal SvgImage Parse(XmlElement top)
+        private static XmlElement? GetElementById(XmlElement? e, string id)
         {
+            if (e == null || e.GetAttribute("id") == id)
+            {
+                return e;
+            }
+            foreach (XmlElement child in e.ChildNodes)
+            {
+                var elem = GetElementById(child, id);
+                if (elem != null)
+                {
+                    return elem;
+                }
+            }
+            return null;
+        }
+
+        internal XmlElement? GetElementById(string id)
+        {
+            return GetElementById(Document.DocumentElement, id);
+        }
+
+        internal SvgImage Parse()
+        {
+            XmlElement top = Document.DocumentElement ?? throw new InvalidOperationException("DocumentElement is null!");
+
             ParseElement(top);
             ParseChildren(top.ChildNodes);
             EndElement(top);

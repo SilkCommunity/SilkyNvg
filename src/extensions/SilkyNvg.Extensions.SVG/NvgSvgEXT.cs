@@ -8,11 +8,11 @@ public static class NvgSvgEXT
 
     public static SvgImage CreateSvg(this Nvg nvg, string xmlCode)
     {
-        var parser = new SvgParser();
-
         var doc = new XmlDocument();
         doc.LoadXml(xmlCode);
-        return parser.Parse(doc.DocumentElement ?? throw new ArgumentException("Failed to parse XML code."));
+
+        var parser = new SvgParser(doc);
+        return parser.Parse();
     }
 
     public static SvgImage? CreateSvgFromFile(this Nvg nvg, string filename)

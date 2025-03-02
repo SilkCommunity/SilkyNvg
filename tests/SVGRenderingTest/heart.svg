@@ -1,18 +1,22 @@
+<!DOCTYPE svg [<!ATTLIST linearGradient id ID #REQUIRED>]>
 <svg
   width="150" height="100"
   xmlns="http://www.w3.org/2000/svg"
   xmlns:xlink="http://www.w3.org/1999/xlink">
 
-  <path d="M300,200 h-150 a150,150 0 1,0 150,-150 z"
-        fill="red" stroke="blue" stroke-width="5" />
-  <path d="M275,175 v-150 a150,150 0 0,0 -150,150 z"
-        fill="yellow" stroke="blue" stroke-width="5" />
+  <defs>
+    <radialGradient id="rad" cx="150px" cy="100px" r="100px" fr="10px" gradientTransform="skewX(25deg)">
+      <stop offset="0%" stop-color="black" />
+      <stop offset="100%" stop-color="white" />
+    </radialGradient>
+    
+    <linearGradient id="lin" x1="25px" y1="25px" x2="275px" y2="175px" gradientTransform="rotateZ(0deg)">
+      <stop offset="0%" stop-color="black" />
+      <stop offset="100%" stop-color="white" />
+    </linearGradient>
+  </defs>
   
-  <path d="M600,350 l 50,-25
-           a25,25 -30 0,1 50,-25 l 50,-25
-           a25,50 -30 0,1 50,-25 l 50,-25
-           a25,75 -30 0,1 50,-25 l 50,-25
-           a25,100 -30 0,1 50,-25 l 50,-25"
-  />
+  <path d="M25,25 h250 v150 h-250 v-150"
+        fill="url(rad)" stroke="red" stroke-width="5"  />
 
 </svg>
