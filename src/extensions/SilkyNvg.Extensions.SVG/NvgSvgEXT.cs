@@ -1,4 +1,6 @@
 ﻿using SilkyNvg.Extensions.Svg.Parser;
+using SilkyNvg.Graphics;
+using SilkyNvg.Paths;
 using System.Xml;
 
 namespace SilkyNvg.Extensions.Svg;
@@ -35,6 +37,12 @@ public static class NvgSvgEXT
         {
             shape.Draw(nvg);
         }
+
+        nvg.BeginPath();
+        nvg.StrokeColour(Colour.Black);
+        nvg.StrokeWidth(3.0f);
+        nvg.Rect(0f, 0f, image.Width, image.Height);
+        nvg.Stroke();
     }
 
 }

@@ -35,7 +35,7 @@ namespace SilkyNvg.Extensions.Svg
             PixelRatio pixelRatio = nvg.pixelRatio;
             PathCache pathCache = nvg.pathCache;
 
-            Matrix3X2<float> transform = _attribs.Transform;
+            Matrix3X2<float> transform = Maths.Multiply(_attribs.Transform, state.Transform); // Matrix3X3.Multiply(new Matrix3X3<float>(_attribs.Transform), state.Transform);
             float opacity = state.Alpha * _attribs.Opacity;
 
             if (_attribs.HasFill)

@@ -2,6 +2,7 @@
 using Silk.NET.Maths;
 using SilkyNvg.Extensions.Svg.Paint;
 using SilkyNvg.Extensions.Svg.Rendering;
+using SilkyNvg.Extensions.Svg.Transforms;
 using SilkyNvg.Graphics;
 
 namespace SilkyNvg.Extensions.Svg.Parser.Attributes
@@ -29,6 +30,8 @@ namespace SilkyNvg.Extensions.Svg.Parser.Attributes
         internal bool HasStroke;
         internal bool IsVisible;
 
+        internal Align Align;
+        internal MeetOrSlice MeetOrSlice;
         internal SvgViewport Viewport;
 
         public readonly double RenderWidth => Viewport.Width;
@@ -56,6 +59,8 @@ namespace SilkyNvg.Extensions.Svg.Parser.Attributes
                 HasStroke = true,
                 IsVisible = true,
 
+                Align = Align.None,
+                MeetOrSlice = MeetOrSlice.Meet,
                 Viewport = default
             };
         }

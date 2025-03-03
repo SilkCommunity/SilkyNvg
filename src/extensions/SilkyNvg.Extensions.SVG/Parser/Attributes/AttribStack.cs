@@ -5,7 +5,6 @@ using AngleSharp.Css.Values;
 using AngleSharp.Text;
 using SilkyNvg.Extensions.Svg.Paint;
 using SilkyNvg.Extensions.Svg.Parser.Constants;
-using SilkyNvg.Extensions.Svg.Parser.Elements;
 using System.Xml;
 
 namespace SilkyNvg.Extensions.Svg.Parser.Attributes
@@ -150,8 +149,24 @@ namespace SilkyNvg.Extensions.Svg.Parser.Attributes
             }
             else if (source.IsFunction(FunctionNames.Url))
             {
+                source.BackTo(0); // IsFunction skips for some reason
                 var url = source.ParseUri();
-                // TODO
+                if (url == null)
+                {
+                    return;
+                }
+                var paintServer = _parser.GetElementById(url.Path);
+                if (paintServer != null)
+                {
+                    if (paintServer.LocalName == "linearGradient")
+                    {
+                        state.StrokePaint = Elements.GradientParser.ParseLinearGradient(paintServer);
+                    }
+                    else if (paintServer.LocalName == "radialGradient")
+                    {
+                        state.StrokePaint = Elements.GradientParser.ParseRadialGradient(paintServer);
+                    }
+                }
             }
             else
             {
@@ -201,6 +216,11 @@ namespace SilkyNvg.Extensions.Svg.Parser.Attributes
                 value = new Constant<Graphics.LineCap>("miter", Graphics.LineCap.Miter);
             }
             state.StrokeLineJoin = value.Value.Value;
+        }
+
+        private void TransformAttributeParser(StringSource source)
+        {
+
         }
 
     }

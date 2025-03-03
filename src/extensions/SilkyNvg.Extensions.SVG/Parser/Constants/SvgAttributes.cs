@@ -16,6 +16,8 @@
         internal const string Offset = "offset";
         internal const string Opacity = "opacity";
 
+        internal const string PreserveAspectRatio = "preserveAspectRatio";
+
         internal const string Stroke = "stroke";
         internal const string StrokeLinejoin = "stroke-linejoin";
         internal const string StrokeLinecap = "stroke-linecap";
@@ -28,6 +30,9 @@
 
         internal const string Width = "width";
         internal const string Height = "height";
+
+        internal const string X = "x";
+        internal const string Y = "y";
 
     }
 }

@@ -1,22 +1,11 @@
 <!DOCTYPE svg [<!ATTLIST linearGradient id ID #REQUIRED>]>
 <svg
-  width="150" height="100"
+  width="150px" height="200px"
+  viewBox="0 0 1500 1000"
   xmlns="http://www.w3.org/2000/svg"
   xmlns:xlink="http://www.w3.org/1999/xlink">
 
-  <defs>
-    <radialGradient id="rad" cx="150px" cy="100px" r="100px" fr="10px" gradientTransform="skewX(25deg)">
-      <stop offset="0%" stop-color="black" />
-      <stop offset="100%" stop-color="white" />
-    </radialGradient>
-    
-    <linearGradient id="lin" x1="25px" y1="25px" x2="275px" y2="175px" gradientTransform="rotateZ(0deg)">
-      <stop offset="0%" stop-color="black" />
-      <stop offset="100%" stop-color="white" />
-    </linearGradient>
-  </defs>
+  <path d="M 750,100 L 250,900 L 1250,900 z"
+        fill="red" stroke="blue" stroke-width="12px"  />
   
-  <path d="M25,25 h250 v150 h-250 v-150"
-        fill="url(rad)" stroke="red" stroke-width="5"  />
-
 </svg>
