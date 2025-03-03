@@ -24,7 +24,7 @@ namespace OpenGL_Example
         {
             gl = window.CreateOpenGL();
 
-            OpenGLRenderer nvgRenderer = new(CreateFlags.StencilStrokes | CreateFlags.Debug, gl);
+            OpenGLRenderer nvgRenderer = new(CreateFlags.Antialias | CreateFlags.StencilStrokes | CreateFlags.Debug, gl);
             nvg = Nvg.Create(nvgRenderer);
 
             svg = nvg.CreateSvgFromFile("./heart.svg") ?? throw new InvalidOperationException("Failed to parser Svg");
@@ -43,7 +43,7 @@ namespace OpenGL_Example
 
             nvg.BeginFrame(winSize.As<float>(), pxRatio);
 
-            nvg.DrawSvgImage(svg);
+            nvg.DrawSvgImage(10f, 200f, 300f, 200f, svg);
 
             nvg.EndFrame();
         }

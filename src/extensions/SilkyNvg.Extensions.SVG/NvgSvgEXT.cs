@@ -1,6 +1,7 @@
 ﻿using SilkyNvg.Extensions.Svg.Parser;
 using SilkyNvg.Graphics;
 using SilkyNvg.Paths;
+using SilkyNvg.Transforms;
 using System.Xml;
 
 namespace SilkyNvg.Extensions.Svg;
@@ -31,18 +32,22 @@ public static class NvgSvgEXT
         return CreateSvg(nvg, xmlCode);
     }
 
-    public static void DrawSvgImage(this Nvg nvg, SvgImage image)
+    public static void DrawSvgImage(this Nvg nvg, float x, float y, float width, float height, SvgImage image)
     {
+        float scaleX = width / image.Width;
+        float scaleY = height / image.Height;
+
+        nvg.Save();
+
+        nvg.Translate(x, y);
+        nvg.Scale(scaleX, scaleY);
+
         foreach (Shape shape in image.Shapes)
         {
             shape.Draw(nvg);
         }
 
-        nvg.BeginPath();
-        nvg.StrokeColour(Colour.Black);
-        nvg.StrokeWidth(3.0f);
-        nvg.Rect(0f, 0f, image.Width, image.Height);
-        nvg.Stroke();
+        nvg.Restore();
     }
 
 }

@@ -53,6 +53,7 @@ namespace SilkyNvg.Extensions.Svg
 
                 SilkyNvg.Paint fillPaint = _attribs.FillPaint.GetPaint(pathCache.Bounds, _attribs.Viewport);
                 fillPaint.PremultiplyAlpha(opacity);
+                fillPaint.MultiplyTransform(transform);
 
                 nvg.renderer.Fill(fillPaint, state.CompositeOperation, state.Scissor, pixelRatio.FringeWidth, pathCache.Bounds, pathCache.Paths);
             }
@@ -73,6 +74,7 @@ namespace SilkyNvg.Extensions.Svg
                 }
 
                 strokePaint.PremultiplyAlpha(opacity);
+                strokePaint.MultiplyTransform(transform);
 
                 if (nvg.renderer.EdgeAntiAlias && state.ShapeAntiAlias)
                 {

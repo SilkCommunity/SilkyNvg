@@ -1,11 +1,17 @@
 <!DOCTYPE svg [<!ATTLIST linearGradient id ID #REQUIRED>]>
 <svg
-  width="150px" height="200px"
-  viewBox="0 0 1500 1000"
+  width="300px" height="200px"
   xmlns="http://www.w3.org/2000/svg"
   xmlns:xlink="http://www.w3.org/1999/xlink">
 
-  <path d="M 750,100 L 250,900 L 1250,900 z"
-        fill="red" stroke="blue" stroke-width="12px"  />
+  <defs>
+    <radialGradient id="lin" cx="150px" cy="100px" r="100px" fr="10px" gradientTransform="translateX(500px)">
+      <stop stop-color="#A8F" />
+      <stop stop-color="#FDC" />
+    </radialGradient>
+  </defs>
+  
+  <path d="M 25 25 h 250 v 150 h -250 z"
+        fill="url(lin)" stroke="black" stroke-width="2px" />
   
 </svg>

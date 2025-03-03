@@ -19,7 +19,7 @@ namespace SilkyNvg.Extensions.Svg.Parser.Elements
                 return;
             }
             float tx = (float)x.ToPixel(parser.State, RenderMode.Horizontal);
-            parser.State.Transform = Maths.Multiply(parser.State.Transform, Matrix3X2.CreateTranslation(new Vector2D<float>(tx, 0f)));
+            parser.State.Transform = Maths.Multiply(Matrix3X2.CreateTranslation(new Vector2D<float>(tx, 0f)), parser.State.Transform);
         }
 
         private void ParseY(StringSource content)
@@ -29,7 +29,7 @@ namespace SilkyNvg.Extensions.Svg.Parser.Elements
                 return;
             }
             float ty = (float)y.ToPixel(parser.State, RenderMode.Vertical);
-            parser.State.Transform = Maths.Multiply(parser.State.Transform, Matrix3X2.CreateTranslation(new Vector2D<float>(0f, ty)));
+            parser.State.Transform = Maths.Multiply(Matrix3X2.CreateTranslation(new Vector2D<float>(0f, ty)), parser.State.Transform);
         }
 
         private void ParseWidth(StringSource content)

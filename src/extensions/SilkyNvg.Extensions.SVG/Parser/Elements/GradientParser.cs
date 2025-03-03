@@ -35,16 +35,6 @@ namespace SilkyNvg.Extensions.Svg.Parser.Elements
             public double FontSize => Length.Medium.Value;
         }
 
-        private static IRenderDimensions GetAppropriateRenderDimensions(Box2D<float> boundingBox, SvgViewport viewport, GradientUnits units)
-        {
-            return units switch
-            {
-                Paint.GradientUnits.UserSpaceOnUse => new RenderDimensionsShim(viewport.Width, viewport.Height),
-                Paint.GradientUnits.ObjectBoundingBox => new RenderDimensionsShim(boundingBox.Size.X, boundingBox.Size.Y),
-                _ => throw new ArgumentException("Should not reach here")
-            };
-        }
-
         private static ICssValue ParseCoord(StringSource source)
         {
             return source.ParseLength() ?? Length.Zero;

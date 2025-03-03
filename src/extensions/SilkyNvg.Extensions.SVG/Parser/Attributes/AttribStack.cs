@@ -3,8 +3,11 @@ using AngleSharp.Css.Dom;
 using AngleSharp.Css.Parser;
 using AngleSharp.Css.Values;
 using AngleSharp.Text;
+using Silk.NET.Maths;
+using SilkyNvg.Common;
 using SilkyNvg.Extensions.Svg.Paint;
 using SilkyNvg.Extensions.Svg.Parser.Constants;
+using SilkyNvg.Extensions.Svg.Parser.Utils;
 using System.Xml;
 
 namespace SilkyNvg.Extensions.Svg.Parser.Attributes
@@ -41,7 +44,8 @@ namespace SilkyNvg.Extensions.Svg.Parser.Attributes
                 [SvgAttributes.StrokeOpacity] = StrokeOpacityAttributeParser,
                 [SvgAttributes.StrokeWidth] = StrokeWidthAttributeParser,
                 [SvgAttributes.StrokeLinecap] = StrokeLineCapAttributeParser,
-                [SvgAttributes.StrokeLinejoin] = StrokeLineJoinAttributeParser
+                [SvgAttributes.StrokeLinejoin] = StrokeLineJoinAttributeParser,
+                [SvgAttributes.Transform] = TransformAttributeParser
             };
             _parser = parser;
         }
@@ -218,9 +222,30 @@ namespace SilkyNvg.Extensions.Svg.Parser.Attributes
             state.StrokeLineJoin = value.Value.Value;
         }
 
-        private void TransformAttributeParser(StringSource source)
+        private void TransformAttributeParser(StringSource source, ref AttribState state)
         {
+            var list = new List<ICssTransformFunctionValue>();
+            while (!source.IsDone)
+            {
+                source.SkipSpacesAndComments();
+                var mat = source.ParseTransform();
+                if (mat != null)
+                {
+                    list.Add(mat);
+                }
+            }
 
+            Matrix3X3<float> transform = Matrix3X3<float>.Identity;
+            foreach (ICssTransformFunctionValue mat in list)
+            {
+                var t = mat.ComputeMatrix(state);
+                if (t != null)
+                {
+                    transform = Matrix3X3.Multiply(t.ToMatrix3X3(), transform);
+                }
+            }
+
+            state.Transform = Maths.Multiply(new Matrix3X2<float>(transform), state.Transform);
         }
 
     }

@@ -15,5 +15,14 @@ namespace SilkyNvg.Extensions.Svg.Parser.Utils
             );
         }
 
+        internal static Matrix3X2<float> ToMatrix3X2(this TransformMatrix matrix)
+        {
+            return new Matrix3X2<float>(
+                (float)matrix.M11, (float)matrix.M21,
+                (float)matrix.M12, (float)matrix.M22,
+                (float)matrix.M13, (float)matrix.M23
+            );
+        }
+
     }
 }

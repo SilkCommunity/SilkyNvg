@@ -26,6 +26,8 @@
 
         internal const string StopColour = "stop-color";
 
+        internal const string Transform = "transform";
+
         internal const string ViewBox = "viewBox";
 
         internal const string Width = "width";
