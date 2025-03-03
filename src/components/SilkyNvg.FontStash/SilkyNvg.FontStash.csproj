@@ -6,8 +6,4 @@
     <Version />
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\SilkyNvg.Core\SilkyNvg.Core.csproj" />
-  </ItemGroup>
-
 </Project>

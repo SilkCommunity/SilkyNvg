@@ -1,19 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Version />
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\components\SilkyNvg.FontStash\SilkyNvg.FontStash.csproj" />
     <ProjectReference Include="..\components\SilkyNvg.Tools\SilkyNvg.Tools.csproj" />
     <ProjectReference Include="..\rendering\SilkyNvg.Rendering\SilkyNvg.Rendering.csproj" />
     <ProjectReference Include="..\SilkyNvg.Common\SilkyNvg.Common.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="FontStash.NET" Version="1.1.2" />
   </ItemGroup>
 
 </Project>

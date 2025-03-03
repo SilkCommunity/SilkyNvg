@@ -90,7 +90,7 @@ namespace OpenGL_Example
 
             float pxRatio = fbSize.X / winSize.X;
 
-            gl.Viewport(0, 0, (uint)winSize.X, (uint)winSize.Y);
+            gl.Viewport(0, 0, (uint)fbSize.X, (uint)fbSize.Y);
             if (premult)
             {
                 gl.ClearColor(0, 0, 0, 0);
@@ -103,7 +103,7 @@ namespace OpenGL_Example
 
             nvg.BeginFrame(winSize.As<float>(), pxRatio);
 
-            demo.Render((float)mx, (float)my, winSize.X, winSize.Y, (float)t, blowup);
+            demo.Render(mx, my, winSize.X, winSize.Y, (float)t, blowup);
 
             frameGraph.Render(5.0f, 5.0f, nvg);
             cpuGraph.Render(5.0f + 200.0f + 5.0f, 5.0f, nvg);
