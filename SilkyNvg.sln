@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30907.101
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.34916.146
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{E94958C3-5109-4384-A9CB-E165EC5754CE}"
 EndProject
@@ -47,9 +47,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenGL Example", "samples\O
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vulkan Example", "samples\Vulkan Example\Vulkan Example.csproj", "{B5AB5EB4-C49F-4568-BFE2-917C9F0B0AEC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IncreasingFontSizeTest", "tests\IncreasingFontSizeTest\IncreasingFontSizeTest.csproj", "{C20A47F9-31DB-43EF-8FFA-E45CDE8F917D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IncreasingFontSizeTest", "tests\IncreasingFontSizeTest\IncreasingFontSizeTest.csproj", "{C20A47F9-31DB-43EF-8FFA-E45CDE8F917D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilkyNvg.FontStash", "src\components\SilkyNvg.FontStash\SilkyNvg.FontStash.csproj", "{4F4D216B-F978-478B-B0DB-701E8E86F363}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SilkyNvg.FontStash", "src\components\SilkyNvg.FontStash\SilkyNvg.FontStash.csproj", "{4F4D216B-F978-478B-B0DB-701E8E86F363}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AntialiasingTest", "tests\AntialiasingTest\AntialiasingTest.csproj", "{6423184C-D71E-41F3-9EA1-7DC5C5A0EFF4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -133,6 +135,10 @@ Global
 		{4F4D216B-F978-478B-B0DB-701E8E86F363}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4F4D216B-F978-478B-B0DB-701E8E86F363}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4F4D216B-F978-478B-B0DB-701E8E86F363}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6423184C-D71E-41F3-9EA1-7DC5C5A0EFF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6423184C-D71E-41F3-9EA1-7DC5C5A0EFF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6423184C-D71E-41F3-9EA1-7DC5C5A0EFF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6423184C-D71E-41F3-9EA1-7DC5C5A0EFF4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -159,6 +165,7 @@ Global
 		{B5AB5EB4-C49F-4568-BFE2-917C9F0B0AEC} = {E94958C3-5109-4384-A9CB-E165EC5754CE}
 		{C20A47F9-31DB-43EF-8FFA-E45CDE8F917D} = {225A277C-EFE4-47D6-A080-4005F7ED1D4C}
 		{4F4D216B-F978-478B-B0DB-701E8E86F363} = {E630DC3A-E1F6-4AFC-A8D0-84C92C8B12CB}
+		{6423184C-D71E-41F3-9EA1-7DC5C5A0EFF4} = {225A277C-EFE4-47D6-A080-4005F7ED1D4C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {08FE0BD8-4253-419D-9FBF-7F9671C9AAC2}

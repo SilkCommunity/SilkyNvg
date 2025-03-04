@@ -275,7 +275,7 @@ namespace SilkyNvg.Rendering
                 Flags |= PointFlags.Left;
             }
 
-            float limit = MathF.Max(1.0f, MathF.Min(other.Length, Length) * iw);
+            float limit = MathF.Max(1.01f, MathF.Min(other.Length, Length) * iw);
             if ((dmr2 * limit * limit) < 1.0f)
             {
                 Flags |= PointFlags.Innerbevel;

@@ -54,6 +54,11 @@ namespace SilkyNvg.Core.Instructions
 
         public void FlattenPaths()
         {
+            if (_nvg.pathCache.Paths.Count > 0)
+            {
+                return;
+            }
+
             while (_instructions.Count > 0)
             {
                 _instructions.Dequeue().BuildPaths();

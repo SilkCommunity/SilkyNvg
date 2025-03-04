@@ -217,6 +217,7 @@ namespace SilkyNvg.Rendering
             _fill.Clear();
 
             bool loop = Closed;
+            _stroke.Clear();
 
             Point p0, p1;
             int s, e;
