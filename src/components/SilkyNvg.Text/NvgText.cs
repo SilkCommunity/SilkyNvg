@@ -1,11 +1,12 @@
 ﻿using FontStash.NET;
-using Silk.NET.Maths;
 using SilkyNvg.Common;
+using SilkyNvg.Common.Geometry;
 using SilkyNvg.Core.States;
 using SilkyNvg.Rendering;
 using SilkyNvg.Transforms;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 namespace SilkyNvg.Text
 {
@@ -192,7 +193,7 @@ namespace SilkyNvg.Text
         /// <summary>
         /// Draws text string at specified location. Only the sub-string up to the end is drawn.
         /// </summary>
-        public static float Text(this Nvg nvg, Vector2D<float> pos, string @string, string end)
+        public static float Text(this Nvg nvg, Vector2 pos, string @string, string end)
         {
             Fontstash fons = nvg.fontManager.Fontstash;
             State state = nvg.stateStack.CurrentState;
@@ -215,12 +216,12 @@ namespace SilkyNvg.Text
             fons.SetFont(state.FontId);
 
             List<Vertex> vertices = new();
+            Span<Vector2> c = stackalloc Vector2[4];
             fons.TextIterInit(out FonsTextIter iter, pos.X * scale, pos.Y * scale, @string, end, FonsGlyphBitmap.Requiered);
             FonsTextIter prevIter = iter;
             while (fons.TextIterNext(ref iter, ref q))
             {
-                Vector2D<float>[] c = new Vector2D<float>[4];
-
+                c[0] = c[1] = c[2] = c[3] = default; // Clear cache
                 if (iter.prevGlyphIndex == -1)
                 {
                     if (vertices.Count != 0)
@@ -273,23 +274,23 @@ namespace SilkyNvg.Text
         /// <summary>
         /// Draws text string at specified location.
         /// </summary>
-        public static float Text(this Nvg nvg, Vector2D<float> pos, string @string)
+        public static float Text(this Nvg nvg, Vector2 pos, string @string)
             => Text(nvg, pos, @string, null);
 
-        /// <inheritdoc cref="Text(Nvg, Vector2D{float}, string, string)"/>
+        /// <inheritdoc cref="Text(Nvg, Vector2, string, string)"/>
         public static float Text(this Nvg nvg, float x, float y, string @string, string end)
-            => Text(nvg, new Vector2D<float>(x, y), @string, end);
+            => Text(nvg, new Vector2(x, y), @string, end);
 
-        /// <inheritdoc cref="Text(Nvg, Vector2D{float}, string)"/>
+        /// <inheritdoc cref="Text(Nvg, Vector2, string)"/>
         public static float Text(this Nvg nvg, float x, float y, string @string)
-            => Text(nvg, new Vector2D<float>(x, y), @string, null);
+            => Text(nvg, new Vector2(x, y), @string, null);
 
         /// <summary>
         /// Draws multi-line text string at specified location wrapped at the specified width. Only the sub-string up to the end is drawn.
         /// White space is stripped at the beginning of the rows, the text is split at word boundries or when new-line characters are encountered.
         /// Words longer than the max width are slit at nearest character (i.e. no hyphenation).
         /// </summary>
-        public static void TextBox(this Nvg nvg, Vector2D<float> pos, float breakRowWidth, string @string, string end)
+        public static void TextBox(this Nvg nvg, Vector2 pos, float breakRowWidth, string @string, string end)
         {
             State state = nvg.stateStack.CurrentState;
             int rowCount;
@@ -334,16 +335,16 @@ namespace SilkyNvg.Text
         /// Draws multi-line text string at specified location wrapped at the specified width. White space is stripped at the beginning of the rows,
         /// the text is split at word boundries or when new-line characters are encountered. Words longer than the max width are slit at nearest character (i.e. no hyphenation).
         /// </summary>
-        public static void TextBox(this Nvg nvg, Vector2D<float> pos, float breakRowWidth, string @string)
+        public static void TextBox(this Nvg nvg, Vector2 pos, float breakRowWidth, string @string)
             => TextBox(nvg, pos, breakRowWidth, @string, null);
 
-        /// <inheritdoc cref="TextBox(Nvg, Vector2D{float}, float, string, string)"/>
+        /// <inheritdoc cref="TextBox(Nvg, Vector2, float, string, string)"/>
         public static void TextBox(this Nvg nvg, float x, float y, float breakRowWidth, string @string, string end)
-            => TextBox(nvg, new Vector2D<float>(x, y), breakRowWidth, @string, end);
+            => TextBox(nvg, new Vector2(x, y), breakRowWidth, @string, end);
 
-        /// <inheritdoc cref="TextBox(Nvg, Vector2D{float}, float, string)"/>
+        /// <inheritdoc cref="TextBox(Nvg, Vector2, float, string)"/>
         public static void TextBox(this Nvg nvg, float x, float y, float breakRowWidth, string @string)
-            => TextBox(nvg, new Vector2D<float>(x, y), breakRowWidth, @string, null);
+            => TextBox(nvg, new Vector2(x, y), breakRowWidth, @string, null);
 
         /// <summary>
         /// Measures the specified text string. Parameter bounds contains the bounds of the text.<br/>
@@ -351,9 +352,9 @@ namespace SilkyNvg.Text
         /// </summary>
         /// <param name="bounds">Contains the bounds of the text when returned.</param>
         /// <returns>The horizontal advance of the measured text (i.e. where the next character should be drawn).</returns>
-        public static float TextBounds(this Nvg nvg, Vector2D<float> pos, string @string, string end, out Rectangle<float> bounds)
+        public static float TextBounds(this Nvg nvg, Vector2 pos, string @string, string end, out RectF bounds)
         {
-            bounds = default;
+            bounds = RectF.Empty.At(pos);
 
             Fontstash fons = nvg.fontManager.Fontstash;
             State state = nvg.stateStack.CurrentState;
@@ -375,34 +376,34 @@ namespace SilkyNvg.Text
             if (bs != null)
             {
                 fons.LineBounds(pos.Y * scale, out bs[1], out bs[3]);
-                bounds = new Rectangle<float>()
-                {
-                    Origin = new Vector2D<float>(bs[0] * invscale, bs[1] * invscale),
-                    Size = new Vector2D<float>((bs[2] - bs[0]) * invscale, (bs[3] - bs[1]) * invscale)
-                };
+                bounds = new RectF
+                (
+                    new Vector2(bs[0] * invscale, bs[1] * invscale),
+                    new SizeF((bs[2] - bs[0]) * invscale, (bs[3] - bs[1]) * invscale)
+                );
             }
 
             return width * invscale;
         }
 
-        /// <inheritdoc cref="TextBounds(Nvg, Vector2D{float}, string, string, out Rectangle{float})"/>
-        public static float TextBounds(this Nvg nvg, Vector2D<float> pos, string @string, out Rectangle<float> bounds)
+        /// <inheritdoc cref="TextBounds(Nvg, Vector2, string, string, out RectF)"/>
+        public static float TextBounds(this Nvg nvg, Vector2 pos, string @string, out RectF bounds)
             => TextBounds(nvg, pos, @string, null, out bounds);
 
-        /// <inheritdoc cref="TextBounds(Nvg, Vector2D{float}, string, string, out Rectangle{float})"/>
-        public static float TextBounds(this Nvg nvg, float x, float y, string @string, string end, out Rectangle<float> bounds)
-            => TextBounds(nvg, new Vector2D<float>(x, y), @string, end, out bounds);
+        /// <inheritdoc cref="TextBounds(Nvg, Vector2, string, string, out RectF)"/>
+        public static float TextBounds(this Nvg nvg, float x, float y, string @string, string end, out RectF bounds)
+            => TextBounds(nvg, new Vector2(x, y), @string, end, out bounds);
 
-        /// <inheritdoc cref="TextBounds(Nvg, Vector2D{float}, string, string, out Rectangle{float})"/>
-        public static float TextBounds(this Nvg nvg, float x, float y, string @string, out Rectangle<float> bounds)
-            => TextBounds(nvg, new Vector2D<float>(x, y), @string, null, out bounds);
+        /// <inheritdoc cref="TextBounds(Nvg, Vector2, string, string, out RectF)"/>
+        public static float TextBounds(this Nvg nvg, float x, float y, string @string, out RectF bounds)
+            => TextBounds(nvg, new Vector2(x, y), @string, null, out bounds);
 
         /// <summary>
         /// Measures the specified multi-text string.<br/>
         /// Measured values are returned in local space.
         /// </summary>
         /// <param name="bounds">Contains the bounds box of the multi-text when returned.</param>
-        public static void TextBoxBounds(this Nvg nvg, Vector2D<float> pos, float breakRowWidth, string @string, string end, out Rectangle<float> bounds)
+        public static void TextBoxBounds(this Nvg nvg, Vector2 pos, float breakRowWidth, string @string, string end, out RectF bounds)
         {
             Fontstash fons = nvg.fontManager.Fontstash;
             State state = nvg.stateStack.CurrentState;
@@ -468,26 +469,26 @@ namespace SilkyNvg.Text
 
             state.TextAlign = oldAlign;
 
-            bounds = new Rectangle<float>(new Vector2D<float>(minX, minY), new Vector2D<float>(maxX, maxY) - new Vector2D<float>(minX, minY));
+            bounds = RectF.FromLTRB(minX, minY, maxX, maxY);
         }
 
-        /// <inheritdoc cref="TextBoxBounds(Nvg, Vector2D{float}, float, string, string, out Rectangle{float})"/>
-        public static void TextBoxBounds(this Nvg nvg, Vector2D<float> pos, float breakRowWidth, string @string, out Rectangle<float> bounds)
+        /// <inheritdoc cref="TextBoxBounds(Nvg, Vector2, float, string, string, out RectF)"/>
+        public static void TextBoxBounds(this Nvg nvg, Vector2 pos, float breakRowWidth, string @string, out RectF bounds)
             => TextBoxBounds(nvg, pos, breakRowWidth, @string, null, out bounds);
 
-        /// <inheritdoc cref="TextBoxBounds(Nvg, Vector2D{float}, float, string, string, out Rectangle{float})"/>
-        public static void TextBoxBounds(this Nvg nvg, float x, float y, float breakRowWidth, string @string, string end, out Rectangle<float> bounds)
-            => TextBoxBounds(nvg, new Vector2D<float>(x, y), breakRowWidth, @string, end, out bounds);
+        /// <inheritdoc cref="TextBoxBounds(Nvg, Vector2, float, string, string, out RectF)"/>
+        public static void TextBoxBounds(this Nvg nvg, float x, float y, float breakRowWidth, string @string, string end, out RectF bounds)
+            => TextBoxBounds(nvg, new Vector2(x, y), breakRowWidth, @string, end, out bounds);
 
-        /// <inheritdoc cref="TextBoxBounds(Nvg, Vector2D{float}, float, string, string, out Rectangle{float})"/>
-        public static void TextBoxBounds(this Nvg nvg, float x, float y, float breakRowWidth, string @string, out Rectangle<float> bounds)
-            => TextBoxBounds(nvg, new Vector2D<float>(x, y), breakRowWidth, @string, null, out bounds);
+        /// <inheritdoc cref="TextBoxBounds(Nvg, Vector2, float, string, string, out RectF)"/>
+        public static void TextBoxBounds(this Nvg nvg, float x, float y, float breakRowWidth, string @string, out RectF bounds)
+            => TextBoxBounds(nvg, new Vector2(x, y), breakRowWidth, @string, null, out bounds);
 
         /// <summary>
         /// Calculates the glyph x positions of the specified text. Only the sub-string will be used.<br/>
         /// Measures values are returned in local coordinate space.
         /// </summary>
-        public static int TextGlyphPositions(this Nvg nvg, Vector2D<float> pos, string @string, string end, out GlyphPosition[] positions, int maxRows)
+        public static int TextGlyphPositions(this Nvg nvg, Vector2 pos, string @string, string end, out GlyphPosition[] positions, int maxRows)
         {
             positions = new GlyphPosition[maxRows];
 
@@ -534,9 +535,9 @@ namespace SilkyNvg.Text
             return npos;
         }
 
-        /// <inheritdoc cref="TextGlyphPositions(Nvg, Vector2D{float}, string, string, out GlyphPosition[], int)"/>
+        /// <inheritdoc cref="TextGlyphPositions(Nvg, Vector2, string, string, out GlyphPosition[], int)"/>
         public static int TextGlyphPositions(this Nvg nvg, float x, float y, string @string, string end, out GlyphPosition[] positions, int maxRows)
-            => TextGlyphPositions(nvg, new Vector2D<float>(x, y), @string, end, out positions, maxRows);
+            => TextGlyphPositions(nvg, new Vector2(x, y), @string, end, out positions, maxRows);
 
 
         /// <summary>

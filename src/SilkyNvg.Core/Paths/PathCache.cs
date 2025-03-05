@@ -1,10 +1,11 @@
-﻿using Silk.NET.Maths;
-using SilkyNvg.Common;
+﻿using SilkyNvg.Common;
+using SilkyNvg.Common.Geometry;
 using SilkyNvg.Graphics;
 using SilkyNvg.Paths;
 using SilkyNvg.Rendering;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 namespace SilkyNvg.Core.Paths
 {
@@ -16,11 +17,11 @@ namespace SilkyNvg.Core.Paths
         private readonly IList<Path> _paths = new List<Path>((int)INIT_PATHS_SIZE);
         private readonly Nvg _nvg;
 
-        private Box2D<float> _bounds;
+        private RectF _bounds;
 
         public IReadOnlyList<Path> Paths => (IReadOnlyList<Path>)_paths;
 
-        public Box2D<float> Bounds => _bounds;
+        public RectF Bounds => _bounds;
 
         public PathCache(Nvg nvg)
         {
@@ -55,17 +56,15 @@ namespace SilkyNvg.Core.Paths
 
         public void FlattenPaths()
         {
-            _bounds.Min.X = _bounds.Min.Y = 1e6f;
-            _bounds.Max.X = _bounds.Max.Y = -1e6f;
+            _bounds.Min = new Vector2(1e6f);
+            _bounds.Max = new Vector2(-1e6f);
 
             foreach (Path path in _paths)
             {
                 path.Flatten();
 
-                _bounds.Min.X = MathF.Min(_bounds.Min.X, path.Bounds.Min.X);
-                _bounds.Min.Y = MathF.Min(_bounds.Min.Y, path.Bounds.Min.Y);
-                _bounds.Max.X = MathF.Max(_bounds.Max.X, path.Bounds.Max.X);
-                _bounds.Max.Y = MathF.Max(_bounds.Max.Y, path.Bounds.Max.Y);
+                _bounds.Min = Vector2.Min(_bounds.Min, path.Bounds.Min);
+                _bounds.Max = Vector2.Max(_bounds.Max, path.Bounds.Max);
             }
         }
 

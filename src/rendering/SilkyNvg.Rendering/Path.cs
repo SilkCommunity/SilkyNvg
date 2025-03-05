@@ -1,9 +1,10 @@
-﻿using Silk.NET.Maths;
-using SilkyNvg.Common;
+﻿using SilkyNvg.Common;
+using SilkyNvg.Common.Geometry;
 using SilkyNvg.Graphics;
 using SilkyNvg.Paths;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 namespace SilkyNvg.Rendering
 {
@@ -20,7 +21,7 @@ namespace SilkyNvg.Rendering
 
         private readonly PixelRatio _pixelRatio;
         private uint _bevelCount;
-        private Box2D<float> _bounds;
+        private RectF _bounds;
 
         public bool Closed { get; private set; }
 
@@ -34,17 +35,17 @@ namespace SilkyNvg.Rendering
 
         public Winding Winding { get; internal set; }
 
-        internal Box2D<float> Bounds => _bounds;
+        internal RectF Bounds => _bounds;
 
         internal Path(Winding winding, PixelRatio pixelRatio)
         {
             Winding = winding;
             _pixelRatio = pixelRatio;
 
-            _bounds = new Box2D<float>(new Vector2D<float>(1e6f, 1e6f), new Vector2D<float>(-1e6f, -1e6f));
+            _bounds = RectF.FromLTRB(1e6f, 1e6f, -1e6f, -1e6f);
         }
 
-        internal Vector2D<float> LastPoint
+        internal Vector2 LastPoint
         {
             get
             {
@@ -58,7 +59,7 @@ namespace SilkyNvg.Rendering
 
         internal uint PointCount => (uint)_points.Count;
 
-        internal void AddPoint(Vector2D<float> position, PointFlags flags)
+        internal void AddPoint(Vector2 position, PointFlags flags)
         {
             if (_points.Count > 0)
             {
@@ -123,39 +124,44 @@ namespace SilkyNvg.Rendering
                 p1 = point;
                 p0.SetDeterminant(p1);
 
-                _bounds.Min.X = MathF.Min(_bounds.Min.X, p0.Position.X);
-                _bounds.Min.Y = MathF.Min(_bounds.Min.Y, p0.Position.Y);
-                _bounds.Max.X = MathF.Max(_bounds.Max.X, p0.Position.X);
-                _bounds.Max.Y = MathF.Max(_bounds.Max.Y, p0.Position.Y);
+                float xMin = MathF.Min(_bounds.Min.X, p0.Position.X);
+                float yMin = MathF.Min(_bounds.Min.Y, p0.Position.Y);
+                float xMax = MathF.Max(_bounds.Max.X, p0.Position.X);
+                float yMax = MathF.Max(_bounds.Max.Y, p0.Position.Y);
+
+                _bounds.Min = Vector2.Min(_bounds.Min, p0.Position);
+                _bounds.Max = Vector2.Max(_bounds.Max, p0.Position);
+
+                _bounds = RectF.FromLTRB(xMin, yMin, xMax, yMax);
 
                 p0 = p1;
             }
         }
 
-        private void ButtCapStart(Point p, Vector2D<float> delta, float w, float d, float aa, float u0, float u1)
+        private void ButtCapStart(Point p, Vector2 delta, float w, float d, float aa, float u0, float u1)
         {
-            Vector2D<float> pPos = p.Position - delta * d;
-            Vector2D<float> dl = new(delta.Y, -delta.X);
+            Vector2 pPos = p.Position - delta * d;
+            Vector2 dl = new(delta.Y, -delta.X);
             _stroke.Add(new Vertex(pPos + (dl * w) - (delta * aa), u0, 0.0f));
             _stroke.Add(new Vertex(pPos - (dl * w) - (delta * aa), u1, 0.0f));
             _stroke.Add(new Vertex(pPos + (dl * w), u0, 1.0f));
             _stroke.Add(new Vertex(pPos - (dl * w), u1, 1.0f));
         }
 
-        private void ButtCapEnd(Point p, Vector2D<float> delta, float w, float d, float aa, float u0, float u1)
+        private void ButtCapEnd(Point p, Vector2 delta, float w, float d, float aa, float u0, float u1)
         {
-            Vector2D<float> pPos = p.Position + delta * d;
-            Vector2D<float> dl = new(delta.Y, -delta.X);
+            Vector2 pPos = p.Position + delta * d;
+            Vector2 dl = new(delta.Y, -delta.X);
             _stroke.Add(new Vertex(pPos + (dl * w), u0, 1.0f));
             _stroke.Add(new Vertex(pPos - (dl * w), u1, 1.0f));
             _stroke.Add(new Vertex(pPos + (dl * w) + (delta * aa), u0, 0.0f));
             _stroke.Add(new Vertex(pPos - (dl * w) + (delta * aa), u1, 0.0f));
         }
 
-        private void RoundCapStart(Point p, Vector2D<float> delta, float w, uint ncap, float u0, float u1)
+        private void RoundCapStart(Point p, Vector2 delta, float w, uint ncap, float u0, float u1)
         {
-            Vector2D<float> pPos = p.Position;
-            Vector2D<float> dl = new(delta.Y, -delta.X);
+            Vector2 pPos = p.Position;
+            Vector2 dl = new(delta.Y, -delta.X);
             for (int i = 0; i < ncap; i++)
             {
                 float a = i / (float)(ncap - 1) * MathF.PI;
@@ -168,10 +174,10 @@ namespace SilkyNvg.Rendering
             _stroke.Add(new Vertex(pPos - (dl * w), u1, 1.0f));
         }
 
-        private void RoundCapEnd(Point p, Vector2D<float> delta, float w, uint ncap, float u0, float u1)
+        private void RoundCapEnd(Point p, Vector2 delta, float w, uint ncap, float u0, float u1)
         {
-            Vector2D<float> pPos = p.Position;
-            Vector2D<float> dl = new(delta.Y, -delta.X);
+            Vector2 pPos = p.Position;
+            Vector2 dl = new(delta.Y, -delta.X);
             _stroke.Add(new Vertex(pPos + (dl * w), u0, 1.0f));
             _stroke.Add(new Vertex(pPos - (dl * w), u1, 1.0f));
             for (int i = 0; i < ncap; i++)
@@ -186,8 +192,8 @@ namespace SilkyNvg.Rendering
 
         private void BevelJoin(Point p0, Point p1, float lw, float rw, float lu, float ru)
         {
-            Vector2D<float> dl0 = new(p0.Determinant.Y, -p0.Determinant.X);
-            Vector2D<float> dl1 = new(p1.Determinant.Y, -p1.Determinant.X);
+            Vector2 dl0 = new(p0.Determinant.Y, -p0.Determinant.X);
+            Vector2 dl1 = new(p1.Determinant.Y, -p1.Determinant.X);
 
             p1.JoinBevel(lw, rw, lu, ru, dl0, dl1, p0, _stroke);
         }
@@ -238,8 +244,8 @@ namespace SilkyNvg.Rendering
 
             if (!loop)
             {
-                Vector2D<float> d = p1.Position - p0.Position;
-                d = Vector2D.Normalize(d);
+                Vector2 d = p1.Position - p0.Position;
+                d = Vector2.Normalize(d);
                 if (lineCap is LineCap.Butt)
                 {
                     ButtCapStart(p0, d, w, -aa * 0.5f, aa, u0, u1);
@@ -289,8 +295,8 @@ namespace SilkyNvg.Rendering
             }
             else
             {
-                Vector2D<float> d = p1.Position - p0.Position;
-                d = Vector2D.Normalize(d);
+                Vector2 d = p1.Position - p0.Position;
+                d = Vector2.Normalize(d);
                 if (lineCap is LineCap.Butt)
                 {
                     ButtCapEnd(p1, d, w, -aa * 0.5f, aa, u0, u1);

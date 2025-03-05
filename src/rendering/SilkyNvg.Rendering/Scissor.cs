@@ -1,21 +1,22 @@
-﻿using Silk.NET.Maths;
+﻿using SilkyNvg.Common.Geometry;
+using System.Numerics;
 
 namespace SilkyNvg.Rendering
 {
     public struct Scissor
     {
 
-        public Matrix3X2<float> Transform { get; }
+        public Matrix3x2 Transform { get; }
 
-        public Vector2D<float> Extent { get; }
+        public SizeF Extent { get; }
 
-        public Scissor(Vector2D<float> extent)
+        public Scissor(SizeF extent)
         {
             Extent = extent;
             Transform = default;
         }
 
-        public Scissor(Matrix3X2<float> transform, Vector2D<float> extent)
+        public Scissor(Matrix3x2 transform, SizeF extent)
         {
             Transform = transform;
             Extent = extent;

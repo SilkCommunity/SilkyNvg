@@ -1,11 +1,12 @@
-﻿using Silk.NET.Maths;
-using SilkyNvg.Common;
+﻿using SilkyNvg.Common;
+using SilkyNvg.Common.Geometry;
 using SilkyNvg.Core.Fonts;
 using SilkyNvg.Core.Instructions;
 using SilkyNvg.Core.Paths;
 using SilkyNvg.Core.States;
 using SilkyNvg.Rendering;
 using System;
+using System.Numerics;
 
 namespace SilkyNvg
 {
@@ -59,15 +60,15 @@ namespace SilkyNvg
         #region Frames
         /// <summary>
         /// Begin drawing a new frame.<br/>
-        /// Calls to NanoVG drawing API should be wrapped in <see cref="BeginFrame(Vector2D{float}, float)"/> and <see cref="EndFrame()"/>.
-        /// <para><see cref="BeginFrame(Vector2D{float}, float)"/> defines the size of the window to render to in relation currently
+        /// Calls to NanoVG drawing API should be wrapped in <see cref="BeginFrame(SizeF, float)"/> and <see cref="EndFrame()"/>.
+        /// <para><see cref="BeginFrame(SizeF, float)"/> defines the size of the window to render to in relation currently
         /// set viewport (i.e. glViewport on GL backends). Device pixel ratio allows to
         /// control the rendering on Hi-DPI devices.</para>
         /// <para>For example, GLFW returns two dimension for an opened window: window size and
         /// frame buffer size. In that case you would set windowWidth / Height to the window size,
         /// devicePixelRatio to: <c>frameBufferWidth / windowWidth</c>.</para>
         /// </summary>
-        public void BeginFrame(Vector2D<float> windowSize, float devicePixelRatio)
+        public void BeginFrame(SizeF windowSize, float devicePixelRatio)
         {
             fontManager.Pack();
 
@@ -82,8 +83,8 @@ namespace SilkyNvg
             FrameMeta = default;
         }
 
-        /// <inheritdoc cref="BeginFrame(Vector2D{float}, float)"/>
-        public void BeginFrame(float windowWidth, float windowHeight, float devicePixelRatio) => BeginFrame(new Vector2D<float>(windowWidth, windowHeight), devicePixelRatio);
+        /// <inheritdoc cref="BeginFrame(SizeF, float)"/>
+        public void BeginFrame(float windowWidth, float windowHeight, float devicePixelRatio) => BeginFrame(new SizeF(windowWidth, windowHeight), devicePixelRatio);
 
         /// <summary>
         /// Cancels drawing the current frame.
@@ -180,8 +181,8 @@ namespace SilkyNvg
         #endregion
 
         #region Paints
-        /// <inheritdoc cref="Paint.LinearGradient(Vector2D{float}, Vector2D{float}, Colour, Colour)"/>
-        public Paint LinearGradient(Vector2D<float> s, Vector2D<float> e, Colour icol, Colour ocol)
+        /// <inheritdoc cref="Paint.LinearGradient(Vector2, Vector2, Colour, Colour)"/>
+        public Paint LinearGradient(Vector2 s, Vector2 e, Colour icol, Colour ocol)
             => Paint.LinearGradient(s, e, icol, ocol);
 
 
@@ -189,13 +190,13 @@ namespace SilkyNvg
         public Paint LinearGradient(float sx, float sy, float ex, float ey, Colour icol, Colour ocol)
             => Paint.LinearGradient(sx, sy, ex, ey, icol, ocol);
 
-        /// <inheritdoc cref="Paint.BoxGradient(Rectangle{float}, float, float, Colour, Colour)"/>
-        public Paint BoxGradient(Rectangle<float> box, float r, float f, Colour icol, Colour ocol)
+        /// <inheritdoc cref="Paint.BoxGradient(RectF, float, float, Colour, Colour)"/>
+        public Paint BoxGradient(RectF box, float r, float f, Colour icol, Colour ocol)
             => Paint.BoxGradient(box, r, f, icol, ocol);
 
-        /// <inheritdoc cref="Paint.BoxGradient(Vector2D{float}, Vector2D{float}, float, float, Colour, Colour)"/>
-        public Paint BoxGradient(Vector2D<float> pos, Vector2D<float> size, float r, float f, Colour icol, Colour ocol)
-            => BoxGradient(pos.X, pos.Y, size.X, size.Y, r, f, icol, ocol);
+        /// <inheritdoc cref="Paint.BoxGradient(RectF, float, float, Colour, Colour)"/>
+        public Paint BoxGradient(Vector2 pos, SizeF size, float r, float f, Colour icol, Colour ocol)
+            => BoxGradient(pos.X, pos.Y, size.Width, size.Height, r, f, icol, ocol);
 
         /// <inheritdoc cref="Paint.BoxGradient(float, float, float, float, float, float, Colour, Colour)"/>
         public Paint BoxGradient(float x, float y, float w, float h, float r, float f, Colour icol, Colour ocol)
@@ -203,8 +204,8 @@ namespace SilkyNvg
             return Paint.BoxGradient(x, y, w, h, r, f, icol, ocol);
         }
 
-        /// <inheritdoc cref="Paint.RadialGradient(Vector2D{float}, float, float, Colour, Colour)"/>
-        public Paint RadialGradient(Vector2D<float> c, float inr, float outr, Colour icol, Colour ocol)
+        /// <inheritdoc cref="Paint.RadialGradient(Vector2, float, float, Colour, Colour)"/>
+        public Paint RadialGradient(Vector2 c, float inr, float outr, Colour icol, Colour ocol)
             => Paint.RadialGradient(c, inr, outr, icol, ocol);
 
         /// <inheritdoc cref="Paint.RadialGradient(float, float, float, float, Colour, Colour)"/>

@@ -1,5 +1,5 @@
-﻿using Silk.NET.Maths;
-using SilkyNvg;
+﻿using SilkyNvg;
+using SilkyNvg.Common.Geometry;
 using SilkyNvg.Graphics;
 using SilkyNvg.Images;
 using SilkyNvg.Paths;
@@ -7,6 +7,7 @@ using SilkyNvg.Scissoring;
 using SilkyNvg.Text;
 using SilkyNvg.Transforms;
 using System;
+using System.Numerics;
 
 namespace NvgExample
 {
@@ -369,15 +370,15 @@ namespace NvgExample
         {
             float dx = w / 5.0f;
 
-            Span<float> samples = stackalloc float[]
-            {
+            Span<float> samples =
+            [
                 (1 + MathF.Sin(t * 1.2345f + MathF.Cos(t * 0.33457f) * 0.44f)) * 0.5f,
                 (1 + MathF.Sin(t * 0.68363f + MathF.Cos(t * 1.3f) * 1.55f)) * 0.5f,
                 (1 + MathF.Sin(t * 1.1642f + MathF.Cos(t * 0.33457f) * 1.24f)) * 0.5f,
                 (1 + MathF.Sin(t * 0.56345f + MathF.Cos(t * 1.63f) * 0.14f)) * 0.5f,
                 (1 + MathF.Sin(t * 1.6245f + MathF.Cos(t * 0.254f) * 0.3f)) * 0.5f,
                 (1 + MathF.Sin(t * 0.345f + MathF.Cos(t * 0.03f) * 0.6f)) * 0.5f
-            };
+            ];
 
             Span<float> sx = stackalloc float[6];
             Span<float> sy = stackalloc float[6];
@@ -794,7 +795,7 @@ namespace NvgExample
             uint gutter = 0;
             uint lnum = 0;
             float gx = 0.0f, gy = 0.0f;
-            Rectangle<float> bounds;
+            RectF bounds;
             float px;
 
             _nvg.Save();
@@ -864,7 +865,7 @@ namespace NvgExample
 
                 _nvg.BeginPath();
                 _nvg.FillColour(_nvg.Rgba(255, 192, 0, 255));
-                _nvg.RoundedRect(bounds.Origin.X - 4.0f, bounds.Origin.Y - 2.0f, bounds.Size.X + 8.0f, bounds.Size.Y + 4.0f, (bounds.Size.Y + 4.0f) / 2.0f - 1.0f);
+                _nvg.RoundedRect(bounds.X - 4.0f, bounds.Y - 2.0f, bounds.Width + 8.0f, bounds.Height + 4.0f, (bounds.Height + 4.0f) / 2.0f - 1.0f);
                 _nvg.Fill();
 
                 _nvg.FillColour(_nvg.Rgba(32, 32, 32, 255));
@@ -879,19 +880,19 @@ namespace NvgExample
 
             _nvg.TextBoxBounds(x, y, 150.0f, hoverText, out bounds);
 
-            gx = Clamp(mx, bounds.Origin.X, bounds.Max.X) - mx;
-            gy = Clamp(my, bounds.Origin.Y, bounds.Max.Y) - my;
+            gx = Clamp(mx, bounds.X, bounds.Max.X) - mx;
+            gy = Clamp(my, bounds.Y, bounds.Max.Y) - my;
             float a = MathF.Sqrt((gx * gx) + (gy * gy)) / 30.0f;
             a = Clamp(a, 0.0f, 1.0f);
             _nvg.GlobalAlpha(a);
 
             _nvg.BeginPath();
             _nvg.FillColour(_nvg.Rgba(220, 220, 220, 255));
-            _nvg.RoundedRect(new Rectangle<float>(bounds.Origin - new Vector2D<float>(2.0f), bounds.Size + new Vector2D<float>(4.0f)), 3.0f);
-            px = (bounds.Max.X + bounds.Origin.X) / 2.0f;
-            _nvg.MoveTo(px, bounds.Origin.Y - 10.0f);
-            _nvg.LineTo(px + 7.0f, bounds.Origin.Y + 1.0f);
-            _nvg.LineTo(px - 7.0f, bounds.Origin.Y + 1.0f);
+            _nvg.RoundedRect(new RectF(bounds.Location - new Vector2(2.0f), bounds.Size + new SizeF(4.0f)), 3.0f);
+            px = (bounds.Max.X + bounds.X) / 2.0f;
+            _nvg.MoveTo(px, bounds.Y - 10.0f);
+            _nvg.LineTo(px + 7.0f, bounds.Y + 1.0f);
+            _nvg.LineTo(px - 7.0f, bounds.Y + 1.0f);
             _nvg.Fill();
 
             _nvg.FillColour(_nvg.Rgba(0, 0, 0, 220));

@@ -1,24 +1,24 @@
-﻿using Silk.NET.Maths;
-using SilkyNvg.Common;
+﻿using SilkyNvg.Common;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 namespace SilkyNvg.Rendering
 {
     internal class Point
     {
 
-        public Vector2D<float> Position { get; }
+        public Vector2 Position { get; }
 
-        public Vector2D<float> Determinant { get; private set; }
+        public Vector2 Determinant { get; private set; }
 
         public float Length { get; private set; }
 
-        public Vector2D<float> MatrixDeterminant { get; private set; }
+        public Vector2 MatrixDeterminant { get; private set; }
 
         public PointFlags Flags { get; internal set; }
 
-        public Point(Vector2D<float> position, PointFlags flags)
+        public Point(Vector2 position, PointFlags flags)
         {
             Position = position;
             Flags = flags;
@@ -26,19 +26,19 @@ namespace SilkyNvg.Rendering
 
         public void SetDeterminant(Point other)
         {
-            Vector2D<float> determinant = other.Position - Position;
+            Vector2 determinant = other.Position - Position;
             Length = Maths.Normalize(ref determinant);
             Determinant = determinant;
         }
 
         public void RoundJoin(float lw, float rw, float lu, float ru, uint ncap, Point other, ICollection<Vertex> verts)
         {
-            Vector2D<float> dl0 = new(other.Determinant.Y, -other.Determinant.X);
-            Vector2D<float> dl1 = new(Determinant.Y, -Determinant.X);
+            Vector2 dl0 = new(other.Determinant.Y, -other.Determinant.X);
+            Vector2 dl1 = new(Determinant.Y, -Determinant.X);
 
             if (Flags.HasFlag(PointFlags.Left))
             {
-                ChooseBevel(Flags.HasFlag(PointFlags.Innerbevel), other, this, lw, out Vector2D<float> l0, out Vector2D<float> l1);
+                ChooseBevel(Flags.HasFlag(PointFlags.Innerbevel), other, this, lw, out Vector2 l0, out Vector2 l1);
                 float a0 = MathF.Atan2(-dl0.Y, -dl0.X);
                 float a1 = MathF.Atan2(-dl1.Y, -dl1.X);
                 if (a1 > a0)
@@ -65,7 +65,7 @@ namespace SilkyNvg.Rendering
             }
             else
             {
-                ChooseBevel(Flags.HasFlag(PointFlags.Innerbevel), other, this, -rw, out Vector2D<float> r0, out Vector2D<float> r1);
+                ChooseBevel(Flags.HasFlag(PointFlags.Innerbevel), other, this, -rw, out Vector2 r0, out Vector2 r1);
                 float a0 = MathF.Atan2(dl0.Y, dl0.X);
                 float a1 = MathF.Atan2(dl1.Y, dl1.X);
                 if (a1 < a0)
@@ -92,9 +92,9 @@ namespace SilkyNvg.Rendering
             }
         }
 
-        private void BevelJoinLeft(float lw, float rw, float lu, float ru, Point other, Vector2D<float> dl0, Vector2D<float> dl1, ICollection<Vertex> verts)
+        private void BevelJoinLeft(float lw, float rw, float lu, float ru, Point other, Vector2 dl0, Vector2 dl1, ICollection<Vertex> verts)
         {
-            ChooseBevel(Flags.HasFlag(PointFlags.Innerbevel), other, this, lw, out Vector2D<float> l0, out Vector2D<float> l1);
+            ChooseBevel(Flags.HasFlag(PointFlags.Innerbevel), other, this, lw, out Vector2 l0, out Vector2 l1);
 
             verts.Add(new(l0, lu, 1.0f));
             verts.Add(new(Position - dl0 * rw, ru, 1.0f));
@@ -109,7 +109,7 @@ namespace SilkyNvg.Rendering
             }
             else
             {
-                Vector2D<float> r0 = Position - MatrixDeterminant * rw;
+                Vector2 r0 = Position - MatrixDeterminant * rw;
 
                 verts.Add(new(Position, 0.5f, 1.0f));
                 verts.Add(new(Position - dl0 * rw, ru, 1.0f));
@@ -125,9 +125,9 @@ namespace SilkyNvg.Rendering
             verts.Add(new(Position - dl1 * rw, ru, 1.0f));
         }
 
-        private void BevelJoinRight(float lw, float rw, float lu, float ru, Point other, Vector2D<float> dl0, Vector2D<float> dl1, ICollection<Vertex> verts)
+        private void BevelJoinRight(float lw, float rw, float lu, float ru, Point other, Vector2 dl0, Vector2 dl1, ICollection<Vertex> verts)
         {
-            ChooseBevel(Flags.HasFlag(PointFlags.Innerbevel), other, this, -rw, out Vector2D<float> r0, out Vector2D<float> r1);
+            ChooseBevel(Flags.HasFlag(PointFlags.Innerbevel), other, this, -rw, out Vector2 r0, out Vector2 r1);
 
             verts.Add(new(Position + dl0 * lw, lu, 1.0f));
             verts.Add(new(r0, ru, 1.0f));
@@ -142,7 +142,7 @@ namespace SilkyNvg.Rendering
             }
             else
             {
-                Vector2D<float> l0 = MatrixDeterminant * lw;
+                Vector2 l0 = MatrixDeterminant * lw;
 
                 verts.Add(new(Position + dl0 * lw, lu, 1.0f));
                 verts.Add(new(Position, 0.5f, 1.0f));
@@ -160,8 +160,8 @@ namespace SilkyNvg.Rendering
 
         public void BevelJoin(float lw, float rw, float lu, float ru, Point other, ICollection<Vertex> verts)
         {
-            Vector2D<float> dl0 = new(other.Determinant.Y, -other.Determinant.X);
-            Vector2D<float> dl1 = new(Determinant.Y, -Determinant.X);
+            Vector2 dl0 = new(other.Determinant.Y, -other.Determinant.X);
+            Vector2 dl1 = new(Determinant.Y, -Determinant.X);
 
             if (Flags.HasFlag(PointFlags.Left))
             {
@@ -173,9 +173,9 @@ namespace SilkyNvg.Rendering
             }
         }
 
-        private void JoinBevelLeft(float lw, float rw, float lu, float ru, Vector2D<float> dl0, Vector2D<float> dl1, Point other, ICollection<Vertex> verts)
+        private void JoinBevelLeft(float lw, float rw, float lu, float ru, Vector2 dl0, Vector2 dl1, Point other, ICollection<Vertex> verts)
         {
-            ChooseBevel(Flags.HasFlag(PointFlags.Innerbevel), other, this, lw, out Vector2D<float> l0, out Vector2D<float> l1);
+            ChooseBevel(Flags.HasFlag(PointFlags.Innerbevel), other, this, lw, out Vector2 l0, out Vector2 l1);
 
             verts.Add(new(l0, lu, 1));
             verts.Add(new(Position - dl0 * rw, ru, 1.0f));
@@ -190,7 +190,7 @@ namespace SilkyNvg.Rendering
             }
             else
             {
-                Vector2D<float> r0 = Position - MatrixDeterminant * rw;
+                Vector2 r0 = Position - MatrixDeterminant * rw;
 
                 verts.Add(new(Position, 0.5f, 1.0f));
                 verts.Add(new(Position - dl0 * rw, ru, 1.0f));
@@ -206,9 +206,9 @@ namespace SilkyNvg.Rendering
             verts.Add(new(Position - dl1 * rw, ru, 1.0f));
         }
 
-        private void JoinBevelRight(float lw, float rw, float lu, float ru, Vector2D<float> dl0, Vector2D<float> dl1, Point other, ICollection<Vertex> verts)
+        private void JoinBevelRight(float lw, float rw, float lu, float ru, Vector2 dl0, Vector2 dl1, Point other, ICollection<Vertex> verts)
         {
-            ChooseBevel(Flags.HasFlag(PointFlags.Innerbevel), other, this, -rw, out Vector2D<float> r0, out Vector2D<float> r1);
+            ChooseBevel(Flags.HasFlag(PointFlags.Innerbevel), other, this, -rw, out Vector2 r0, out Vector2 r1);
 
             verts.Add(new(Position + dl0 * lw, lu, 1.0f));
             verts.Add(new(r0, ru, 1.0f));
@@ -223,7 +223,7 @@ namespace SilkyNvg.Rendering
             }
             else
             {
-                Vector2D<float> l0 = Position + MatrixDeterminant * lw;
+                Vector2 l0 = Position + MatrixDeterminant * lw;
 
                 verts.Add(new(Position + dl0 * lw, lu, 1.0f));
                 verts.Add(new(Position, 0.5f, 1.0f));
@@ -239,7 +239,7 @@ namespace SilkyNvg.Rendering
             verts.Add(new(r1, ru, 1.0f));
         }
 
-        public void JoinBevel(float lw, float rw, float lu, float ru, Vector2D<float> dl0, Vector2D<float> dl1, Point other, ICollection<Vertex> verts)
+        public void JoinBevel(float lw, float rw, float lu, float ru, Vector2 dl0, Vector2 dl1, Point other, ICollection<Vertex> verts)
         {
             if (Flags.HasFlag(PointFlags.Left))
             {
@@ -253,8 +253,8 @@ namespace SilkyNvg.Rendering
 
         public void Join(Point other, float iw, bool bevelOrRound, float miterLimit, ref uint nleft, ref uint bevelCount)
         {
-            Vector2D<float> dl0 = new(other.Determinant.Y, -other.Determinant.X);
-            Vector2D<float> dl1 = new(Determinant.Y, -Determinant.X);
+            Vector2 dl0 = new(other.Determinant.Y, -other.Determinant.X);
+            Vector2 dl1 = new(Determinant.Y, -Determinant.X);
 
             MatrixDeterminant = new((dl0.X + dl1.X) * 0.5f, (dl0.Y + dl1.Y) * 0.5f);
 
@@ -295,7 +295,7 @@ namespace SilkyNvg.Rendering
             }
         }
 
-        public static bool Equals(Vector2D<float> p0, Vector2D<float> p1, float tol)
+        public static bool Equals(Vector2 p0, Vector2 p1, float tol)
         {
             return Maths.PtEquals(p0, p1, tol);
         }
@@ -323,18 +323,18 @@ namespace SilkyNvg.Rendering
         {
             if ((p1.Flags & PointFlags.Bevel) != 0)
             {
-                Vector2D<float> dl0 = new(p0.Determinant.Y, -p0.Determinant.X);
-                Vector2D<float> dl1 = new(p1.Determinant.Y, -p1.Determinant.X);
+                Vector2 dl0 = new(p0.Determinant.Y, -p0.Determinant.X);
+                Vector2 dl1 = new(p1.Determinant.Y, -p1.Determinant.X);
 
                 if ((p1.Flags & PointFlags.Left) != 0)
                 {
-                    Vector2D<float> l = p1.Position + p1.MatrixDeterminant * woff;
+                    Vector2 l = p1.Position + p1.MatrixDeterminant * woff;
                     verts.Add(new(l, 0.5f, 1.0f));
                 }
                 else
                 {
-                    Vector2D<float> l0 = (p1.Position + dl0) * woff;
-                    Vector2D<float> l1 = (p1.Position + dl1) * woff;
+                    Vector2 l0 = (p1.Position + dl0) * woff;
+                    Vector2 l1 = (p1.Position + dl1) * woff;
                     verts.Add(new(l0, 0.5f, 1.0f));
                     verts.Add(new(l1, 0.5f, 1.0f));
                 }
@@ -345,7 +345,7 @@ namespace SilkyNvg.Rendering
             }
         }
 
-        private static void ChooseBevel(bool bevel, Point p0, Point p1, float w, out Vector2D<float> pos0, out Vector2D<float> pos1)
+        private static void ChooseBevel(bool bevel, Point p0, Point p1, float w, out Vector2 pos0, out Vector2 pos1)
         {
             if (bevel)
             {

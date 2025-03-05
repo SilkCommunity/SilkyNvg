@@ -1,8 +1,7 @@
-﻿using Silk.NET.Maths;
-using Silk.NET.OpenGL;
+﻿using Silk.NET.OpenGL;
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Numerics;
 using System.Runtime.InteropServices;
 
 namespace SilkyNvg.Rendering.OpenGL.Shaders
@@ -163,7 +162,7 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
             _gl.Uniform1(_loc[loc], value);
         }
 
-        public void LoadVector(UniformLoc loc, Vector2D<float> value)
+        public void LoadVector(UniformLoc loc, Vector2 value)
         {
             _gl.Uniform2(_loc[loc], value.X, value.Y);
         }
@@ -173,7 +172,7 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
             _gl.Uniform4(_loc[loc], 1, (float*)&colour);
         }
 
-        public unsafe void LoadMatrix(UniformLoc loc, Matrix3X4<float> value)
+        public unsafe void LoadMatrix(UniformLoc loc, Matrix4x4 value)
         {
             _gl.UniformMatrix3x4(_loc[loc], 1, false, (float*)&value);
         }

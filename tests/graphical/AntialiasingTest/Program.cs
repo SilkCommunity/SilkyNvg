@@ -5,7 +5,6 @@ using Silk.NET.Windowing;
 using SilkyNvg.Graphics;
 using SilkyNvg.Paths;
 using SilkyNvg.Rendering.OpenGL;
-using SilkyNvg.Text;
 
 namespace SilkyNvg.Tests.IncreasingFontSizeTest
 {

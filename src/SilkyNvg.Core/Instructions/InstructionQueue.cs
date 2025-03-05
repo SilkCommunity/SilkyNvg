@@ -1,6 +1,6 @@
-﻿using Silk.NET.Maths;
-using SilkyNvg.Paths;
+﻿using SilkyNvg.Paths;
 using System.Collections.Generic;
+using System.Numerics;
 
 namespace SilkyNvg.Core.Instructions
 {
@@ -12,7 +12,7 @@ namespace SilkyNvg.Core.Instructions
 
         private readonly Nvg _nvg;
 
-        public Vector2D<float> EndPosition { get; private set; }
+        public Vector2 EndPosition { get; private set; }
 
         public uint Count => (uint)_instructions.Count;
 
@@ -22,23 +22,23 @@ namespace SilkyNvg.Core.Instructions
             EndPosition = default;
         }
 
-        public void AddMoveTo(Vector2D<float> pos)
+        public void AddMoveTo(Vector2 pos)
         {
             EndPosition = pos;
-            _instructions.Enqueue(new MoveToInstruction(Vector2D.Transform(pos, _nvg.stateStack.CurrentState.Transform), _nvg.pathCache));
+            _instructions.Enqueue(new MoveToInstruction(Vector2.Transform(pos, _nvg.stateStack.CurrentState.Transform), _nvg.pathCache));
         }
 
-        public void AddLineTo(Vector2D<float> pos)
+        public void AddLineTo(Vector2 pos)
         {
             EndPosition = pos;
-            _instructions.Enqueue(new LineToInstruction(Vector2D.Transform(pos, _nvg.stateStack.CurrentState.Transform), _nvg.pathCache));
+            _instructions.Enqueue(new LineToInstruction(Vector2.Transform(pos, _nvg.stateStack.CurrentState.Transform), _nvg.pathCache));
         }
 
-        public void AddBezierTo(Vector2D<float> p0, Vector2D<float> p1, Vector2D<float> p2)
+        public void AddBezierTo(Vector2 p0, Vector2 p1, Vector2 p2)
         {
             EndPosition = p2;
-            Matrix3X2<float> transform = _nvg.stateStack.CurrentState.Transform;
-            _instructions.Enqueue(new BezierToInstruction(Vector2D.Transform(p0, transform), Vector2D.Transform(p1, transform), Vector2D.Transform(p2, transform),
+            Matrix3x2 transform = _nvg.stateStack.CurrentState.Transform;
+            _instructions.Enqueue(new BezierToInstruction(Vector2.Transform(p0, transform), Vector2.Transform(p1, transform), Vector2.Transform(p2, transform),
                 _nvg.pixelRatio.TessTol, _nvg.pathCache));
         }
 

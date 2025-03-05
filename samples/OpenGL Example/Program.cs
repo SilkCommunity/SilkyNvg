@@ -9,6 +9,7 @@ using StbImageWriteSharp;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Numerics;
 
 namespace OpenGL_Example
 {
@@ -85,8 +86,8 @@ namespace OpenGL_Example
             double dt = t - prevTime;
             prevTime = t;
 
-            Vector2D<float> winSize = window.Size.As<float>();
-            Vector2D<float> fbSize = window.FramebufferSize.As<float>();
+            Vector2 winSize = window.Size.As<float>().ToSystem();
+            Vector2 fbSize = window.FramebufferSize.As<float>().ToSystem();
 
             float pxRatio = fbSize.X / winSize.X;
 
@@ -101,7 +102,7 @@ namespace OpenGL_Example
             }
             gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
 
-            nvg.BeginFrame(winSize.As<float>(), pxRatio);
+            nvg.BeginFrame(winSize, pxRatio);
 
             demo.Render(mx, my, winSize.X, winSize.Y, (float)t, blowup);
 
