@@ -60,10 +60,10 @@ namespace SilkyNvg.Common.Geometry
             => Divide(left, right);
 
         public static bool operator ==(SizeF left, SizeF right)
-            => Equals(left, right);
+            => left.Equals(right);
 
         public static bool operator !=(SizeF left, SizeF right)
-            => !Equals(left, right);
+            => !left.Equals(right);
 
         public static explicit operator SizeU(SizeF size) => new((uint)size.Width, (uint)size.Height);
 
