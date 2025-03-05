@@ -70,7 +70,7 @@ namespace NvgExample
                 {
                     float v = 1.0f / (0.00001f + _values[(_head + i) % GRAPH_HISTORY_COUNT]);
                     v = MathF.Min(v, 80.0f);
-                    float vx = ((float)i / (GRAPH_HISTORY_COUNT - 1)) * w;
+                    float vx = x + ((float)i / (GRAPH_HISTORY_COUNT - 1)) * w;
                     float vy = y + h - ((v / 80.0f) * h);
                     nvg.LineTo(vx, vy);
                 }

@@ -461,8 +461,8 @@ namespace NvgExample
             _nvg.ClosePath();
             float ax = cx + MathF.Cos(a0) * (r0 + r1) * 0.5f;
             float ay = cy + MathF.Sin(a0) * (r0 + r1) * 0.5f;
-            float bx = cx + MathF.Cos(a0) * (r0 + r1) * 0.5f;
-            float by = cy + MathF.Sin(a0) * (r0 + r1) * 0.5f;
+            float bx = cx + MathF.Cos(a1) * (r0 + r1) * 0.5f;
+            float by = cy + MathF.Sin(a1) * (r0 + r1) * 0.5f;
             Paint paint = _nvg.LinearGradient(ax, ay, bx, by, _nvg.Rgba(0, 0, 0, 0), _nvg.Rgba(0, 0, 0, 128));
             _nvg.FillPaint(paint);
             _nvg.Fill();
