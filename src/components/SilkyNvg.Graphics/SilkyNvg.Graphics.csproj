@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\SilkyNvg.Common\SilkyNvg.Common.csproj" />
     <ProjectReference Include="..\..\SilkyNvg.Core\SilkyNvg.Core.csproj" />
     <ProjectReference Include="..\SilkyNvg.Tools\SilkyNvg.Tools.csproj" />
     <ProjectReference Include="..\SilkyNvg.Transforms\SilkyNvg.Transforms.csproj" />

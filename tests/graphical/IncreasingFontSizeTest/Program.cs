@@ -67,7 +67,7 @@ namespace OpenGL_Example
             gl.ClearColor(0.3f, 0.3f, 0.32f, 1.0f);
             gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
 
-            nvg.BeginFrame(winSize.As<float>(), pxRatio);
+            nvg.BeginFrame(winSize.As<float>().ToSystem(), pxRatio);
 
             DrawFontIncreasing("The quick brown fox...", 250.0f, 250.0f, 10.0f, delta);
 

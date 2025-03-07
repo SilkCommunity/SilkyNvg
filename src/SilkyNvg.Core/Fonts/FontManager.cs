@@ -1,18 +1,18 @@
 ﻿using FontStash.NET;
-using Silk.NET.Maths;
 using SilkyNvg.Common;
 using SilkyNvg.Core.States;
 using SilkyNvg.Rendering;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 
 namespace SilkyNvg.Core.Fonts
 {
     internal class FontManager : IDisposable
     {
 
-        private const uint INIT_FONTIMAGE_SIZE = 512;
-        private const uint MAX_FONTIMAGE_SIZE = 2048;
+        private const int INIT_FONTIMAGE_SIZE = 512;
+        private const int MAX_FONTIMAGE_SIZE = 2048;
         private const uint MAX_FONTIMAGES = 4;
 
         private readonly int[] _fontImages = new int[(int)MAX_FONTIMAGES];
@@ -33,8 +33,8 @@ namespace SilkyNvg.Core.Fonts
 
             FonsParams fontParams = new()
             {
-                width = (int)INIT_FONTIMAGE_SIZE,
-                height = (int)INIT_FONTIMAGE_SIZE,
+                width = INIT_FONTIMAGE_SIZE,
+                height = INIT_FONTIMAGE_SIZE,
                 flags = (byte)FonsFlags.ZeroTopleft,
                 renderCreate = null,
                 renderUpdate = null,
@@ -43,7 +43,7 @@ namespace SilkyNvg.Core.Fonts
             };
             Fontstash = new Fontstash(fontParams);
 
-            _fontImages[0] = _nvg.renderer.CreateTexture(Texture.Alpha, new Vector2D<uint>((uint)fontParams.width, (uint)fontParams.height), 0, null);
+            _fontImages[0] = _nvg.renderer.CreateTexture(Texture.Alpha, new Size(fontParams.width, fontParams.height), 0, null);
             if (_fontImages[0] == 0)
             {
                 _nvg.Dispose();
@@ -69,7 +69,7 @@ namespace SilkyNvg.Core.Fonts
                     int y = dirty[1];
                     int w = dirty[2] - dirty[0];
                     int h = dirty[3] - dirty[1];
-                    _nvg.renderer.UpdateTexture(fontImage, new Rectangle<uint>(new Vector2D<uint>((uint)x, (uint)y), new Vector2D<uint>((uint)w, (uint)h)), data);
+                    _nvg.renderer.UpdateTexture(fontImage, new Rectangle(x, y, w, h), data);
                 }
             }
         }
@@ -85,14 +85,14 @@ namespace SilkyNvg.Core.Fonts
                     return;
                 }
 
-                _nvg.renderer.GetTextureSize(fontImage, out Vector2D<uint> iSize);
+                _nvg.renderer.GetTextureSize(fontImage, out Size iSize);
                 uint i, j;
                 for (i = j = 0; i < _fontImageIdx; i++)
                 {
                     if (_fontImages[i] != 0)
                     {
-                        _nvg.renderer.GetTextureSize(_fontImages[i], out Vector2D<uint> nSize);
-                        if (nSize.X < iSize.X || nSize.Y < iSize.Y)
+                        _nvg.renderer.GetTextureSize(_fontImages[i], out Size nSize);
+                        if (nSize.Width < iSize.Width || nSize.Height < iSize.Height)
                         {
                             _nvg.renderer.DeleteTexture(_fontImages[i]);
                         }
@@ -120,7 +120,7 @@ namespace SilkyNvg.Core.Fonts
                 return false;
             }
 
-            Vector2D<uint> iSize;
+            Size iSize;
 
             if (_fontImages[_fontImageIdx + 1] != 0)
             {
@@ -129,24 +129,24 @@ namespace SilkyNvg.Core.Fonts
             else
             {
                 _nvg.renderer.GetTextureSize(_fontImages[_fontImageIdx], out iSize);
-                if (iSize.X > iSize.Y)
+                if (iSize.Width > iSize.Height)
                 {
-                    iSize.Y *= 2;
+                    iSize.Height *= 2;
                 }
                 else
                 {
-                    iSize.X *= 2;
+                    iSize.Width *= 2;
                 }
 
-                if (iSize.X > MAX_FONTIMAGE_SIZE || iSize.Y > MAX_FONTIMAGE_SIZE)
+                if (iSize.Width > MAX_FONTIMAGE_SIZE || iSize.Height > MAX_FONTIMAGE_SIZE)
                 {
-                    iSize = new(MAX_FONTIMAGE_SIZE);
+                    iSize = new(MAX_FONTIMAGE_SIZE, MAX_FONTIMAGE_SIZE);
                 }
 
                 _fontImages[_fontImageIdx + 1] = _nvg.renderer.CreateTexture(Texture.Alpha, iSize, 0, null);
             }
             _fontImageIdx++;
-            Fontstash.ResetAtlas((int)iSize.X, (int)iSize.Y);
+            Fontstash.ResetAtlas((int)iSize.Width, (int)iSize.Height);
             return true;
         }
 

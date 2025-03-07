@@ -1,5 +1,4 @@
-﻿using Silk.NET.Maths;
-using Silk.NET.OpenGL;
+﻿using Silk.NET.OpenGL;
 using SilkyNvg.Blending;
 using SilkyNvg.Images;
 using SilkyNvg.Rendering.OpenGL.Blending;
@@ -9,6 +8,8 @@ using SilkyNvg.Rendering.OpenGL.Textures;
 using SilkyNvg.Rendering.OpenGL.Utils;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Numerics;
 using Shader = SilkyNvg.Rendering.OpenGL.Shaders.Shader;
 
 namespace SilkyNvg.Rendering.OpenGL
@@ -21,7 +22,7 @@ namespace SilkyNvg.Rendering.OpenGL
         private readonly CallQueue _callQueue;
         private VAO _vao;
 
-        private Vector2D<float> _size;
+        private SizeF _size;
 
         internal GL Gl { get; }
 
@@ -107,7 +108,7 @@ namespace SilkyNvg.Rendering.OpenGL
             Shader.BindUniformBlock();
 
             // Dummy tex will always be at index 0.
-            DummyTex = CreateTexture(Texture.Alpha, new Vector2D<uint>(1, 1), 0, null);
+            DummyTex = CreateTexture(Texture.Alpha, new Size(1, 1), 0, null);
 
             CheckError("create done!");
 
@@ -116,7 +117,7 @@ namespace SilkyNvg.Rendering.OpenGL
             return true;
         }
 
-        public int CreateTexture(Texture type, Vector2D<uint> size, ImageFlags imageFlags, ReadOnlySpan<byte> data)
+        public int CreateTexture(Texture type, Size size, ImageFlags imageFlags, ReadOnlySpan<byte> data)
         {
             ref var tex = ref TextureManager.AllocTexture();
             tex.Load(size, imageFlags, type, data);
@@ -129,7 +130,7 @@ namespace SilkyNvg.Rendering.OpenGL
             return TextureManager.DeleteTexture(image);
         }
 
-        public bool UpdateTexture(int image, Rectangle<uint> bounds, ReadOnlySpan<byte> data)
+        public bool UpdateTexture(int image, Rectangle bounds, ReadOnlySpan<byte> data)
         {
             ref var tex = ref TextureManager.FindTexture(image);
             if (tex.Id == 0)
@@ -141,7 +142,7 @@ namespace SilkyNvg.Rendering.OpenGL
             return true;
         }
 
-        public bool GetTextureSize(int image, out Vector2D<uint> size)
+        public bool GetTextureSize(int image, out Size size)
         {
             ref var tex = ref TextureManager.FindTexture(image);
             if (tex.Id == 0)
@@ -153,7 +154,7 @@ namespace SilkyNvg.Rendering.OpenGL
             return false;
         }
 
-        public void Viewport(Vector2D<float> size, float devicePixelRatio)
+        public void Viewport(SizeF size, float devicePixelRatio)
         {
             _size = size;
         }
@@ -196,7 +197,7 @@ namespace SilkyNvg.Rendering.OpenGL
                 _vao.Vbo.Update(_vertexCollection.Vertices);
 
                 Shader.LoadInt(UniformLoc.Tex, 0);
-                Shader.LoadVector(UniformLoc.ViewSize, _size);
+                Shader.LoadVector(UniformLoc.ViewSize, (Vector2)_size);
 
                 Shader.BindUniformBuffer();
                 _callQueue.Run();
@@ -221,7 +222,7 @@ namespace SilkyNvg.Rendering.OpenGL
             Shader.UniformManager.Clear();
         }
 
-        public void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, Box2D<float> bounds, IReadOnlyList<Rendering.Path> paths)
+        public void Fill(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, float fringe, RectangleF bounds, IReadOnlyList<Rendering.Path> paths)
         {
             int offset = _vertexCollection.CurrentsOffset;
             Path[] renderPaths = new Path[paths.Count];
@@ -247,10 +248,10 @@ namespace SilkyNvg.Rendering.OpenGL
             }
             else
             {
-                _vertexCollection.AddVertex(new Vertex(bounds.Max, 0.5f, 1.0f));
-                _vertexCollection.AddVertex(new Vertex(bounds.Max.X, bounds.Min.Y, 0.5f, 1.0f));
-                _vertexCollection.AddVertex(new Vertex(bounds.Min.X, bounds.Max.Y, 0.5f, 1.0f));
-                _vertexCollection.AddVertex(new Vertex(bounds.Min, 0.5f, 1.0f));
+                _vertexCollection.AddVertex(new Vertex(bounds.Right, bounds.Bottom, 0.5f, 1.0f));
+                _vertexCollection.AddVertex(new Vertex(bounds.Right, bounds.Top, 0.5f, 1.0f));
+                _vertexCollection.AddVertex(new Vertex(bounds.Left, bounds.Bottom, 0.5f, 1.0f));
+                _vertexCollection.AddVertex(new Vertex(bounds.Left, bounds.Top, 0.5f, 1.0f));
 
                 FragUniforms stencilUniforms = new(-1.0f, Shaders.ShaderType.Simple);
                 int uniformOffset = Shader.UniformManager.AddUniform(stencilUniforms);

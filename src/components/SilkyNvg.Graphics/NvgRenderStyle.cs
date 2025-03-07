@@ -2,9 +2,9 @@
 {
     /// <summary>
     /// <para>Fill and stroke render style can be either a solid colour or a paint which is a gradient or a pattern.
-    /// Solid colour is simply defined as a colour value, different kinds of paint can be created using <see cref="Paint.LinearGradient(Silk.NET.Maths.Vector2D{float}, Silk.NET.Maths.Vector2D{float}, Colour, Colour)"/>,
-    /// <see cref="Paint.BoxGradient(Silk.NET.Maths.Rectangle{float}, float, float, Colour, Colour)"/>, <see cref="Paint.RadialGradient(Silk.NET.Maths.Vector2D{float}, float, float, Colour, Colour)"/> and
-    /// <see cref="Paint.ImagePattern(Silk.NET.Maths.Rectangle{float}, float, int, float)"/></para>
+    /// Solid colour is simply defined as a colour value, different kinds of paint can be created using <see cref="Paint.LinearGradient(System.Drawing.RectangleF, System.Numerics.Vector2, Colour, Colour)"/>,
+    /// <see cref="Paint.BoxGradient(System.Drawing.RectangleF, float, float, Colour, Colour)"/>, <see cref="Paint.RadialGradient(System.Numerics.Vector2, float, float, Colour, Colour)"/> and
+    /// <see cref="Paint.ImagePattern(System.Drawing.RectangleF, float, int, float)"/></para>
     /// </summary>
     public static class NvgRenderStyle
     {

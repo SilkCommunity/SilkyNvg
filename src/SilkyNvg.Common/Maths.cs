@@ -1,5 +1,5 @@
-﻿using Silk.NET.Maths;
-using System;
+﻿using System;
+using System.Numerics;
 
 namespace SilkyNvg.Common
 {
@@ -31,25 +31,25 @@ namespace SilkyNvg.Common
             return a < min ? min : (a > max ? max : a);
         }
 
-        public static float Cross(Vector2D<float> d0, Vector2D<float> d1)
+        public static float Cross(Vector2 d0, Vector2 d1)
         {
             return (d1.X * d0.Y) - (d0.X * d1.Y);
         }
 
-        public static bool PtEquals(Vector2D<float> p1, Vector2D<float> p2, float tol)
+        public static bool PtEquals(Vector2 p1, Vector2 p2, float tol)
         {
-            Vector2D<float> d = p2 - p1;
+            Vector2 d = p2 - p1;
             return (d.X * d.X) + (d.Y * d.Y) < tol * tol;
         }
 
-        public static float Triarea2(Vector2D<float> a, Vector2D<float> b, Vector2D<float> c)
+        public static float Triarea2(Vector2 a, Vector2 b, Vector2 c)
         {
-            Vector2D<float> ab = b - a;
-            Vector2D<float> ac = c - a;
+            Vector2 ab = b - a;
+            Vector2 ac = c - a;
             return (ac.X * ab.Y) - (ab.X * ac.Y);
         }
 
-        public static float Normalize(ref Vector2D<float> vector)
+        public static float Normalize(ref Vector2 vector)
         {
             float d = MathF.Sqrt((vector.X * vector.X) + (vector.Y * vector.Y));
             if (d > 1e-6f)
@@ -60,21 +60,7 @@ namespace SilkyNvg.Common
             return d;
         }
 
-        public static Matrix3X2<float> Multiply(Matrix3X2<float> t, Matrix3X2<float> s)
-        {
-            float t0 = t.M11 * s.M11 + t.M12 * s.M21;
-            float t2 = t.M21 * s.M11 + t.M22 * s.M21;
-            float t4 = t.M31 * s.M11 + t.M32 * s.M21 + s.M31;
-            t.M12 = t.M11 * s.M12 + t.M12 * s.M22;
-            t.M22 = t.M21 * s.M12 + t.M22 * s.M22;
-            t.M32 = t.M31 * s.M12 + t.M32 * s.M22 + s.M32;
-            t.M11 = t0;
-            t.M21 = t2;
-            t.M31 = t4;
-            return t;
-        }
-
-        public static float GetAverageScale(Matrix3X2<float> t)
+        public static float GetAverageScale(Matrix3x2 t)
         {
             float sx = MathF.Sqrt(t.M11 * t.M11 + t.M21 * t.M21);
             float sy = MathF.Sqrt(t.M12 * t.M12 + t.M22 * t.M22);
@@ -87,10 +73,10 @@ namespace SilkyNvg.Common
             return Math.Max(2, (uint)MathF.Ceiling(arc / da));
         }
 
-        public static float DistPtSeg(Vector2D<float> pos, Vector2D<float> p, Vector2D<float> q)
+        public static float DistPtSeg(Vector2 pos, Vector2 p, Vector2 q)
         {
-            Vector2D<float> pq = q - p;
-            Vector2D<float> d = pos - p;
+            Vector2 pq = q - p;
+            Vector2 d = pos - p;
             float delta = (pq.X * pq.X) + (pq.Y * pq.Y);
             float t = (pq.X * d.X) + (pq.Y * d.Y);
 
@@ -106,7 +92,7 @@ namespace SilkyNvg.Common
             return (d.X * d.X) + (d.Y * d.Y);
         }
 
-        public static bool IsTransformFlipped(Matrix3X2<float> t)
+        public static bool IsTransformFlipped(Matrix3x2 t)
         {
             float det = (t.M11 * t.M22) - (t.M21 * t.M12);
             return det < 0.0f;

@@ -1,8 +1,9 @@
-﻿using Silk.NET.Maths;
-using SilkyNvg.Blending;
+﻿using SilkyNvg.Blending;
 using SilkyNvg.Text;
 using SilkyNvg.Graphics;
 using SilkyNvg.Rendering;
+using System.Numerics;
+using System.Drawing;
 
 namespace SilkyNvg.Core.States
 {
@@ -27,7 +28,7 @@ namespace SilkyNvg.Core.States
 
         public float Alpha { get; set; }
 
-        public Matrix3X2<float> Transform { get; set; }
+        public Matrix3x2 Transform { get; set; }
 
         public Scissor Scissor { get; set; }
 
@@ -54,9 +55,9 @@ namespace SilkyNvg.Core.States
             LineCap = LineCap.Butt;
             LineJoin = LineCap.Miter;
             Alpha = 1.0f;
-            Transform = Matrix3X2<float>.Identity;
+            Transform = Matrix3x2.Identity;
 
-            Scissor = new Scissor(new Vector2D<float>(-1.0f));
+            Scissor = new Scissor(new SizeF(-1.0f, -1.0f));
 
             FontSize = 16.0f;
             LetterSpacing = 0.0f;

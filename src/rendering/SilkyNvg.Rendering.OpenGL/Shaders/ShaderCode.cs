@@ -29,8 +29,8 @@
 			out vec4 out_Colour;
 
 			layout (std140) uniform frag {
-				mat3 scissorMat;
-				mat3 paintMat;
+				mat4 scissorMat;
+				mat4 paintMat;
 				vec4 innerCol;
 				vec4 outerCol;
 				vec2 scissorExt;
@@ -53,7 +53,7 @@
 			}
 
 			float scissorMask(vec2 p) {
-				vec2 sc = (abs((scissorMat * vec3(p, 1.0)).xy) - scissorExt);
+				vec2 sc = (abs((scissorMat * vec4(p, 1.0, 1.0)).xy) - scissorExt);
 				sc = vec2(0.5, 0.5) - sc * scissorScale;
 				return clamp(sc.x, 0.0, 1.0) * clamp(sc.y, 0.0, 1.0);
 			}
@@ -62,14 +62,14 @@
 				float scissor = scissorMask(pass_vertex);
 
 				if (type == 0) { // Gradient
-					vec2 pt = (paintMat * vec3(pass_vertex, 1.0)).xy;
+					vec2 pt = (paintMat * vec4(pass_vertex, 1.0, 1.0)).xy;
 					float d = clamp((sdroundrect(pt, extent, radius) + feather * 0.5) / feather, 0.0, 1.0);
 					vec4 colour = mix(innerCol, outerCol, d);
 
 					colour *= scissor;
 					out_Colour = colour;
 				} else if (type == 1) { // Image
-    				vec2 pt = (paintMat * vec3(pass_vertex, 1.0)).xy / extent;
+    				vec2 pt = (paintMat * vec4(pass_vertex, 1.0, 1.0)).xy / extent;
 
 					vec4 colour = texture(tex, pt);
 
@@ -108,8 +108,8 @@
 			out vec4 out_Colour;
 
 			layout (std140) uniform frag {
-				mat3 scissorMat;
-				mat3 paintMat;
+				mat4 scissorMat;
+				mat4 paintMat;
 				vec4 innerCol;
 				vec4 outerCol;
 				vec2 scissorExt;
@@ -132,7 +132,7 @@
 			}
 
 			float scissorMask(vec2 p) {
-				vec2 sc = (abs((scissorMat * vec3(p, 1.0)).xy) - scissorExt);
+				vec2 sc = (abs((scissorMat * vec4(p, 1.0, 1.0)).xy) - scissorExt);
 				sc = vec2(0.5, 0.5) - sc * scissorScale;
 				return clamp(sc.x, 0.0, 1.0) * clamp(sc.y, 0.0, 1.0);
 			}
@@ -150,14 +150,14 @@
 				}
 
 				if (type == 0) { // Gradient
-					vec2 pt = (paintMat * vec3(pass_vertex, 1.0)).xy;
+					vec2 pt = (paintMat * vec4(pass_vertex, 1.0, 1.0)).xy;
 					float d = clamp((sdroundrect(pt, extent, radius) + feather * 0.5) / feather, 0.0, 1.0);
 					vec4 colour = mix(innerCol, outerCol, d);
 
 					colour *= strokeAlpha * scissor;
 					out_Colour = colour;
 				} else if (type == 1) { // Image
-					vec2 pt = (paintMat * vec3(pass_vertex, 1.0)).xy / extent;
+					vec2 pt = (paintMat * vec4(pass_vertex, 1.0, 1.0)).xy / extent;
 
 					vec4 colour = texture(tex, pt);
 

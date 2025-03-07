@@ -6,8 +6,4 @@
     <Version />
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Silk.NET" Version="2.21.0" />
-  </ItemGroup>
-
 </Project>
