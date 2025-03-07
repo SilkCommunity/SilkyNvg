@@ -47,7 +47,7 @@ namespace SilkyNvg.Tests.IncreasingFontSizeTest
             gl.ClearColor(0.3f, 0.3f, 0.32f, 1.0f);
             gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
 
-            nvg.BeginFrame(winSize.As<float>(), pxRatio);
+            nvg.BeginFrame(winSize.As<float>().ToSystem(), pxRatio);
 
             nvg.BeginPath();
             nvg.Circle(250f, 250f, 100f);
