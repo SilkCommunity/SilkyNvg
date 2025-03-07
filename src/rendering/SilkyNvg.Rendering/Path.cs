@@ -1,9 +1,9 @@
 ﻿using SilkyNvg.Common;
-using SilkyNvg.Common.Geometry;
 using SilkyNvg.Graphics;
 using SilkyNvg.Paths;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Numerics;
 
 namespace SilkyNvg.Rendering
@@ -21,7 +21,7 @@ namespace SilkyNvg.Rendering
 
         private readonly PixelRatio _pixelRatio;
         private uint _bevelCount;
-        private RectF _bounds;
+        private RectangleF _bounds;
 
         public bool Closed { get; private set; }
 
@@ -35,14 +35,14 @@ namespace SilkyNvg.Rendering
 
         public Winding Winding { get; internal set; }
 
-        internal RectF Bounds => _bounds;
+        internal RectangleF Bounds => _bounds;
 
         internal Path(Winding winding, PixelRatio pixelRatio)
         {
             Winding = winding;
             _pixelRatio = pixelRatio;
 
-            _bounds = RectF.FromLTRB(1e6f, 1e6f, -1e6f, -1e6f);
+            _bounds = RectangleF.FromLTRB(1e6f, 1e6f, -1e6f, -1e6f);
         }
 
         internal Vector2 LastPoint
@@ -124,15 +124,12 @@ namespace SilkyNvg.Rendering
                 p1 = point;
                 p0.SetDeterminant(p1);
 
-                float xMin = MathF.Min(_bounds.Min.X, p0.Position.X);
-                float yMin = MathF.Min(_bounds.Min.Y, p0.Position.Y);
-                float xMax = MathF.Max(_bounds.Max.X, p0.Position.X);
-                float yMax = MathF.Max(_bounds.Max.Y, p0.Position.Y);
+                float xMin = MathF.Min(_bounds.Left, p0.Position.X);
+                float yMin = MathF.Min(_bounds.Top, p0.Position.Y);
+                float xMax = MathF.Max(_bounds.Right, p0.Position.X);
+                float yMax = MathF.Max(_bounds.Bottom, p0.Position.Y);
 
-                _bounds.Min = Vector2.Min(_bounds.Min, p0.Position);
-                _bounds.Max = Vector2.Max(_bounds.Max, p0.Position);
-
-                _bounds = RectF.FromLTRB(xMin, yMin, xMax, yMax);
+                _bounds = RectangleF.FromLTRB(xMin, yMin, xMax, yMax);
 
                 p0 = p1;
             }

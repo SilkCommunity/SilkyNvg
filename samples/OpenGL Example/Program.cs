@@ -8,6 +8,7 @@ using SilkyNvg.Rendering.OpenGL;
 using StbImageWriteSharp;
 using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Numerics;
 
@@ -102,7 +103,7 @@ namespace OpenGL_Example
             }
             gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
 
-            nvg.BeginFrame(winSize, pxRatio);
+            nvg.BeginFrame((SizeF)winSize, pxRatio);
 
             demo.Render(mx, my, winSize.X, winSize.Y, (float)t, blowup);
 

@@ -204,15 +204,15 @@ namespace SilkyNvg.Transforms
         /// <summary>
         /// Scales current coordinate system.
         /// </summary>
-        public static void Scale(this Nvg nvg, Vector2 scale)
+        public static void Scale(this Nvg nvg, Vector2 scales)
         {
-            Matrix3x2 t = nvg.TransformScale(scale);
+            Matrix3x2 t = nvg.TransformScale(scales);
             nvg.stateStack.CurrentState.Transform = nvg.TransformPremultiply(nvg.stateStack.CurrentState.Transform, t);
         }
 
         /// <inheritdoc cref="Scale(Nvg, Vector2)"/>
-        public static void Scale(this Nvg nvg, float x, float y)
-            => Scale(nvg, new Vector2(x, y));
+        public static void Scale(this Nvg nvg, float sx, float sy)
+            => Scale(nvg, new Vector2(sx, sy));
 
         /// <returns>The current transform.</returns>
         public static Matrix3x2 CurrentTransform(this Nvg nvg)

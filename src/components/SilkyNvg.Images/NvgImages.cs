@@ -1,7 +1,7 @@
-﻿using SilkyNvg.Common.Geometry;
-using SilkyNvg.Rendering;
+﻿using SilkyNvg.Rendering;
 using StbImageSharp;
 using System;
+using System.Drawing;
 using System.IO;
 
 namespace SilkyNvg.Images
@@ -34,7 +34,7 @@ namespace SilkyNvg.Images
             {
                 return 0;
             }
-            int image = CreateImageRgba(nvg, (uint)result.Width, (uint)result.Height, imageFlags, result.Data);
+            int image = CreateImageRgba(nvg, result.Width, result.Height, imageFlags, result.Data);
             stream.Close();
             stream.Dispose();
             return image;
@@ -51,7 +51,7 @@ namespace SilkyNvg.Images
             {
                 return 0;
             }
-            int image = CreateImageRgba(nvg, (uint)result.Width, (uint)result.Height, imageFlags, data);
+            int image = CreateImageRgba(nvg, result.Width, result.Height, imageFlags, data);
             return image;
         }
 
@@ -60,40 +60,39 @@ namespace SilkyNvg.Images
         /// Creates image from the specified image data.
         /// </summary>
         /// <returns>Handle to the image.</returns>
-        public static int CreateImageRgba(this Nvg nvg, SizeU size, ImageFlags imageFlags, ReadOnlySpan<byte> data)
+        public static int CreateImageRgba(this Nvg nvg, Size size, ImageFlags imageFlags, ReadOnlySpan<byte> data)
         {
             return nvg.renderer.CreateTexture(Texture.Rgba, size, imageFlags, data);
         }
 
-        /// <inheritdoc cref="CreateImageRgba(Nvg, SizeU, ImageFlags, ReadOnlySpan{byte})"/>
-        public static int CreateImageRgba(this Nvg nvg, uint width, uint height, ImageFlags imageFlags, ReadOnlySpan<byte> data)
-            => CreateImageRgba(nvg, new SizeU(width, height), imageFlags, data);
+        /// <inheritdoc cref="CreateImageRgba(Nvg, Size, ImageFlags, ReadOnlySpan{byte})"/>
+        public static int CreateImageRgba(this Nvg nvg, int width, int height, ImageFlags imageFlags, ReadOnlySpan<byte> data)
+            => CreateImageRgba(nvg, new Size(width, height), imageFlags, data);
 
         /// <summary>
         /// Updates image data specified by image handle.
         /// </summary>
         public static void UpdateImage(this Nvg nvg, int image, ReadOnlySpan<byte> data)
         {
-            _ = nvg.renderer.GetTextureSize(image, out SizeU size);
-            _ = nvg.renderer.UpdateTexture(image, RectU.FromLTRB(0, 0, size.Width, size.Height), data);
+            _ = nvg.renderer.GetTextureSize(image, out Size size);
+            _ = nvg.renderer.UpdateTexture(image, Rectangle.FromLTRB(0, 0, size.Width, size.Height), data);
         }
 
         /// <summary>
         /// Returns the dimensions of a created image.
         /// </summary>
-        public static void ImageSize(this Nvg nvg, int image, out SizeU size)
+        public static void ImageSize(this Nvg nvg, int image, out Size size)
         {
             _ = nvg.renderer.GetTextureSize(image, out size);
         }
 
-        /// <inheritdoc cref="ImageSize(Nvg, int, out SizeU)"/>
-        public static void ImageSize(this Nvg nvg, int image, out uint width, out uint height)
+        /// <inheritdoc cref="ImageSize(Nvg, int, out Size)"/>
+        public static void ImageSize(this Nvg nvg, int image, out int width, out int height)
         {
-            ImageSize(nvg, image, out SizeU size);
+            ImageSize(nvg, image, out Size size);
             width = size.Width;
             height = size.Height;
         }
-
 
         /// <summary>
         /// Deletes created image.

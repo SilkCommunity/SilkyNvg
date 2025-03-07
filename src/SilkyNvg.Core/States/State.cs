@@ -3,6 +3,7 @@ using SilkyNvg.Text;
 using SilkyNvg.Graphics;
 using SilkyNvg.Rendering;
 using System.Numerics;
+using System.Drawing;
 
 namespace SilkyNvg.Core.States
 {
@@ -56,7 +57,7 @@ namespace SilkyNvg.Core.States
             Alpha = 1.0f;
             Transform = Matrix3x2.Identity;
 
-            Scissor = new Scissor(new Vector2(-1.0f));
+            Scissor = new Scissor(new SizeF(-1.0f, -1.0f));
 
             FontSize = 16.0f;
             LetterSpacing = 0.0f;

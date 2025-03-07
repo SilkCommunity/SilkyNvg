@@ -1,7 +1,7 @@
 ﻿using Silk.NET.OpenGL;
-using SilkyNvg.Common.Geometry;
 using SilkyNvg.Images;
 using System;
+using System.Drawing;
 
 namespace SilkyNvg.Rendering.OpenGL.Textures
 {
@@ -18,7 +18,7 @@ namespace SilkyNvg.Rendering.OpenGL.Textures
 
         public int Id { get; private set; }
 
-        public SizeU Size { get; private set; }
+        public Size Size { get; private set; }
 
         public Rendering.Texture TextureType { get; private set; }
 
@@ -29,7 +29,7 @@ namespace SilkyNvg.Rendering.OpenGL.Textures
             _gl = _renderer.Gl;
         }
 
-        public void Load(SizeU size, ImageFlags flags, Rendering.Texture type, ReadOnlySpan<byte> data)
+        public void Load(Size size, ImageFlags flags, Rendering.Texture type, ReadOnlySpan<byte> data)
         {
             Id = ++_idCounter;
             _textureID = _gl.GenTexture();
@@ -74,11 +74,11 @@ namespace SilkyNvg.Rendering.OpenGL.Textures
         {
             if (TextureType == Rendering.Texture.Rgba)
             {
-                _gl.TexImage2D(TextureTarget.Texture2D, 0, (int)InternalFormat.Rgba, Size.Width, Size.Height, 0, GLEnum.Rgba, GLEnum.UnsignedByte, data);
+                _gl.TexImage2D(TextureTarget.Texture2D, 0, (int)InternalFormat.Rgba, (uint)Size.Width, (uint)Size.Height, 0, GLEnum.Rgba, GLEnum.UnsignedByte, data);
             }
             else
             {
-                _gl.TexImage2D(TextureTarget.Texture2D, 0, (int)InternalFormat.Red, Size.Width, Size.Height, 0, GLEnum.Red, GLEnum.UnsignedByte, data);
+                _gl.TexImage2D(TextureTarget.Texture2D, 0, (int)InternalFormat.Red, (uint)Size.Width, (uint)Size.Height, 0, GLEnum.Red, GLEnum.UnsignedByte, data);
             }
         }
 
@@ -170,7 +170,7 @@ namespace SilkyNvg.Rendering.OpenGL.Textures
             }
         }
 
-        public unsafe void Update(RectU bounds, ReadOnlySpan<byte> data)
+        public unsafe void Update(Rectangle bounds, ReadOnlySpan<byte> data)
         {
             Bind();
 
@@ -182,11 +182,11 @@ namespace SilkyNvg.Rendering.OpenGL.Textures
 
             if (TextureType == Rendering.Texture.Rgba)
             {
-                _gl.TexSubImage2D(TextureTarget.Texture2D, 0, (int)bounds.X, (int)bounds.Y, bounds.Width, bounds.Height, GLEnum.Rgba, GLEnum.UnsignedByte, data);
+                _gl.TexSubImage2D(TextureTarget.Texture2D, 0, bounds.X, bounds.Y, (uint)bounds.Width, (uint)bounds.Height, GLEnum.Rgba, GLEnum.UnsignedByte, data);
             }
             else
             {
-                _gl.TexSubImage2D(TextureTarget.Texture2D, 0, (int)bounds.X, (int)bounds.Y, bounds.Width, bounds.Height, GLEnum.Red, GLEnum.UnsignedByte, data);
+                _gl.TexSubImage2D(TextureTarget.Texture2D, 0, bounds.X, bounds.Y, (uint)bounds.Width, (uint)bounds.Height, GLEnum.Red, GLEnum.UnsignedByte, data);
             }
 
             ResetPixelStore();

@@ -1,5 +1,4 @@
-﻿using SilkyNvg.Common.Geometry;
-using SilkyNvg.Images;
+﻿using SilkyNvg.Images;
 using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -14,9 +13,9 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
         private readonly Matrix4x4 _paintMat;
         private readonly Colour _innerCol;
         private readonly Colour _outerCol;
-        private readonly SizeF _scissorExt;
+        private readonly Vector2 _scissorExt;
         private readonly Vector2 _scissorScale;
-        private readonly SizeF _extent;
+        private readonly Vector2 _extent;
         private readonly float _radius;
         private readonly float _feather;
         private readonly float _strokeMult;
@@ -40,21 +39,21 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
             if (scissor.Extent.Width < -0.5f || scissor.Extent.Height < -0.5f)
             {
                 _scissorMat = new Matrix4x4();
-                _scissorExt = new SizeF(1.0f, 1.0f);
+                _scissorExt = new Vector2(1.0f);
                 _scissorScale = new Vector2(1.0f);
             }
             else
             {
                 _ = Matrix3x2.Invert(scissor.Transform, out invtransform);
                 _scissorMat = new Matrix4x4(invtransform);
-                _scissorExt = scissor.Extent;
+                _scissorExt = (Vector2)scissor.Extent;
                 _scissorScale = new Vector2(
                     MathF.Sqrt(scissor.Transform.M11 * scissor.Transform.M11 + scissor.Transform.M21 * scissor.Transform.M21) / fringe,
                     MathF.Sqrt(scissor.Transform.M21 * scissor.Transform.M21 + scissor.Transform.M22 * scissor.Transform.M22) / fringe
                 );
             }
 
-            _extent = paint.Extent;
+            _extent = (Vector2)paint.Extent;
             _strokeMult = (width * 0.5f + fringe * 0.5f) / fringe;
             _strokeThr = strokeThr;
 
@@ -75,11 +74,11 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
                     if (tex.HasFlag(ImageFlags.FlipY))
                     {
                         Matrix3x2 m1, m2;
-                        m1 = Matrix3x2.CreateTranslation(new Vector2(0.0f, _extent.Height * 0.5f));
+                        m1 = Matrix3x2.CreateTranslation(new Vector2(0.0f, _extent.Y * 0.5f));
                         m1 = Transforms.NvgTransforms.Multiply(m1, paint.Transform);
                         m2 = Matrix3x2.CreateScale(new Vector2(1.0f, -1.0f));
                         m2 = Transforms.NvgTransforms.Multiply(m2, m1);
-                        m1 = Matrix3x2.CreateTranslation(new Vector2(0.0f, -_extent.Height * 0.5f));
+                        m1 = Matrix3x2.CreateTranslation(new Vector2(0.0f, -_extent.Y * 0.5f));
                         m1 = Transforms.NvgTransforms.Multiply(m1, m2);
                         _ = Matrix3x2.Invert(m1, out invtransform);
                     }

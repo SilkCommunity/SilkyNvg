@@ -1,5 +1,4 @@
 ﻿using SilkyNvg;
-using SilkyNvg.Common.Geometry;
 using SilkyNvg.Graphics;
 using SilkyNvg.Images;
 using SilkyNvg.Paths;
@@ -7,6 +6,7 @@ using SilkyNvg.Scissoring;
 using SilkyNvg.Text;
 using SilkyNvg.Transforms;
 using System;
+using System.Drawing;
 using System.Numerics;
 
 namespace NvgExample
@@ -511,7 +511,7 @@ namespace NvgExample
                 float ty = y + 10.0f;
                 tx += (i % 2) * (thumb + 10.0f);
                 ty += (i / 2) * (thumb + 10.0f);
-                _nvg.ImageSize(images[i], out uint imgW, out uint imgH);
+                _nvg.ImageSize(images[i], out int imgW, out int imgH);
                 if (imgW < imgH)
                 {
                     iw = thumb;
@@ -795,7 +795,7 @@ namespace NvgExample
             uint gutter = 0;
             uint lnum = 0;
             float gx = 0.0f, gy = 0.0f;
-            RectF bounds;
+            RectangleF bounds;
             float px;
 
             _nvg.Save();
@@ -880,16 +880,16 @@ namespace NvgExample
 
             _nvg.TextBoxBounds(x, y, 150.0f, hoverText, out bounds);
 
-            gx = Clamp(mx, bounds.X, bounds.Max.X) - mx;
-            gy = Clamp(my, bounds.Y, bounds.Max.Y) - my;
+            gx = Clamp(mx, bounds.X, bounds.Right) - mx;
+            gy = Clamp(my, bounds.Y, bounds.Bottom) - my;
             float a = MathF.Sqrt((gx * gx) + (gy * gy)) / 30.0f;
             a = Clamp(a, 0.0f, 1.0f);
             _nvg.GlobalAlpha(a);
 
             _nvg.BeginPath();
             _nvg.FillColour(_nvg.Rgba(220, 220, 220, 255));
-            _nvg.RoundedRect(new RectF(bounds.Location - new Vector2(2.0f), bounds.Size + new SizeF(4.0f)), 3.0f);
-            px = (bounds.Max.X + bounds.X) / 2.0f;
+            _nvg.RoundedRect(new RectangleF(new PointF(bounds.X - 2.0f, bounds.Y - 2.0f), bounds.Size + new SizeF(4.0f, 4.0f)), 3.0f);
+            px = (bounds.Right + bounds.X) / 2.0f;
             _nvg.MoveTo(px, bounds.Y - 10.0f);
             _nvg.LineTo(px + 7.0f, bounds.Y + 1.0f);
             _nvg.LineTo(px - 7.0f, bounds.Y + 1.0f);
