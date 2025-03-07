@@ -103,7 +103,7 @@ namespace OpenGL_Example
             }
             gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
 
-            nvg.BeginFrame((SizeF)winSize, pxRatio);
+            nvg.BeginFrame(winSize, pxRatio);
 
             demo.Render(mx, my, winSize.X, winSize.Y, (float)t, blowup);
 
