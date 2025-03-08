@@ -18,17 +18,6 @@ then an instance can simply be created like this: `Nvg nvg = Nvg.Create(renderer
 All calls to the render-API must be wrapped between `Nvg.BeginFrame(width, height, pixelRatio);`
 and ``Nvg.EndFrame();``. To transform from a pixel-based coordinate system to any other, with and height can have any values independant from the actual window's size.
 
-The implementations are split up into different components, these being:
-- SilkyNvg.Blending *for global blending*
-- SilkyNvg.Graphics *for render styles*
-- SilkyNvg.Images *for images*
-- SilkyNvg.Paths *for creating and drawing paths*
-- SilkyNvg.Scissoring *for custom scissors*
-- SilkyNvg.Text *for text*
-- SilkyNvg.Transforms *for creating and altering the transform*
-- SilkyNvg *for core methods, such as BeginFrame, DebugDumpCache, Colour and Paint*
-All components are linked to `SilkyNvg.Nvg` via extension methods in their respective namespaces.
-
 ### Further Details
 For further details, see the [NanoVG doc](https://github.com/memononen/nanovg/), as the API and implementations are intentionally kept similar.
 
@@ -76,6 +65,18 @@ Images can be loaded, either from a file or memory using `NvgImages.CreateImage`
 ### Fonts
 **[WORK IN PROGRESS]**
 
+### API structure
+The implementations are split up into different components, these being:
+- SilkyNvg.Blending *for global blending*
+- SilkyNvg.Graphics *for render styles*
+- SilkyNvg.Images *for images*
+- SilkyNvg.Paths *for creating and drawing paths*
+- SilkyNvg.Scissoring *for custom scissors*
+- SilkyNvg.Text *for text*
+- SilkyNvg.Transforms *for creating and altering the transform*
+- SilkyNvg *for core methods, such as BeginFrame, DebugDumpCache, Colour and Paint*
+All components are linked to `SilkyNvg.Nvg` via extension methods in their respective namespaces.
+
 ## Renderers
 The renderers are specified when creating the Nvg instance in `Nvg.Create`.
 SilkyNvg provides a Vulkan- and OpenGL-Renderer out of the box, but custom renderers can easilly be built using the `SilkyNvg.Rendering.INvgRenderer` interface.
@@ -89,6 +90,8 @@ The [OpenGL renderer](https://github.com/MatijaBrown/SilkyNvg/tree/main/src/rend
 - `CreateFlags.Antialias` States that the renderer should draw antialiased or raw meshes.
 - `CreateFlags.StencilStrokes` States that the renderer should use the stencil buffer when drawing strokes (lines).
 - `CreateFlags.Debug` States that the renderer should print errors.
+
+**Note**: *SilkyNvg* OpenGL renderer makes heavy use of the stencil buffer. Please remember to `glClear(... | ClearBufferMask.StencilBufferBit)`!
 
 ### Vulkan Renderer
 The [Vulkan renderer](https://github.com/MatijaBrown/SilkyNvg/tree/main/src/rendering/SilkyNvg.Rendering.Vulkan) is currently **deprectated** and only compatible with older versions of *Silky*. A faster update is in the works.
