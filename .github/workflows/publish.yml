@@ -25,5 +25,7 @@ jobs:
       run: dotnet test -c Release --no-build
     - name: Pack nugets
       run: dotnet pack -c Release -p:PackageVersion=${{ inputs.version }} --no-build --output ./build
+    - name: Tag
+      run: git tag v${{ inputs.version }} && git push origin v${{ inputs.version }}
     - name: Push to NuGet
       run: dotnet nuget push "./build/*.nupkg" --api-key ${{secrets.nuget_api_key}} --source https://api.nuget.org/v3/index.json --skip-duplicate
