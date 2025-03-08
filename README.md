@@ -32,6 +32,50 @@ All components are linked to `SilkyNvg.Nvg` via extension methods in their respe
 ### Further Details
 For further details, see the [NanoVG doc](https://github.com/memononen/nanovg/), as the API and implementations are intentionally kept similar.
 
+## API Description
+
+### Paths
+*Paths* form the basis of *SilkyNvg* rendering. To begin drawing a *path*, call `NvgPaths.BeginPath`, which clears the path cache and intialises drawing a new path.
+A *path* is composed of five basic instructions: *MoveTo*, *LineTo* *BezierTo* and *Close*. *MoveTo* jumps to the specified point, *Close* is special in that it
+returns to the paths origin with a straight line.
+It is easiest to imagine this as a pen, tracing out the desired shape on a canvas, picking up and setting down for *MoveTo* instructions.
+
+Additionaly, many convenience methods are provided to draw more complex shapes such as *arcs*, *ellipses* or *rectangles*. These are constructed from the atomic
+segments above.
+
+The following example would create the *path* for a simple rectangle.
+```csharp
+nvg.BeginPath();
+nvg.MoveTo(100, 100);
+nvg.LineTo(150, 100);
+nvg.LineTo(150, 150);
+nvg.LineTo(100, 150);
+nvg.Close();
+```
+
+### Fill and Stroke
+There are two ways to render your *path*: **Stroke** and **Fill**.
+**Fill** fills the traced out path according to the specified *winding rule*. `Winding.Cw // Clockwise` winding draws the path as a hole, `Winding.Ccw // Counter-Clockwise` fills it regularly.
+**Stroke** draws along the path, tracing out then "pen's" journey about the canvas. Behaviour at sharp corners and ends can be specified using `NvgRenderStyle.LineJoin` and `NvgRenderStyle.LineCap`.
+
+### Paints
+The manner in which the *fill* and *stroke*s actually show up is handled by **paints**. These can be either specified as
+1. A solid colour
+2. A linear, radial or box gradient
+3. An image
+
+*SilkyNvg* uses different *paints* for **fill** and **stroke** rendering, which can be set by `Nvg.FillPaint` and `Nvg.StrokePain` respectively.
+Additionaly there are convenience methods `Nvg.FillColour` and `Nvg.StrokeColour` provided so that no new paint need be explicitly created for solid colour filling.
+
+Finally the `Paint` struct also exposes all settings in a public constructor, allowing the implementation of custom gradients using a paint transform.
+
+### Images
+As mentioned above, instead of gradients or solid colours *paints* also provide the ability to set images as background for drawing *paths*.
+Images can be loaded, either from a file or memory using `NvgImages.CreateImage` / `NvgImages.CreateImageMem` / `NvgImages.CreateImageRgba`.
+
+### Fonts
+**[WORK IN PROGRESS]**
+
 ## Renderers
 The renderers are specified when creating the Nvg instance in `Nvg.Create`.
 SilkyNvg provides a Vulkan- and OpenGL-Renderer out of the box, but custom renderers can easilly be built using the `SilkyNvg.Rendering.INvgRenderer` interface.
