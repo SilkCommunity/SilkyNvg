@@ -3,6 +3,7 @@ using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using SilkyNvg;
+using SilkyNvg.Blending;
 using SilkyNvg.Graphics;
 using SilkyNvg.Rendering.OpenGL;
 using SilkyNvg.Text;
@@ -45,7 +46,7 @@ namespace OpenGL_Example
         private static void DrawFontIncreasing(string text, float x, float y, float h, float delta)
         {
             nvg.FontSize(fontSize);
-            fontSize += 0.001f;
+            fontSize += 0.05f;
 
             nvg.FontFace("Roboto");
             nvg.FillColour(nvg.Rgba(255, 255, 255, 128));
@@ -69,7 +70,7 @@ namespace OpenGL_Example
 
             nvg.BeginFrame(winSize.As<float>().ToSystem(), pxRatio);
 
-            DrawFontIncreasing("The quick brown fox...", 250.0f, 250.0f, 10.0f, delta);
+            DrawFontIncreasing("The quick brown fox ...", 250.0f, 250.0f, 10.0f, delta);
 
             nvg.EndFrame();
         }

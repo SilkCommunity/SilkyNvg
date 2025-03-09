@@ -4,7 +4,8 @@
     {
 
         Alpha = 1 << 0,
-        Rgba = 1 << 1
+        Rgba = 1 << 1,
+        FontAtlas = 1 << 2
 
     }
 }

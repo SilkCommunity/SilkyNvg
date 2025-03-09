@@ -42,7 +42,7 @@ namespace SilkyNvg.Core.States
 
         public Align TextAlign { get; set; }
 
-        public int FontId { get; set; }
+        public Font CurrentFont { get; set; }
 
         public void Reset()
         {
@@ -64,7 +64,7 @@ namespace SilkyNvg.Core.States
             LineHeight = 1.0f;
             FontBlur = 0.0f;
             TextAlign = Align.Left | Align.Baseline;
-            FontId = 0;
+            CurrentFont = Font.None;
         }
 
         /*public void CopyFrom(State other)

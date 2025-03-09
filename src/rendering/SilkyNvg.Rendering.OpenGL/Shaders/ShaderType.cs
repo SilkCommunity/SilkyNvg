@@ -3,10 +3,10 @@
     internal enum ShaderType
     {
 
-        Fillgrad,
-        FillImg,
-        Simple,
-        Img
+        Fillgrad = 0,
+        FillImg = 1,
+        Simple = 2,
+        Img = 3
 
     }
 }

@@ -151,7 +151,7 @@ namespace SilkyNvg.Rendering.OpenGL
                 return false;
             }
             size = tex.Size;
-            return false;
+            return true;
         }
 
         public void Viewport(SizeF size, float devicePixelRatio)
@@ -185,6 +185,7 @@ namespace SilkyNvg.Rendering.OpenGL
                 Gl.ActiveTexture(TextureUnit.Texture0);
                 Gl.BindTexture(TextureTarget.Texture2D, 0);
                 Filter.BoundTexture = 0;
+                Filter.ActiveTextureUnit = TextureUnit.Texture0;
                 Filter.StencilMask = 0xffffffff;
                 Filter.StencilFunc = StencilFunction.Always;
                 Filter.StencilFuncRef = 0;
@@ -299,14 +300,14 @@ namespace SilkyNvg.Rendering.OpenGL
             _callQueue.Add(call);
         }
 
-        public void Triangles(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, ICollection<Vertex> vertices, float fringe)
+        public void Triangles(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, ReadOnlySpan<Vertex> vertices, float fringe)
         {
             int offset = _vertexCollection.CurrentsOffset;
             _vertexCollection.AddVertices(vertices);
 
             FragUniforms uniforms = new(paint, scissor, fringe, this);
             int uniformOffset = Shader.UniformManager.AddUniform(uniforms);
-            Call call = new TrianglesCall(paint.Image, new Blend(compositeOperation, this), offset, (uint)vertices.Count, uniformOffset, this);
+            Call call = new TrianglesCall(paint.Image, new Blend(compositeOperation, this), offset, (uint)vertices.Length, uniformOffset, this);
             _callQueue.Add(call);
         }
 

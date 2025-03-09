@@ -15,9 +15,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="FontStashSharp" Version="1.3.10" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\SilkyNvg.Common\SilkyNvg.Common.csproj" />
     <ProjectReference Include="..\..\SilkyNvg.Core\SilkyNvg.Core.csproj" />
-    <ProjectReference Include="..\SilkyNvg.FontStash\SilkyNvg.FontStash.csproj" />
     <ProjectReference Include="..\SilkyNvg.Images\SilkyNvg.Images.csproj" />
     <ProjectReference Include="..\SilkyNvg.Tools\SilkyNvg.Tools.csproj" />
     <ProjectReference Include="..\SilkyNvg.Transforms\SilkyNvg.Transforms.csproj" />

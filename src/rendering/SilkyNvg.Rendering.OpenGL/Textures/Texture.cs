@@ -74,11 +74,15 @@ namespace SilkyNvg.Rendering.OpenGL.Textures
         {
             if (TextureType == Rendering.Texture.Rgba)
             {
-                _gl.TexImage2D(TextureTarget.Texture2D, 0, (int)InternalFormat.Rgba, (uint)Size.Width, (uint)Size.Height, 0, GLEnum.Rgba, GLEnum.UnsignedByte, data);
+                _gl.TexImage2D(TextureTarget.Texture2D, 0, (int)InternalFormat.Rgba, (uint)Size.Width, (uint)Size.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, data);
             }
-            else
+            else if (TextureType == Rendering.Texture.Alpha)
             {
-                _gl.TexImage2D(TextureTarget.Texture2D, 0, (int)InternalFormat.Red, (uint)Size.Width, (uint)Size.Height, 0, GLEnum.Red, GLEnum.UnsignedByte, data);
+                _gl.TexImage2D(TextureTarget.Texture2D, 0, (int)InternalFormat.Red, (uint)Size.Width, (uint)Size.Height, 0, PixelFormat.Red, PixelType.UnsignedByte, data);
+            }
+            else if (TextureType == Rendering.Texture.FontAtlas)
+            {
+                _gl.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba8, (uint)Size.Width, (uint)Size.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, data);
             }
         }
 
@@ -152,11 +156,13 @@ namespace SilkyNvg.Rendering.OpenGL.Textures
             }
         }
 
-        public void Bind()
+        public void Bind(TextureUnit textureUnit = TextureUnit.Texture0)
         {
-            if (_renderer.Filter.BoundTexture != _textureID)
+            if (_renderer.Filter.BoundTexture != _textureID || _renderer.Filter.ActiveTextureUnit != textureUnit)
             {
                 _renderer.Filter.BoundTexture = _textureID;
+                _renderer.Filter.ActiveTextureUnit = textureUnit;
+                _gl.ActiveTexture(textureUnit);
                 _gl.BindTexture(TextureTarget.Texture2D, _textureID);
             }
         }
@@ -175,21 +181,22 @@ namespace SilkyNvg.Rendering.OpenGL.Textures
             Bind();
 
             _gl.PixelStore(PixelStoreParameter.UnpackAlignment, 1);
-
-            _gl.PixelStore(PixelStoreParameter.UnpackRowLength, Size.Width);
-            _gl.PixelStore(PixelStoreParameter.UnpackSkipPixels, bounds.X);
-            _gl.PixelStore(PixelStoreParameter.UnpackSkipRows, bounds.Y);
+            _gl.PixelStore(PixelStoreParameter.UnpackRowLength, bounds.Width);
 
             if (TextureType == Rendering.Texture.Rgba)
             {
                 _gl.TexSubImage2D(TextureTarget.Texture2D, 0, bounds.X, bounds.Y, (uint)bounds.Width, (uint)bounds.Height, GLEnum.Rgba, GLEnum.UnsignedByte, data);
             }
-            else
+            else if (TextureType == Rendering.Texture.Alpha)
             {
-                _gl.TexSubImage2D(TextureTarget.Texture2D, 0, bounds.X, bounds.Y, (uint)bounds.Width, (uint)bounds.Height, GLEnum.Red, GLEnum.UnsignedByte, data);
+                _gl.TexSubImage2D(TextureTarget.Texture2D, 0, bounds.X, bounds.Y, (uint)bounds.Width, (uint)bounds.Height, PixelFormat.Red, GLEnum.UnsignedByte, data);
+            }
+            else if (TextureType == Rendering.Texture.FontAtlas)
+            {
+                _gl.TexSubImage2D(TextureTarget.Texture2D, 0, bounds.X, bounds.Y, (uint)bounds.Width, (uint)bounds.Height, GLEnum.Rgba, GLEnum.UnsignedByte, data);
             }
 
-            ResetPixelStore();
+           ResetPixelStore();
             Unbind();
         }
 

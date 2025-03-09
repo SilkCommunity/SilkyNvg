@@ -8,6 +8,8 @@ namespace SilkyNvg.Rendering.OpenGL
 
         public uint BoundTexture { get; set; }
 
+        public TextureUnit ActiveTextureUnit { get; set; }
+
         public uint StencilMask { get; set; }
 
         public StencilFunction StencilFunc { get; set; }

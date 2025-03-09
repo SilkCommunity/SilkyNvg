@@ -85,7 +85,7 @@
 				} else if (type == 2) { // Stencil Fill
 					out_Colour = vec4(1, 1, 1, 1);
 				} else if (type == 3) { // Textured Tris
-					vec4 colour = texture(tex, pass_tcoord);
+					/*vec4 colour = texture(tex, pass_tcoord);
 
 					if (texType == 1) {
 						colour = vec4(colour.xyz * colour.w, colour.w);
@@ -95,8 +95,10 @@
 					}
 
 					colour *= scissor;
-					out_Colour = colour * innerCol;
+					out_Colour = colour * innerCol;*/
+					out_Colour = vec4(1.0, 1.0, 1.0, 1.0);
 				}
+				out_Colour = vec4(1.0, 1.0, 1.0, 1.0);
 			}";
 
 		public static readonly string FRAGMENT_SHADER_EDGE_AA_CODE = @"
@@ -177,8 +179,9 @@
 
 					if (texType == 1) {
 						colour = vec4(colour.xyz * colour.w, colour.w);
-					}
-					if (texType == 2) {
+					} else if (texType == 2) {
+						colour = vec4(colour.x);
+					} else if (texType == 3) {
 						colour = vec4(colour.x);
 					}
 

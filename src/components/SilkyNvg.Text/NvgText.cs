@@ -1,12 +1,13 @@
-﻿using FontStash.NET;
-using SilkyNvg.Common;
+﻿using SilkyNvg.Common;
 using SilkyNvg.Core.States;
 using SilkyNvg.Rendering;
 using SilkyNvg.Transforms;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace SilkyNvg.Text
 {
@@ -45,92 +46,109 @@ namespace SilkyNvg.Text
     public static class NvgText
     {
 
+        private static readonly ConditionalWeakTable<Nvg, FontManager> fontManagers = [];
+
+        private static FontManager FontManager(this Nvg nvg)
+            => fontManagers.GetValue(nvg, nvg => new FontManager(nvg));
+
+        /// <summary>
+        /// Creates an empty font. Add fonts using <see cref="AddFallbackFont(Nvg, string, string)"/>
+        /// </summary>
+        /// <returns>Handle to the font.</returns>
+        public static Font CreateEmpty(this Nvg nvg, string name)
+        {
+            var manager = nvg.FontManager();
+            return manager.CreateFont(name);
+        }
+
         /// <summary>
         /// Creates font by loading it from the disk from specified filename.
         /// </summary>
         /// <returns>Handle to the font.</returns>
-        public static int CreateFont(this Nvg nvg, string name, string fileName)
-        {
-            Fontstash fons = nvg.fontManager.Fontstash;
-            return fons.AddFont(name, fileName, 0);
-        }
-
-        /// <param name="fontIndex">Specifies which font face to load from a .ttf/.ttc file</param>
-        public static int CreateFontAtIndex(this Nvg nvg, string name, string fileName, int fontIndex)
-        {
-            Fontstash fons = nvg.fontManager.Fontstash;
-            return fons.AddFont(name, fileName, fontIndex);
-        }
+        public static Font CreateFont(this Nvg nvg, string name, string fileName)
+            => nvg.CreateFontMem(name, File.ReadAllBytes(fileName));
 
         /// <summary>
         /// Creates a font by loading it from the specified memory chunk.
         /// </summary>
         /// <returns>Handle to the font.</returns>
-        public static int CreateFontMem(this Nvg nvg, string name, byte[] data, int freeData)
+        public static Font CreateFontMem(this Nvg nvg, string name, byte[] data)
         {
-            Fontstash fons = nvg.fontManager.Fontstash;
-            return fons.AddFontMem(name, data, freeData);
-        }
-
-        /// <param name="fontIndex">Specifies which font face to load from a .ttf/.ttc file</param>
-        public static int CreateFontMemAtIndex(this Nvg nvg, string name, byte[] data, int freeData, int fontIndex)
-        {
-            Fontstash fons = nvg.fontManager.Fontstash;
-            return fons.AddFontMem(name, data, freeData, fontIndex);
+            var manager = nvg.FontManager();
+            Font font = manager.CreateFont(name);
+            if (!manager.AddFontData(font, data))
+            {
+                throw new InvalidDataException("Failed to add font data");
+            }
+            return font;
         }
 
         /// <summary>
         /// Finds a loaded font from specified name.
         /// </summary>
-        /// <returns>Handle to it, or -1 if the font is not found.</returns>
-        public static int FindFont(this Nvg nvg, string name)
+        /// <returns>Handle to it, or null if the font is not found.</returns>
+        public static Font? FindFont(this Nvg nvg, string name)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                return -1;
-            }
-
-            Fontstash fons = nvg.fontManager.Fontstash;
-            return fons.GetFontByName(name);
+            var manager = nvg.FontManager();
+            return manager.GetFontByName(name);
         }
 
         /// <summary>
-        /// Adds a fallback font by handle.
+        /// Adds a fallback font from file.
         /// </summary>
-        public static bool AddFallbackFontId(this Nvg nvg, int baseFont, int fallbackFont)
+        public static bool AddFallbackFont(this Nvg nvg, Font font, string fileName)
+            => nvg.AddFallbackFontMem(font, File.ReadAllBytes(fileName));
+
+        /// <summary>
+        /// Adds a fallback font from the specified memory chunk.
+        /// </summary>
+        public static bool AddFallbackFontMem(this Nvg nvg, Font font, byte[] data)
         {
-            if (baseFont == -1 || fallbackFont == -1)
+            var manager = nvg.FontManager();
+            return manager.AddFontData(font, data);
+        }
+
+        /// <summary>
+        /// Adds a fallback font from file.
+        /// </summary>
+        public static bool AddFallbackFont(this Nvg nvg, string name, string fileName)
+            => nvg.AddFallbackFontMem(name, File.ReadAllBytes(fileName));
+
+        /// <summary>
+        /// Adds a fallback font from the specified memory chunk.
+        /// </summary>
+        public static bool AddFallbackFontMem(this Nvg nvg, string name, byte[] data)
+        {
+            var manager = nvg.FontManager();
+            Font? font = manager.GetFontByName(name);
+            if (!font.HasValue)
             {
                 return false;
             }
-
-            Fontstash fons = nvg.fontManager.Fontstash;
-            return fons.AddFallbackFont(baseFont, fallbackFont);
-        }
-
-        /// <summary>
-        /// Adds a fallback font by name.
-        /// </summary>
-        public static bool AddFallbackFont(this Nvg nvg, string baseFont, string fallbackFont)
-        {
-            return AddFallbackFontId(nvg, FindFont(nvg, baseFont), FindFont(nvg, fallbackFont));
+            return nvg.AddFallbackFontMem(font.Value, data);
         }
 
         /// <summary>
         /// Resets fallback fonts by handle.
         /// </summary>
-        public static void ResetFallbackFontsId(this Nvg nvg, int baseFont)
+        public static void ResetFont(this Nvg nvg, Font font)
         {
-            Fontstash fons = nvg.fontManager.Fontstash;
-            fons.ResetFallbackFont(baseFont);
+            var manager = nvg.FontManager();
+            manager.Reset(font);
         }
 
         /// <summary>
         /// Resets fallback fonts by name.
         /// </summary>
-        public static void ResetFallbackFonts(this Nvg nvg, string baseFont)
+        public static void ResetFont(this Nvg nvg, string name)
         {
-            ResetFallbackFontsId(nvg, FindFont(nvg, baseFont));
+            var manager = nvg.FontManager();
+            Font? font = manager.GetFontByName(name);
+            if (!font.HasValue)
+            {
+                return;
+            }
+            nvg.ResetFont(font.Value);
         }
 
         /// <summary>
@@ -146,7 +164,7 @@ namespace SilkyNvg.Text
         /// </summary>
         public static void FontBlur(this Nvg nvg, float blur)
         {
-            nvg.stateStack.CurrentState.FontBlur = blur;
+
         }
 
         /// <summary>
@@ -154,7 +172,7 @@ namespace SilkyNvg.Text
         /// </summary>
         public static void TextLetterSpacing(this Nvg nvg, float spacing)
         {
-            nvg.stateStack.CurrentState.LetterSpacing = spacing;
+
         }
 
         /// <summary>
@@ -162,7 +180,7 @@ namespace SilkyNvg.Text
         /// </summary>
         public static void TextLineHeight(this Nvg nvg, float lineHeight)
         {
-            nvg.stateStack.CurrentState.LineHeight = lineHeight;
+
         }
 
         /// <summary>
@@ -170,105 +188,37 @@ namespace SilkyNvg.Text
         /// </summary>
         public static void TextAlign(this Nvg nvg, Align align)
         {
-            nvg.stateStack.CurrentState.TextAlign = align;
+
         }
 
         /// <summary>
         /// Sets the font face based on specified id of current text style.
         /// </summary>
-        public static void FontFaceId(this Nvg nvg, int font)
-        {
-            nvg.stateStack.CurrentState.FontId = font;
-        }
+        public static void FontFace(this Nvg nvg, Font font)
+            => nvg.stateStack.CurrentState.CurrentFont = font;
 
         /// <summary>
         /// Sets the font face based on specified name of current text style.
         /// </summary>
         public static void FontFace(this Nvg nvg, string font)
-        {
-            Fontstash fons = nvg.fontManager.Fontstash;
-            nvg.stateStack.CurrentState.FontId = fons.GetFontByName(font);
-        }
+            => nvg.FontFace(nvg.FontManager().GetFontByName(font) ?? Font.None);
 
         /// <summary>
         /// Draws text string at specified location. Only the sub-string up to the end is drawn.
         /// </summary>
         public static float Text(this Nvg nvg, Vector2 pos, string @string, string end)
         {
-            Fontstash fons = nvg.fontManager.Fontstash;
-            State state = nvg.stateStack.CurrentState;
+            var manager = nvg.FontManager();
+            var state = nvg.stateStack.CurrentState;
 
-            FonsQuad q = new();
-
-            float scale = nvg.fontManager.GetFontScale() * nvg.pixelRatio.DevicePxRatio;
-            float invscale = 1.0f / scale;
-            bool isFlipped = Maths.IsTransformFlipped(state.Transform);
-
-            if (state.FontId == Fontstash.INVALID)
+            if (end != null)
             {
-                return pos.X;
+                int cutoff = @string.IndexOf(end);
+                @string = @string[..cutoff];
             }
 
-            fons.SetSize(state.FontSize * scale);
-            fons.SetSpacing(state.LetterSpacing * scale);
-            fons.SetBlur(state.FontBlur * scale);
-            fons.SetAlign((int)state.TextAlign);
-            fons.SetFont(state.FontId);
 
-            List<Vertex> vertices = new();
-            Span<Vector2> c = stackalloc Vector2[4];
-            fons.TextIterInit(out FonsTextIter iter, pos.X * scale, pos.Y * scale, @string, end, FonsGlyphBitmap.Requiered);
-            FonsTextIter prevIter = iter;
-            while (fons.TextIterNext(ref iter, ref q))
-            {
-                c[0] = c[1] = c[2] = c[3] = default; // Clear cache
-                if (iter.prevGlyphIndex == -1)
-                {
-                    if (vertices.Count != 0)
-                    {
-                        nvg.fontManager.RenderText(vertices);
-                        vertices.Clear();
-                    }
-                    if (!nvg.fontManager.AllocTextAtlas()) // no memory
-                    {
-                        break;
-                    }
-                    iter = prevIter;
-                    _ = fons.TextIterNext(ref iter, ref q);
-                    if (iter.prevGlyphIndex == -1)
-                    {
-                        break;
-                    }
-                }
-                prevIter = iter;
-                if (isFlipped)
-                {
-                    float tmp = q.y0;
-                    q.y0 = q.y1;
-                    q.y1 = tmp;
-
-                    tmp = q.t0;
-                    q.t0 = q.t1;
-                    q.t1 = tmp;
-                }
-
-                c[0] = nvg.TransformPoint(state.Transform, q.x0 * invscale, q.y0 * invscale);
-                c[1] = nvg.TransformPoint(state.Transform, q.x1 * invscale, q.y0 * invscale);
-                c[2] = nvg.TransformPoint(state.Transform, q.x1 * invscale, q.y1 * invscale);
-                c[3] = nvg.TransformPoint(state.Transform, q.x0 * invscale, q.y1 * invscale);
-
-                vertices.Add(new Vertex(c[0], q.s0, q.t0));
-                vertices.Add(new Vertex(c[2], q.s1, q.t1));
-                vertices.Add(new Vertex(c[1], q.s1, q.t0));
-                vertices.Add(new Vertex(c[0], q.s0, q.t0));
-                vertices.Add(new Vertex(c[3], q.s0, q.t1));
-                vertices.Add(new Vertex(c[2], q.s1, q.t1));
-            }
-
-            nvg.fontManager.FlushTextTexture();
-            nvg.fontManager.RenderText(vertices);
-
-            return iter.nextx / scale;
+            return manager.Write(state.CurrentFont, @string, state.FontSize, pos);
         }
 
         /// <inheritdoc cref="Text(Nvg, Vector2, string, string)"/>
@@ -300,43 +250,7 @@ namespace SilkyNvg.Text
         /// </summary>
         public static void TextBox(this Nvg nvg, Vector2 pos, float breakRowWidth, string @string, string end)
         {
-            State state = nvg.stateStack.CurrentState;
-            int rowCount;
-            Align oldAlign = state.TextAlign;
-            Align hAlign = state.TextAlign & (Align.Left | Align.Centre | Align.Right);
-            Align vAlign = state.TextAlign & (Align.Top | Align.Middle | Align.Bottom | Align.Baseline);
 
-            if (state.FontId == Fontstash.INVALID)
-            {
-                return;
-            }
-
-            TextMetrics(nvg, out _, out _, out float lineh);
-
-            state.TextAlign = Align.Left | vAlign;
-
-            while ((rowCount = TextBreakLines(nvg, @string, end, breakRowWidth, out TextRow[] rows, 2)) != 0)
-            {
-                for (int i = 0; i < rowCount; i++)
-                {
-                    if (hAlign.HasFlag(Align.Left))
-                    {
-                        _ = Text(nvg, pos, rows[i].Start, rows[i].End.Length > 0 ? rows[i].End : null) ;
-                    }
-                    else if (hAlign.HasFlag(Align.Centre))
-                    {
-                        _ = Text(nvg, pos.X + breakRowWidth * 0.5f, pos.Y - rows[i].Width * 0.5f, rows[i].Start, rows[i].End.Length > 0 ? rows[i].End : null);
-                    }
-                    else if (hAlign.HasFlag(Align.Right))
-                    {
-                        _ = Text(nvg, pos.X + breakRowWidth - rows[i].Width, pos.Y, rows[i].Start, rows[i].End.Length > 0 ? rows[i].End : null);
-                    }
-                    pos.Y += lineh * state.LineHeight;
-                }
-                @string = rows[rowCount - 1].Next;
-            }
-
-            state.TextAlign = oldAlign;
         }
 
         /// <inheritdoc cref="TextBox(Nvg, Vector2, float, string, string)"/>
@@ -370,36 +284,8 @@ namespace SilkyNvg.Text
         /// <returns>The horizontal advance of the measured text (i.e. where the next character should be drawn).</returns>
         public static float TextBounds(this Nvg nvg, Vector2 pos, string @string, string end, out RectangleF bounds)
         {
-            bounds = new RectangleF((PointF)pos, SizeF.Empty);
-
-            Fontstash fons = nvg.fontManager.Fontstash;
-            State state = nvg.stateStack.CurrentState;
-            float scale = nvg.fontManager.GetFontScale() * nvg.pixelRatio.DevicePxRatio;
-            float invscale = 1.0f / scale;
-
-            if (state.FontId == Fontstash.INVALID)
-            {
-                return 0;
-            }
-
-            fons.SetSize(state.FontSize * scale);
-            fons.SetSpacing(state.LetterSpacing * scale);
-            fons.SetBlur(state.FontBlur * scale);
-            fons.SetAlign((int)state.TextAlign);
-            fons.SetFont(state.FontId);
-
-            float width = fons.TextBounds(pos.X * scale, pos.Y * scale, @string, end, out float[] bs);
-            if (bs != null)
-            {
-                fons.LineBounds(pos.Y * scale, out bs[1], out bs[3]);
-                bounds = new RectangleF
-                (
-                    new PointF(bs[0] * invscale, bs[1] * invscale),
-                    new SizeF((bs[2] - bs[0]) * invscale, (bs[3] - bs[1]) * invscale)
-                );
-            }
-
-            return width * invscale;
+            bounds = default;
+            return float.NaN;
         }
 
         /// <inheritdoc cref="TextBounds(Nvg, Vector2, string, string, out RectangleF)"/>
@@ -429,71 +315,7 @@ namespace SilkyNvg.Text
         /// <param name="bounds">Contains the bounds box of the multi-text when returned.</param>
         public static void TextBoxBounds(this Nvg nvg, Vector2 pos, float breakRowWidth, string @string, string end, out RectangleF bounds)
         {
-            Fontstash fons = nvg.fontManager.Fontstash;
-            State state = nvg.stateStack.CurrentState;
-            float scale = nvg.fontManager.GetFontScale() * nvg.pixelRatio.DevicePxRatio;
-            float invscale = 1.0f / scale;
-            int nrows;
-            Align oldAlign = state.TextAlign;
-            Align hAlign = state.TextAlign & (Align.Left | Align.Centre | Align.Right);
-            Align vAlign = state.TextAlign & (Align.Top | Align.Middle | Align.Bottom | Align.Baseline);
-
-            if (state.FontId == Fontstash.INVALID)
-            {
-                bounds = default;
-                return;
-            }
-
-            nvg.TextMetrics(out _, out _, out float lineh);
-
-            state.TextAlign = Align.Left | vAlign;
-
-            float minX = pos.X, maxX = pos.X;
-            float minY = pos.Y, maxY = pos.Y;
-
-            fons.SetSize(state.FontSize * scale);
-            fons.SetSpacing(state.LetterSpacing * scale);
-            fons.SetBlur(state.FontBlur * scale);
-            fons.SetAlign((int)state.TextAlign);
-            fons.SetFont(state.FontId);
-            fons.LineBounds(0, out float rMinY, out float rMaxY);
-            rMinY *= invscale;
-            rMaxY *= invscale;
-
-            while ((nrows = TextBreakLines(nvg, @string, end, breakRowWidth, out TextRow[] rows, 2)) != 0)
-            {
-                for (uint i = 0; i < nrows; i++)
-                {
-                    float rMinX, rMaxX;
-                    float dx = 0.0f;
-                    if (hAlign.HasFlag(Align.Left))
-                    {
-                        dx = 0.0f;
-                    }
-                    else if (hAlign.HasFlag(Align.Centre))
-                    {
-                        dx = breakRowWidth * 0.5f - rows[i].Width * 0.5f;
-                    }
-                    else if (hAlign.HasFlag(Align.Right))
-                    {
-                        dx = breakRowWidth - rows[i].Width;
-                    }
-                    rMinX = pos.X + rows[i].MinX + dx;
-                    rMaxX = pos.X + rows[i].MaxX + dx;
-                    minX = MathF.Min(minX, rMinX);
-                    maxX = MathF.Max(maxX, rMaxX);
-
-                    minY = MathF.Min(minY, pos.Y + rMinY);
-                    maxY = MathF.Max(maxY, pos.Y + rMaxY);
-
-                    pos.Y += lineh * state.LineHeight;
-                }
-                @string = rows[nrows - 1].Next;
-            }
-
-            state.TextAlign = oldAlign;
-
-            bounds = RectangleF.FromLTRB(minX, minY, maxX, maxY);
+            bounds = default;
         }
 
         /// <inheritdoc cref="TextBoxBounds(Nvg, Vector2, float, string, string, out RectangleF)"/>
@@ -522,49 +344,8 @@ namespace SilkyNvg.Text
         /// </summary>
         public static int TextGlyphPositions(this Nvg nvg, Vector2 pos, string @string, string end, out GlyphPosition[] positions, int maxRows)
         {
-            positions = new GlyphPosition[maxRows];
-
-            Fontstash fons = nvg.fontManager.Fontstash;
-            State state = nvg.stateStack.CurrentState;
-            float scale = nvg.fontManager.GetFontScale() * nvg.pixelRatio.DevicePxRatio;
-            float invscale = 1.0f / scale;
-            FonsQuad q = new();
-            int npos = 0;
-
-            if (state.FontId == Fontstash.INVALID)
-            {
-                return 0;
-            }
-
-            if (@string == end)
-            {
-                return 0;
-            }
-
-            fons.SetSize(state.FontSize * scale);
-            fons.SetSpacing(state.LetterSpacing * scale);
-            fons.SetBlur(state.FontBlur * scale);
-            fons.SetAlign((int)state.TextAlign);
-            fons.SetFont(state.FontId);
-
-            fons.TextIterInit(out FonsTextIter iter, pos.X * scale, pos.Y * scale, @string, end, FonsGlyphBitmap.Optional);
-            FonsTextIter prevIter = iter;
-            while (fons.TextIterNext(ref iter, ref q))
-            {
-                if (iter.prevGlyphIndex < 0 && nvg.fontManager.AllocTextAtlas())
-                {
-                    iter = prevIter;
-                    fons.TextIterNext(ref iter, ref q);
-                }
-                prevIter = iter;
-                positions[npos++] = new GlyphPosition(iter.str, iter.x * invscale, MathF.Min(iter.x, q.x0) * invscale, MathF.Max(iter.nextx, q.x1) * invscale);
-                if (npos >= maxRows)
-                {
-                    return npos;
-                }
-            }
-
-            return npos;
+            positions = [];
+            return 0;
         }
 
         /// <inheritdoc cref="TextGlyphPositions(Nvg, Vector2, string, string, out GlyphPosition[], int)"/>
@@ -582,27 +363,7 @@ namespace SilkyNvg.Text
         /// </summary>
         public static void TextMetrics(this Nvg nvg, out float ascender, out float descender, out float lineh)
         {
-            Fontstash fons = nvg.fontManager.Fontstash;
-            State state = nvg.stateStack.CurrentState;
-            float scale = nvg.fontManager.GetFontScale() * nvg.pixelRatio.DevicePxRatio;
-            float invscale = 1.0f / scale;
-
-            if (state.FontId == Fontstash.INVALID)
-            {
-                ascender = descender = lineh = -1.0f;
-                return;
-            }
-
-            fons.SetSize(state.FontSize * scale);
-            fons.SetSpacing(state.LetterSpacing * scale);
-            fons.SetBlur(state.FontBlur * scale);
-            fons.SetAlign((int)state.TextAlign);
-            fons.SetFont(state.FontId);
-
-            fons.VertMetrics(out ascender, out descender, out lineh);
-            ascender *= invscale;
-            descender *= invscale;
-            lineh *= invscale;
+            ascender = descender = lineh = float.NaN;
         }
 
         /// <summary>
@@ -612,249 +373,8 @@ namespace SilkyNvg.Text
         /// </summary>
         public static int TextBreakLines(this Nvg nvg, string @string, string end, float breakRowWidth, out TextRow[] rows, int maxRows)
         {
-            rows = new TextRow[maxRows];
-
-            Fontstash fons = nvg.fontManager.Fontstash;
-
-            State state = nvg.stateStack.CurrentState;
-            float scale = nvg.fontManager.GetFontScale() * nvg.pixelRatio.DevicePxRatio;
-            float invscale = 1.0f / scale;
-            FonsQuad q = new();
-            int nrows = 0;
-            float rowStartX = 0.0f;
-            float rowWidth = 0.0f;
-            float rowMinX = 0.0f;
-            float rowMaxX = 0.0f;
-            string rowStart = null;
-            string rowEnd = null;
-            string wordStart = null;
-            float wordStartX = 0.0f;
-            float wordMinX = 0.0f;
-            string breakEnd = null;
-            float breakWidth = 0.0f;
-            float breakMaxX = 0.0f;
-            CodepointType type, pType = CodepointType.Space;
-            uint pCodepoint = 0;
-
-            if (maxRows == 0)
-            {
-                return 0;
-            }
-
-            if (state.FontId == Fontstash.INVALID)
-            {
-                return 0;
-            }
-
-            if (@string == end || @string.Length == 0)
-            {
-                return 0;
-            }
-
-            fons.SetSize(state.FontSize * scale);
-            fons.SetSpacing(state.LetterSpacing * scale);
-            fons.SetBlur(state.FontBlur * scale);
-            fons.SetAlign((int)state.TextAlign);
-            fons.SetFont(state.FontId);
-
-            breakRowWidth *= scale;
-
-            fons.TextIterInit(out FonsTextIter iter, 0, 0, @string, end, FonsGlyphBitmap.Optional);
-            FonsTextIter prevIter = iter;
-            while (fons.TextIterNext(ref iter, ref q))
-            {
-                if (iter.prevGlyphIndex < 0 && nvg.fontManager.AllocTextAtlas())
-                {
-                    iter = prevIter;
-                    fons.TextIterNext(ref iter, ref q);
-                }
-                prevIter = iter;
-                switch (iter.codepoint)
-                {
-                    case 9: // \t
-                    case 11: // \v
-                    case 12: // \f
-                    case 32: // \space
-                    case 0x00a0: // NBSP
-                        type = CodepointType.Space;
-                        break;
-                    case 10: // \n
-                        type = pCodepoint == 13 ? CodepointType.Space : CodepointType.Newline;
-                        break;
-                    case 13: // \r
-                        type = pCodepoint == 10 ? CodepointType.Space : CodepointType.Newline;
-                        break;
-                    case 0x0085: // NEL
-                        type = CodepointType.Newline;
-                        break;
-                    default:
-                        if ((iter.codepoint >= 0x4E00 && iter.codepoint <= 0x9FFF) ||
-                            (iter.codepoint >= 0x3000 && iter.codepoint <= 0x30FF) ||
-                            (iter.codepoint >= 0xFF00 && iter.codepoint <= 0xFFEF) ||
-                            (iter.codepoint >= 0x1100 && iter.codepoint <= 0x11FF) ||
-                            (iter.codepoint >= 0x3130 && iter.codepoint <= 0x318F) ||
-                            (iter.codepoint >= 0xAC00 && iter.codepoint <= 0xD7AF))
-                        {
-                            type = CodepointType.CJKChar;
-                        }
-                        else
-                        {
-                            type = CodepointType.Char;
-                        }
-                        break;
-                }
-
-                if (type == CodepointType.Newline)
-                {
-                    rows[nrows++] = new TextRow()
-                    {
-                        Start = rowStart ?? iter.str,
-                        End = rowEnd ?? iter.str,
-                        Width = rowWidth * invscale,
-                        MinX = rowMinX * invscale,
-                        MaxX = rowMaxX * invscale,
-                        Next = iter.next
-                    };
-
-                    if (nrows >= maxRows)
-                    {
-                        return nrows;
-                    }
-
-                    breakEnd = rowStart;
-                    breakWidth = 0.0f;
-                    breakMaxX = 0.0f;
-
-                    rowStart = null;
-                    rowEnd = null;
-                    rowWidth = 0.0f;
-                    rowMinX = rowMaxX = 0.0f;
-                }
-                else
-                {
-                    if (rowStart == null)
-                    {
-                        if (type == CodepointType.Char || type == CodepointType.CJKChar)
-                        {
-                            rowStartX = iter.x;
-                            rowStart = iter.str;
-                            rowEnd = iter.next;
-                            rowWidth = iter.nextx - rowStartX;
-                            rowMinX = q.x0 - rowStartX;
-                            rowMaxX = q.x1 - rowStartX;
-                            wordStart = iter.str;
-                            wordStartX = iter.x;
-                            wordMinX = q.x0 - rowStartX;
-
-                            breakEnd = rowStart;
-                            breakWidth = 0.0f;
-                            breakMaxX = 0.0f;
-                        }
-                    }
-                    else
-                    {
-                        float nextWidth = iter.nextx - rowStartX;
-
-                        if (type == CodepointType.Char || type == CodepointType.CJKChar)
-                        {
-                            rowEnd = iter.next;
-                            rowWidth = iter.nextx - rowStartX;
-                            rowMaxX = q.x1 - rowStartX;
-                        }
-
-                        if (((pType == CodepointType.Char || pType == CodepointType.CJKChar) && type == CodepointType.Space) || type == CodepointType.CJKChar)
-                        {
-                            breakEnd = iter.str;
-                            breakWidth = rowWidth;
-                            breakMaxX = rowMaxX;
-                        }
-
-                        if ((pType == CodepointType.Space && (type == CodepointType.Char || type == CodepointType.CJKChar)) || type == CodepointType.CJKChar)
-                        {
-                            wordStart = iter.str;
-                            wordStartX = iter.x;
-                            wordMinX = q.x0;
-                        }
-
-                        if ((type == CodepointType.Char || type == CodepointType.CJKChar) && nextWidth > breakRowWidth)
-                        {
-                            if (breakEnd == rowStart)
-                            {
-                                rows[nrows++] = new TextRow()
-                                {
-                                    Start = rowStart,
-                                    End = iter.str,
-                                    Width = rowWidth * invscale,
-                                    MinX = rowMinX * invscale,
-                                    MaxX = rowMaxX * invscale,
-                                    Next = iter.str
-                                };
-
-                                if (nrows >= maxRows)
-                                {
-                                    return nrows;
-                                }
-
-                                rowStartX = iter.x;
-                                rowStart = iter.str;
-                                rowEnd = iter.next;
-                                rowWidth = iter.nextx - rowStartX;
-                                rowMinX = q.x0 - rowStartX;
-                                rowMaxX = q.x1 - rowStartX;
-                                wordStart = iter.str;
-                                wordStartX = iter.x;
-                                wordMinX = q.x0 - rowStartX;
-                            }
-                            else
-                            {
-                                rows[nrows++] = new TextRow()
-                                {
-                                    Start = rowStart,
-                                    End = breakEnd,
-                                    Width = breakWidth * invscale,
-                                    MinX = rowMinX * invscale,
-                                    MaxX = breakMaxX * invscale,
-                                    Next = wordStart
-                                };
-
-                                if (nrows >= maxRows)
-                                {
-                                    return nrows;
-                                }
-
-                                rowStartX = wordStartX;
-                                rowStart = wordStart;
-                                rowEnd = iter.next;
-                                rowWidth = iter.nextx - rowStartX;
-                                rowMinX = wordMinX - rowStartX;
-                                rowMaxX = q.x1 - rowStartX;
-                            }
-
-                            breakEnd = rowStart;
-                            breakWidth = 0.0f;
-                            breakMaxX = 0.0f;
-                        }
-                    }
-                }
-
-                pCodepoint = iter.codepoint;
-                pType = type;
-            }
-
-            if (rowStart != null)
-            {
-                rows[nrows++] = new TextRow()
-                {
-                    Start = rowStart,
-                    End = rowEnd,
-                    Width = rowWidth * invscale,
-                    MinX = rowMinX * invscale,
-                    MaxX = rowMaxX * invscale,
-                    Next = end
-                };
-            }
-
-            return nrows;
+            rows = [];
+            return 0;
         }
 
         /// <summary>

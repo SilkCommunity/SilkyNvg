@@ -1,5 +1,4 @@
 ﻿using SilkyNvg.Common;
-using SilkyNvg.Core.Fonts;
 using SilkyNvg.Core.Instructions;
 using SilkyNvg.Core.Paths;
 using SilkyNvg.Core.States;
@@ -14,21 +13,20 @@ namespace SilkyNvg
     {
 
         #region Create / Destroy
-        public static Nvg Create(INvgRenderer renderer)
+        public static Nvg Create(Rendering.INvgRenderer renderer)
         {
             return new Nvg(renderer);
         }
 
-        internal readonly INvgRenderer renderer;
+        internal readonly Rendering.INvgRenderer renderer;
         internal readonly InstructionQueue instructionQueue;
         internal readonly PathCache pathCache;
         internal readonly StateStack stateStack;
         internal readonly PixelRatio pixelRatio;
-        internal readonly FontManager fontManager;
 
         public FrameMeta FrameMeta { get; internal set; }
 
-        private Nvg(INvgRenderer renderer)
+        private Nvg(Rendering.INvgRenderer renderer)
         {
             this.renderer = renderer;
 
@@ -42,16 +40,12 @@ namespace SilkyNvg
                 Dispose();
                 throw new InvalidOperationException("Failed to initialize the renderer!");
             }
-
-            fontManager = new FontManager(this);
         }
 
         public void Dispose()
         {
             instructionQueue.Clear();
             pathCache.Clear();
-
-            fontManager?.Dispose();
 
             renderer.Dispose();
         }
@@ -70,8 +64,6 @@ namespace SilkyNvg
         /// </summary>
         public void BeginFrame(SizeF windowSize, float devicePixelRatio)
         {
-            fontManager.Pack();
-
             stateStack.Clear();
             Save();
             Reset();

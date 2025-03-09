@@ -92,9 +92,13 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
                     {
                         _texType = tex.HasFlag(ImageFlags.Premultiplied) ? 0 : 1;
                     }
-                    else
+                    else if (tex.TextureType == Texture.Alpha)
                     {
                         _texType = 2;
+                    }
+                    else if (tex.TextureType == Texture.FontAtlas)
+                    {
+                        _texType = 3;
                     }
 
                     _radius = _feather = 0.0f;
