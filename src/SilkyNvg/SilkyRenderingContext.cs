@@ -1,19 +1,16 @@
 using SilkyNvg.Rendering;
+using SilkyNvg.Utils;
 
 namespace SilkyNvg
 {
-    public class SilkyRenderingContext
+    public sealed class SilkyRenderingContext
     {
 
         private readonly SilkyRenderingContextSettings _settings;
         private readonly ISilkyRenderer _renderer;
-
-        public uint Width { get; set; } = 600;
-
-        public uint Height { get; set; } = 400;
-
-        public float PixelRatio { get; set; } = 1.0f;
-
+        
+        internal RenderTolerances Tolerances { get; } = new();
+        
         public SilkyRenderingContext(SilkyRenderingContextSettings settings, ISilkyRenderer renderer)
         {
             _settings = settings;
@@ -23,18 +20,34 @@ namespace SilkyNvg
         public SilkyRenderingContextSettings GetContextSettings()
             =>  _settings;
         
-        // DIMENSIONS
+    #region Dimension
+        
+        public uint Width { get; set; } = 600;
 
+        public uint Height { get; set; } = 400;
+
+        public float PixelRatio
+        {
+            get;
+            set
+            {
+                field = value;
+                Tolerances.UpdateTols(field);
+            }
+        }
+        
         public void SetWidth(int width) => Width = (uint)width;
         
         public void SetHeight(int height) => Height = (uint)height;
 
-        public void Resize(int newWidth, int newHeight)
+        public void Resize(int newWidth, int newHeight, float pixelRatio = 1.0f)
         {
             SetWidth(newWidth);
             SetHeight(newHeight);
+            PixelRatio = pixelRatio;
         }
         
+    #endregion
         
 
     }
