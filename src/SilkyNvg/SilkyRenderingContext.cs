@@ -1,4 +1,5 @@
 using SilkyNvg.Rendering;
+using SilkyNvg.States;
 using SilkyNvg.Utils;
 
 namespace SilkyNvg
@@ -8,8 +9,10 @@ namespace SilkyNvg
 
         private readonly SilkyRenderingContextSettings _settings;
         private readonly ISilkyRenderer _renderer;
-        
+
         internal RenderTolerances Tolerances { get; } = new();
+
+        internal StateStack StateStack { get; } = new();
         
         public SilkyRenderingContext(SilkyRenderingContextSettings settings, ISilkyRenderer renderer)
         {
@@ -48,7 +51,30 @@ namespace SilkyNvg
         }
         
     #endregion
+
+    #region State
+
+    public void Save()
+    {
+        StateStack.PushState();
+    }
+
+    public void Restore()
+    {
+        StateStack.PopState();
+    }
+
+    public void Reset()
+    {
         
+    }
+
+    public bool IsContextLost()
+    {
+        return false;
+    }
+    
+    #endregion
 
     }
 }

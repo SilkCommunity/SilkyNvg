@@ -25,11 +25,11 @@ internal class Programme : IDisposable
     {
         _renderer = null;
 
-        var settings = new SilkyRenderingContextSettings()
-        {
-            Alpha = true,
-            Desynchronised = false
-        };
+        var settings = new SilkyRenderingContextSettings
+        (
+            Alpha: true,
+            Desynchronised: false
+        );
     
         _ctx = new SilkyRenderingContext(settings, _renderer);
         _ctx.Resize(_window.Size.X, _window.Size.Y);
