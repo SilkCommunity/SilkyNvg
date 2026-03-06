@@ -1,7 +1,7 @@
 using Silk.NET.OpenGL;
 using SilkyNvg.Rendering;
 
-namespace OpenGLRenderer
+namespace SilkyNvg.Renderers.OpenGL
 {
     public sealed class OpenGLRenderer : ISilkyRenderer
     {
@@ -13,5 +13,10 @@ namespace OpenGLRenderer
             _gl = gl;
         }
 
+        public void Dispose()
+        {
+            
+        }
+        
     }
 }

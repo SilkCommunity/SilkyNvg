@@ -25,7 +25,8 @@ public class Path
 
     public void AddPath(Path path, Matrix3x2 transform)
     {
-        Vector2.transform
+        _pathCommands.AddRange(path._pathCommands);
+        _pathPoints.AddRange(path._pathPoints);
     }
 
     #endregion

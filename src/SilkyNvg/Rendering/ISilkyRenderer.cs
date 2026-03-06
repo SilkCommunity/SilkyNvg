@@ -1,6 +1,8 @@
+using System;
+
 namespace SilkyNvg.Rendering;
 
-public interface ISilkyRenderer
+public interface ISilkyRenderer : IDisposable
 {
     
 }

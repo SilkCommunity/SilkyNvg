@@ -13,6 +13,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\src\renderers\SilkyNvg.Renderers.OpenGL\SilkyNvg.Renderers.OpenGL.csproj" />
       <ProjectReference Include="..\..\src\SilkyNvg\SilkyNvg.csproj" />
     </ItemGroup>
 

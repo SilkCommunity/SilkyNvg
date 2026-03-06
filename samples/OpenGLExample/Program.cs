@@ -1,6 +1,8 @@
 ﻿using Silk.NET.Maths;
+using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using SilkyNvg;
+using SilkyNvg.Renderers.OpenGL;
 using SilkyNvg.Rendering;
 
 internal class Programme : IDisposable
@@ -8,6 +10,8 @@ internal class Programme : IDisposable
 
     private readonly IWindow _window;
 
+    private GL _gl;
+    
     private ISilkyRenderer _renderer;
     private SilkyRenderingContext? _ctx;
     
@@ -23,7 +27,9 @@ internal class Programme : IDisposable
     
     private void Load()
     {
-        _renderer = null;
+        _gl = GL.GetApi(_window);
+        
+        _renderer = new OpenGLRenderer(_gl);
 
         var settings = new SilkyRenderingContextSettings
         (
@@ -57,6 +63,8 @@ internal class Programme : IDisposable
 
     public void Dispose()
     {
+        _renderer.Dispose();
+        _gl.Dispose();
         _window.Dispose();
     }
     
