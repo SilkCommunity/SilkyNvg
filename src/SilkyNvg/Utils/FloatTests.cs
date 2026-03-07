@@ -12,7 +12,7 @@ internal static class FloatTests
 
     internal static bool FpEquals(this float a, float b)
     {
-        
+        return false;
     }
     
 }

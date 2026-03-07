@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Numerics;
+using SilkyNvg.Paths.Commands;
 using SilkyNvg.Utils;
 
 namespace SilkyNvg.Paths;
@@ -8,8 +9,7 @@ namespace SilkyNvg.Paths;
 public class Path
 {
 
-    private readonly List<PathCommands> _pathCommands = [];
-    private readonly List<Vector2> _pathPoints = [];
+    private readonly List<IPathCommand> _pathCommands = [];
     
     #region PathAPI
 
@@ -20,13 +20,14 @@ public class Path
             return;
         }
         _pathCommands.AddRange(path._pathCommands);
-        _pathPoints.AddRange(path._pathPoints);
     }
+    
+    public Path()
+        : this(null) {}
 
     public void AddPath(Path path, Matrix3x2 transform)
     {
         _pathCommands.AddRange(path._pathCommands);
-        _pathPoints.AddRange(path._pathPoints);
     }
 
     #endregion
@@ -35,7 +36,12 @@ public class Path
     
     public void ClosePath()
     {
-        _pathCommands.Add(PathCommands.Close);
+        if (_pathCommands.Count == 0)
+        {
+            return;
+        }
+        
+        _pathCommands.Add(new CloseCommand());
     }
 
     public void MoveTo(float x, float y)
@@ -50,8 +56,8 @@ public class Path
         {
             return;
         }
-        _pathCommands.Add(PathCommands.MoveTo);
-        _pathPoints.Add(p);
+        
+        _pathCommands.Add(new MoveToCommand(p));
     }
 
     public void LineTo(float x, float y)
@@ -66,13 +72,12 @@ public class Path
         {
             return;
         }
-        if (_pathPoints.Count == 0)
+        if (_pathCommands.Count == 0)
         {
             MoveTo(p);
         }
         
-        _pathCommands.Add(PathCommands.LineTo);
-        _pathPoints.Add(p);
+        _pathCommands.Add(new LineToCommand(p));
     }
 
     public void QuadraticCurveTo(float cpx, float cpy, float x, float y)
@@ -87,14 +92,12 @@ public class Path
         {
             return;
         }
-        if (_pathPoints.Count == 0)
+        if (_pathCommands.Count == 0)
         {
             MoveTo(cp);
         }
 
-        _pathCommands.Add(PathCommands.QuadraticBezierTo);
-        _pathPoints.Add(cp);
-        _pathPoints.Add(p);
+        _pathCommands.Add(new QuadraticToCommand(cp, p));
     }
 
     public void BezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float x, float y)
@@ -109,15 +112,12 @@ public class Path
         {
             return;
         }
-        if (_pathPoints.Count == 0)
+        if (_pathCommands.Count == 0)
         {
             MoveTo(cp1);
         }
 
-        _pathCommands.Add(PathCommands.CubicBezierTo);
-        _pathPoints.Add(cp1);
-        _pathPoints.Add(cp2);
-        _pathPoints.Add(p);
+        _pathCommands.Add(new BezierToCommand(cp1, cp2, p));
     }
 
     public void ArcTo(float x1, float y1, float x2, float y2, float radius)

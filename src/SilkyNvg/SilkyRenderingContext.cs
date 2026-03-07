@@ -1,10 +1,11 @@
+using System;
 using SilkyNvg.Rendering;
 using SilkyNvg.States;
 using SilkyNvg.Utils;
 
 namespace SilkyNvg
 {
-    public sealed class SilkyRenderingContext
+    public sealed class SilkyRenderingContext : IDisposable
     {
 
         private readonly SilkyRenderingContextSettings _settings;
@@ -75,6 +76,11 @@ namespace SilkyNvg
     }
     
     #endregion
+
+        public void Dispose()
+        {
+            
+        }
 
     }
 }

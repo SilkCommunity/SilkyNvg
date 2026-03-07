@@ -12,4 +12,11 @@
       <ProjectReference Include="..\..\SilkyNvg\SilkyNvg.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="Shaders\shader.frag.glsl" />
+      <EmbeddedResource Include="Shaders\shader.frag.glsl" />
+      <None Remove="Shaders\shader.vert.glsl" />
+      <EmbeddedResource Include="Shaders\shader.vert.glsl" />
+    </ItemGroup>
+
 </Project>

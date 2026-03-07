@@ -4,6 +4,7 @@ using Silk.NET.Windowing;
 using SilkyNvg;
 using SilkyNvg.Renderers.OpenGL;
 using SilkyNvg.Rendering;
+using Path = SilkyNvg.Paths.Path;
 
 internal class Programme : IDisposable
 {
@@ -38,11 +39,12 @@ internal class Programme : IDisposable
         );
     
         _ctx = new SilkyRenderingContext(settings, _renderer);
-        _ctx.Resize(_window.Size.X, _window.Size.Y);
+        Resize(_window.Size);
     }
 
     private void Resize(Vector2D<int> size)
     {
+        _gl.Viewport(size);
         _ctx!.Resize(size.X, size.Y);
     }
 
@@ -53,18 +55,25 @@ internal class Programme : IDisposable
 
     private void Render(double _)
     {
-    
+        _gl.ClearColor(0.0f, 0.3f, 1.0f, 1.0f);
+        _gl.Clear(ClearBufferMask.ColorBufferBit);
+
+        var path = new Path();
+        path.MoveTo(250.0f, 75.0f);
+        path.LineTo(500.0f, 75.0f);
+
+        _renderer.Render();
     }
 
     private void Closing()
     {
-    
+        _ctx!.Dispose();
+        _renderer.Dispose();
+        _gl.Dispose();
     }
 
     public void Dispose()
     {
-        _renderer.Dispose();
-        _gl.Dispose();
         _window.Dispose();
     }
     
