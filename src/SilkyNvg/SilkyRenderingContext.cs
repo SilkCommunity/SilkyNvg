@@ -1,4 +1,5 @@
 using System;
+using SilkyNvg.Paths;
 using SilkyNvg.Rendering;
 using SilkyNvg.States;
 using SilkyNvg.Utils;
@@ -76,6 +77,11 @@ namespace SilkyNvg
     }
     
     #endregion
+
+        public void FillPath(Path path)
+        {
+            path.Flatten(_renderer, Width, Height);
+        }
 
         public void Dispose()
         {

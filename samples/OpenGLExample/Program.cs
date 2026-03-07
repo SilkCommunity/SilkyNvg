@@ -50,19 +50,24 @@ internal class Programme : IDisposable
 
     private void Update(double delta)
     {
-    
+        
     }
-
+    
     private void Render(double _)
     {
-        _gl.ClearColor(0.0f, 0.3f, 1.0f, 1.0f);
+        _gl.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         _gl.Clear(ClearBufferMask.ColorBufferBit);
 
         var path = new Path();
-        path.MoveTo(250.0f, 75.0f);
-        path.LineTo(500.0f, 75.0f);
-
-        _renderer.Render();
+        path.MoveTo(200.0f, 300.0f);
+        path.LineTo(200.0f, 100.0f);
+        path.QuadraticCurveTo(400.0f, 50.0f, 600.0f, 300.0f);
+        path.QuadraticCurveTo(800.0f, 550.0f, 1000.0f, 300.0f);
+        path.LineTo(1000.0f, 500.0f);
+        path.BezierCurveTo(0.0f, 800.0f, 1200.0f, 800.0f, 200.0f, 500.0f);
+        path.QuadraticCurveTo(300.0f, 400.0f, 200.0f, 300.0f);
+        
+        _ctx!.FillPath(path);
     }
 
     private void Closing()

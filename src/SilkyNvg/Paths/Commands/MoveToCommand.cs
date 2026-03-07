@@ -1,8 +1,12 @@
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace SilkyNvg.Paths.Commands;
 
-internal struct MoveToCommand(Vector2 p) : IPathCommand
+internal readonly struct MoveToCommand(Vector2 p) : IPathCommand
 {
-    
+    public void Flatten(List<Vector2> vertices)
+    {
+        vertices.Add(p);
+    }
 }

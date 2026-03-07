@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Numerics;
 using System.Reflection;
 using System.Resources;
 using Silk.NET.OpenGL;
@@ -10,6 +11,8 @@ namespace SilkyNvg.Renderers.OpenGL.Shaders
     {
 
         private readonly uint _programmeID;
+
+        private readonly int _viewExtentUniformLocation;
         
         private readonly GL _gl;
         
@@ -53,6 +56,8 @@ namespace SilkyNvg.Renderers.OpenGL.Shaders
             
             _gl.DeleteShader(vertexShaderID);
             _gl.DeleteShader(fragmentShaderID);
+
+            _viewExtentUniformLocation = _gl.GetUniformLocation(_programmeID, "viewExtent");
         }
 
         internal void Start()
@@ -65,9 +70,15 @@ namespace SilkyNvg.Renderers.OpenGL.Shaders
             _gl.UseProgram(0);
         }
 
+        internal void LoadViewExtent(Vector2 viewExtent)
+        {
+            _gl.Uniform2(_viewExtentUniformLocation, viewExtent);
+        }
+
         public void Dispose()
         {
-            
+            Stop();
+            _gl.DeleteProgram(_programmeID);
         }
 
         private static string LoadShaderCode(string shaderName)

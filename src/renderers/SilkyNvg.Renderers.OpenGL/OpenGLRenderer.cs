@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Numerics;
 using Silk.NET.OpenGL;
 using SilkyNvg.Renderers.OpenGL.Buffers;
@@ -34,7 +35,7 @@ namespace SilkyNvg.Renderers.OpenGL
             _vao = new VAO(gl);
             _vbo = new VBO<Vector2>(gl);
             _vbo.Bind();
-            _vbo.Store(quad, BufferUsageARB.StaticDraw);
+            _vbo.Store(quad, BufferUsageARB.DynamicDraw);
             _vao.Bind();
             _vao.AttribPointer(0, 2, VertexAttribPointerType.Float, 8);
             _vbo.Unbind();
@@ -43,15 +44,20 @@ namespace SilkyNvg.Renderers.OpenGL
             _shader = new SilkyShader(_gl);
         }
 
-        public void Render()
+        public void Render(List<Vector2> vertices, Vector2 viewExtent)
         {
-            _shader.Start();
-
-            _vao.Bind();
             _vbo.Bind();
+            _vbo.Store(vertices.ToArray(), BufferUsageARB.DynamicDraw);
+            _vao.Bind();
+            _vao.AttribPointer(0, 2, VertexAttribPointerType.Float, 8);
+            
+            _shader.Start();
+            _shader.LoadViewExtent(viewExtent);
+
             _gl.EnableVertexAttribArray(0);
             
-            _gl.DrawArrays(PrimitiveType.Triangles, 0, 6);
+            _gl.PointSize(4.0f);
+            _gl.DrawArrays(PrimitiveType.Points, 0, (uint)vertices.Count);
             
             _gl.DisableVertexAttribArray(0);
             _vbo.Unbind();

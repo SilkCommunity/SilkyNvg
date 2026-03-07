@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Numerics;
 using SilkyNvg.Paths.Commands;
+using SilkyNvg.Rendering;
 using SilkyNvg.Utils;
 
 namespace SilkyNvg.Paths;
@@ -10,6 +11,16 @@ public class Path
 {
 
     private readonly List<IPathCommand> _pathCommands = [];
+
+    internal void Flatten(ISilkyRenderer renderer, uint width, uint height)
+    {
+        var verts = new List<Vector2>();
+        foreach (var command in _pathCommands)
+        {
+            command.Flatten(verts);
+        }
+        renderer.Render(verts, new Vector2(width, height));
+    }
     
     #region PathAPI
 
