@@ -16,5 +16,5 @@ void main() {
     value.x = (sin(t) + 1) / 2.0;
     value.y = float(texelCoord.y) / gl_NumWorkGroups.y;
 
-    imageStore(imgOutput, texelCoord, value);
+    imageStore(imgOutput, texelCoord, vec(0,0));
 }

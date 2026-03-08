@@ -85,7 +85,7 @@ namespace SilkyNvg
             }
             if (_pathCommands.Count == 0)
             {
-                MoveTo(p);
+                return;
             }
 
             Modified = true;
@@ -106,7 +106,7 @@ namespace SilkyNvg
             }
             if (_pathCommands.Count == 0)
             {
-                MoveTo(cp);
+                return;
             }
 
             Modified = true;
@@ -127,7 +127,7 @@ namespace SilkyNvg
             }
             if (_pathCommands.Count == 0)
             {
-                MoveTo(cp1);
+                return;
             }
 
             Modified = true;
