@@ -4,8 +4,17 @@
         <TargetFramework>netstandard2.0</TargetFramework>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
     <ItemGroup>
       <PackageReference Include="Silk.NET.OpenGL" Version="2.23.0" />
+      <PackageReference Include="Silk.NET.OpenGL.Extensions.NV" Version="2.23.0" />
     </ItemGroup>
 
     <ItemGroup>
@@ -17,6 +26,12 @@
       <EmbeddedResource Include="Shaders\shader.frag.glsl" />
       <None Remove="Shaders\shader.vert.glsl" />
       <EmbeddedResource Include="Shaders\shader.vert.glsl" />
+      <None Remove="Shaders\shader.comp.glsl" />
+      <EmbeddedResource Include="Shaders\shader.comp.glsl" />
+      <None Remove="Shaders\debug.frag.glsl" />
+      <EmbeddedResource Include="Shaders\debug.frag.glsl" />
+      <None Remove="Shaders\debug.vert.glsl" />
+      <EmbeddedResource Include="Shaders\debug.vert.glsl" />
     </ItemGroup>
 
 </Project>

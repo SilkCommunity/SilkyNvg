@@ -28,10 +28,10 @@ namespace SilkyNvg.Renderers.OpenGL.Buffers
             _gl.BindVertexArray(0);
         }
 
-        internal void AttribPointer(uint index, int count, VertexAttribPointerType type, uint vertexSize)
+        internal void AttribPointer(uint index, int count, VertexAttribPointerType type, uint vertexSize, int offset = 0)
         {
             Bind();
-            _gl.VertexAttribPointer(index, count, type, false, vertexSize, 0);
+            _gl.VertexAttribPointer(index, count, type, false, vertexSize, offset);
         }
         
         public void Dispose()
