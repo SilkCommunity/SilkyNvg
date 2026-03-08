@@ -4,7 +4,7 @@ using Silk.NET.Windowing;
 using SilkyNvg;
 using SilkyNvg.Renderers.OpenGL;
 using SilkyNvg.Rendering;
-using Path = SilkyNvg.Paths.Path;
+using Path = SilkyNvg.Path;
 
 internal class Programme : IDisposable
 {
@@ -34,8 +34,8 @@ internal class Programme : IDisposable
 
         var settings = new SilkyRenderingContextSettings
         (
-            Alpha: true,
-            Desynchronised: false
+            alpha: true,
+            desynchronised: false
         );
     
         _ctx = new SilkyRenderingContext(settings, _renderer);
@@ -58,6 +58,8 @@ internal class Programme : IDisposable
         _gl.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         _gl.Clear(ClearBufferMask.ColorBufferBit);
 
+        _ctx!.BeginFrame();
+        
         var path = new Path();
         path.MoveTo(200.0f, 300.0f);
         path.LineTo(200.0f, 100.0f);
@@ -67,7 +69,9 @@ internal class Programme : IDisposable
         path.BezierCurveTo(0.0f, 800.0f, 1200.0f, 800.0f, 200.0f, 500.0f);
         path.QuadraticCurveTo(300.0f, 400.0f, 200.0f, 300.0f);
         
-        _ctx!.FillPath(path);
+        _ctx.FillPath(path);
+        
+        _ctx.EndFrame();
     }
 
     private void Closing()

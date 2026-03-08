@@ -1,20 +1,21 @@
 using System.Numerics;
 
-namespace SilkyNvg.States;
-
-internal class State
+namespace SilkyNvg.States
 {
-
-    internal Matrix3x2 Transform;
-
-    internal State()
+    internal class State
     {
-        Transform = Matrix3x2.Identity;
-    }
 
-    internal State(State state)
-    {
-        Transform = state.Transform;
-    }
+        internal Matrix3x2 Transform;
+
+        internal State()
+        {
+            Transform = Matrix3x2.Identity;
+        }
+
+        internal State(State state)
+        {
+            Transform = state.Transform;
+        }
     
+    }
 }

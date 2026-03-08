@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using Silk.NET.OpenGL;
 using SilkyNvg.Renderers.OpenGL.Buffers;
@@ -23,13 +24,10 @@ namespace SilkyNvg.Renderers.OpenGL
 
             var quad = new Vector2[]
             {
-                new Vector2(0.5f, 0.5f),
-                new Vector2(0.5f, -0.5f),
-                new Vector2(-0.5f, 0.5f),
-                
-                new Vector2(0.5f, -0.5f),
-                new Vector2(-0.5f, -0.5f),
-                new Vector2(-0.5f, 0.5f)
+                new Vector2(100.0f, 100.0f),
+                new Vector2(300.0f, 100.0f),
+                new Vector2(300.0f, 300.0f),
+                new Vector2(100.0f, 300.0f)
             };
             
             _vao = new VAO(gl);
@@ -44,11 +42,11 @@ namespace SilkyNvg.Renderers.OpenGL
             _shader = new SilkyShader(_gl);
         }
 
-        public void Render(List<Vector2> vertices, Vector2 viewExtent)
+        public void Render(FrameContainer container, Vector2 viewExtent)
         {
-            _vbo.Bind();
-            _vbo.Store(vertices.ToArray(), BufferUsageARB.DynamicDraw);
             _vao.Bind();
+            _vbo.Bind();
+            _vbo.Store(container.Vertices.ToArray(), BufferUsageARB.DynamicDraw);
             _vao.AttribPointer(0, 2, VertexAttribPointerType.Float, 8);
             
             _shader.Start();
@@ -57,7 +55,7 @@ namespace SilkyNvg.Renderers.OpenGL
             _gl.EnableVertexAttribArray(0);
             
             _gl.PointSize(4.0f);
-            _gl.DrawArrays(PrimitiveType.Points, 0, (uint)vertices.Count);
+            _gl.DrawArrays(PrimitiveType.Points, 0, (uint)container.Vertices.Count);
             
             _gl.DisableVertexAttribArray(0);
             _vbo.Unbind();

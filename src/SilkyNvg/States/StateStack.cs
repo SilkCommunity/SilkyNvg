@@ -1,37 +1,38 @@
 using System.Collections.Generic;
 
-namespace SilkyNvg.States;
-
-internal sealed class StateStack
+namespace SilkyNvg.States
 {
-
-    private readonly Stack<State> _stateStack = new();
-
-    internal State CurrentState => _stateStack.Peek();
-
-    internal StateStack()
+    internal class StateStack
     {
-        _stateStack.Push(new State());
-    }
-    
-    internal void Clear()
-    {
-        _stateStack.Clear();
-        _stateStack.Push(new State());
-    }
 
-    internal void PushState()
-    {
-        _stateStack.Push(new State(CurrentState));
-    }
+        private readonly Stack<State> _stateStack = new  Stack<State>();
 
-    internal void PopState()
-    {
-        if (_stateStack.Count <= 1)
+        internal State CurrentState => _stateStack.Peek();
+
+        internal StateStack()
         {
-            return;
+            _stateStack.Push(new State());
         }
-        _stateStack.Pop();
-    }
+    
+        internal void Clear()
+        {
+            _stateStack.Clear();
+            _stateStack.Push(new State());
+        }
 
+        internal void PushState()
+        {
+            _stateStack.Push(new State(CurrentState));
+        }
+
+        internal void PopState()
+        {
+            if (_stateStack.Count <= 1)
+            {
+                return;
+            }
+            _stateStack.Pop();
+        }
+
+    }
 }
