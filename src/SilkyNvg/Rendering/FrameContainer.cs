@@ -4,7 +4,7 @@ using System.Numerics;
 using SilkyNvg.Commands;
 using SilkyNvg.Utils;
 
-namespace SilkyNvg.Rendering
+namespace SilkyNvg.Renderers.OpenGL
 {
     public sealed class FrameContainer
     {
@@ -17,6 +17,7 @@ namespace SilkyNvg.Rendering
         // Curves
         private readonly List<CommandType> _pathCommands = new List<CommandType>();
         private readonly List<uint> _vertexIndices = new List<uint>();
+        private readonly List<uint> _relatedPaths = new List<uint>();
 
         // Paths
         private readonly List<uint> _commandIndices = new List<uint>();
@@ -40,25 +41,6 @@ namespace SilkyNvg.Rendering
         
         internal void AddPath(Path path)
         {
-            uint startVertexIndex = (uint)_vertices.Count;
-            uint startCommandIndex = (uint)_pathCommands.Count;
-            uint pathCommandCount = 0;
-            
-            var commandEnumerator = path.GetCommandEnumerator();
-            while (commandEnumerator.MoveNext())
-            {
-                var command = commandEnumerator.Current;
-                if (command is null)
-                {
-                    throw new Exception("Path command enumeration failed.");
-                }
-                
-                uint numberOfCommands = command.Build(_vertices, _vertexIndices, _pathCommands, startVertexIndex, _tolerances);
-                pathCommandCount += numberOfCommands;
-            }
-
-            _commandIndices.Add(startCommandIndex);
-            _commandCount.Add(pathCommandCount);
         }
 
         internal void Clear()
