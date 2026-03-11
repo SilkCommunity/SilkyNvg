@@ -12,9 +12,4 @@
       <PackageReference Include="Silk.NET.Windowing" Version="2.23.0" />
     </ItemGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\..\src\renderers\SilkyNvg.Renderers.OpenGL\SilkyNvg.Renderers.OpenGL.csproj" />
-      <ProjectReference Include="..\..\src\SilkyNvg\SilkyNvg.csproj" />
-    </ItemGroup>
-
 </Project>
