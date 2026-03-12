@@ -65,6 +65,8 @@ namespace SilkyNvg
         public void FillPath(Path path)
         {
             path.Fill(_frameContainer);
+            
+            _renderer.Render(_frameContainer);
         }
 
         public void Dispose()
