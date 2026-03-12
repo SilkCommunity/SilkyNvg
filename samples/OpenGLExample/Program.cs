@@ -55,6 +55,19 @@ internal class Program : IDisposable
     {
         _gl.ClearColor(0.2f, 0.3f, 0.4f, 1.0f);
         _gl.Clear(ClearBufferMask.ColorBufferBit);
+        
+        _ctx.BeginFrame();
+
+        var path = new SilkyNvg.Path();
+        path.MoveTo(300.0f, 200.0f);
+        path.QuadraticCurveTo(350.0f, 0.0f, 400.0f, 200.0f);
+        path.LineTo(400.0f, 500.0f);
+        path.QuadraticCurveTo(350.0f, 700.0f, 300.0f, 500.0f);
+        path.Close();
+        
+        _ctx.FillPath(path);
+        
+        _ctx.EndFrame();
     }
 
     private void Close()

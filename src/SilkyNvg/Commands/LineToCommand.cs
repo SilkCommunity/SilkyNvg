@@ -1,4 +1,5 @@
 using System.Numerics;
+using SilkyNvg.Rendering;
 
 namespace SilkyNvg.Commands
 {
@@ -14,5 +15,11 @@ namespace SilkyNvg.Commands
             _p = p;
         }
 
+        public void Fill(FrameContainer frame)
+        {
+            frame.AddCommand(CommandType.LineTo);
+            frame.AddPoint(_p);
+        }
+        
     }
 }

@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Numerics;
 using SilkyNvg.Commands;
 using SilkyNvg.Paths;
+using SilkyNvg.Rendering;
 using SilkyNvg.Utils;
 
 namespace SilkyNvg
@@ -16,9 +17,25 @@ namespace SilkyNvg
         
         private Subpath CurrentSubpath => _subpaths.Count == 0 ? null : _subpaths[_subpaths.Count - 1];
 
-        public Path(Path path)
+        public Path()
         {
             _needNewSubPath = true;
+        }
+        
+        public Path(Path path)
+            : this()
+        {
+            
+        }
+
+        internal void Fill(FrameContainer frame)
+        {
+            frame.BeginPath();
+            foreach (var subpath in _subpaths)
+            {
+                subpath.Fill(frame);
+            }
+            frame.EndPath();
         }
 
         public void AddPath(Path path)
@@ -67,6 +84,7 @@ namespace SilkyNvg
 
             var subpath = new Subpath(p);
             _subpaths.Add(subpath);
+            _needNewSubPath = false;
         }
         
         public void LineTo(float x, float y)

@@ -1,4 +1,5 @@
 using System.Numerics;
+using SilkyNvg.Rendering;
 
 namespace SilkyNvg.Commands
 {
@@ -7,8 +8,6 @@ namespace SilkyNvg.Commands
 
         private readonly Vector2 _cp;
         private readonly Vector2 _p;
-
-        public Vector2 EndPoint => _p;
         
         internal QuadraticCurveToCommand(Vector2 cp, Vector2 p)
         {
@@ -16,5 +15,11 @@ namespace SilkyNvg.Commands
             _p = p;
         }
 
+        public void Fill(FrameContainer frame)
+        {
+            frame.AddCommand(CommandType.QuadraticCurveTo);
+            frame.AddPoint(_cp, _p);
+        }
+        
     }
 }

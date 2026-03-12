@@ -1,4 +1,5 @@
 using System.Numerics;
+using SilkyNvg.Rendering;
 
 namespace SilkyNvg.Commands
 {
@@ -6,13 +7,16 @@ namespace SilkyNvg.Commands
     {
         
         private readonly Vector2 _p;
-
-        public Vector2 EndPoint => _p;
         
         internal MoveToCommand(Vector2 p)
         {
             _p = p;
         }
 
+        public void Fill(FrameContainer frame)
+        {
+            frame.BeginSubpath(_p);
+        }
+        
     }
 }

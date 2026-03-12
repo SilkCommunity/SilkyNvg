@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 using SilkyNvg.Commands;
+using SilkyNvg.Rendering;
 
 namespace SilkyNvg.Paths
 {
@@ -23,6 +24,22 @@ namespace SilkyNvg.Paths
         internal void AddCommand(ICommand command)
         {
             _commands.Add(command);
+        }
+
+        internal void Fill(FrameContainer frame)
+        {
+            if (_commands.Count <= 1)
+            {
+                return;
+            }
+            
+            foreach (var command in _commands)
+            {
+                command.Fill(frame);
+            }
+            
+            // Subpath is begun in MoveToCommand fill call.
+            frame.EndSubpath();
         }
 
         internal void Close()

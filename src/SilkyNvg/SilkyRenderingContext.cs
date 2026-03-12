@@ -9,6 +9,8 @@ namespace SilkyNvg
         private readonly RenderTolerances _renderTolerances = new RenderTolerances();
         
         private readonly ISilkyRenderer _renderer;
+        
+        private readonly FrameContainer _frameContainer;
 
         private float _width, _height;
         private float _pixelRatio;
@@ -17,9 +19,12 @@ namespace SilkyNvg
         {
             _renderer = renderer;
 
+            _frameContainer = new FrameContainer(_renderTolerances);
+
             Resize(1.0f, 1.0f, 1.0f);
         }
 
+        #region Viewport
         public float Width
         {
             get => _width;
@@ -45,10 +50,21 @@ namespace SilkyNvg
             _pixelRatio = pixelRatio;
             _renderTolerances.Update(_pixelRatio);
         }
+        #endregion
+
+        public void BeginFrame()
+        {
+            _frameContainer.Clear();
+        }
+
+        public void EndFrame()
+        {
+            
+        }
 
         public void FillPath(Path path)
         {
-            
+            path.Fill(_frameContainer);
         }
 
         public void Dispose()
