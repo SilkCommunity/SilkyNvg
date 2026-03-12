@@ -3,6 +3,8 @@
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
+using SilkyNvg;
+using SilkyNvg.Rendering.OpenGL;
 
 namespace OpenGLExample;
 
@@ -10,6 +12,9 @@ internal class Program : IDisposable
 {
     
     private readonly IWindow _window;
+
+    private OpenGLRenderer _renderer;
+    private SilkyRenderingContext _ctx;
     
     private GL _gl;
 
@@ -28,12 +33,17 @@ internal class Program : IDisposable
     {
         _gl = GL.GetApi(_window);
 
+        _renderer = new OpenGLRenderer(_gl);
+        _ctx = new SilkyRenderingContext(_renderer);
+        
         Resize(_window.Size);
     }
 
     private void Resize(Vector2D<int> newSize)
     {
         _gl.Viewport(newSize);
+
+        _ctx.Resize(newSize.X, newSize.Y, 1.0f);
     }
 
     private void Update(double delta)
@@ -49,6 +59,8 @@ internal class Program : IDisposable
 
     private void Close()
     {
+        _ctx.Dispose();
+        _renderer.Dispose();
         _gl.Dispose();
     }
 
