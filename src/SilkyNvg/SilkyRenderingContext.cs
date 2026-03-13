@@ -64,7 +64,7 @@ namespace SilkyNvg
 
         public void FillPath(Path path)
         {
-            path.Fill(_frameContainer);
+            path.Fill(_frameContainer, _renderTolerances);
             
             _renderer.Render(_frameContainer);
         }

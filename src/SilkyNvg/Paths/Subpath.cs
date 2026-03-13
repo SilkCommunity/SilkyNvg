@@ -26,16 +26,17 @@ namespace SilkyNvg.Paths
             _commands.Add(command);
         }
 
-        internal void Fill(FrameContainer frame)
+        internal void Fill(FrameContainer frame, RenderTolerances tolerances)
         {
             if (_commands.Count <= 1)
             {
                 return;
             }
-            
+
+            Vector2 p0 = Vector2.Zero;
             foreach (var command in _commands)
             {
-                command.Fill(frame);
+                p0 = command.Fill(Matrix3x2.Identity, p0, frame, tolerances);
             }
             
             // Subpath is begun in MoveToCommand fill call.

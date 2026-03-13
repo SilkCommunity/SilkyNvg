@@ -28,12 +28,12 @@ namespace SilkyNvg
             
         }
 
-        internal void Fill(FrameContainer frame)
+        internal void Fill(FrameContainer frame, RenderTolerances tolerances)
         {
             frame.BeginPath();
             foreach (var subpath in _subpaths)
             {
-                subpath.Fill(frame);
+                subpath.Fill(frame, tolerances);
             }
             frame.EndPath();
         }

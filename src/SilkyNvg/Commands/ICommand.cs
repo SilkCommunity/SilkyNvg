@@ -3,10 +3,10 @@ using SilkyNvg.Rendering;
 
 namespace SilkyNvg.Commands
 {
-    public interface ICommand
+    internal interface ICommand
     {
 
-        void Fill(FrameContainer frame);
+        Vector2 Fill(Matrix3x2 transform, Vector2 p0, FrameContainer frame, RenderTolerances tol);
 
     }
 }

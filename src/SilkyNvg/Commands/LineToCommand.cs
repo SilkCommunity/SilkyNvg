@@ -7,18 +7,28 @@ namespace SilkyNvg.Commands
     {
         
         private readonly Vector2 _p;
-
-        public Vector2 EndPoint => _p;
         
         internal LineToCommand(Vector2 p)
         {
             _p = p;
         }
 
-        public void Fill(FrameContainer frame)
+        public Vector2 Fill(Matrix3x2 transform, Vector2 p0, FrameContainer frame, RenderTolerances tol)
         {
-            frame.AddCommand(CommandType.LineTo);
-            frame.AddPoint(_p);
+            Vector2 p = Vector2.Transform(p0, transform);
+            Vector2 d = p - p0;
+            
+            float length = d.Length();
+            int numSegments = (int)(length / tol.MaxPathLength) + 1;
+            d /= numSegments;
+            
+            for (int i = 1; i <= numSegments; i++)
+            {
+                frame.AddCommand(CommandType.LineTo);
+                frame.AddPoint(p0 + i * d);
+            }
+
+            return p;
         }
         
     }

@@ -13,9 +13,11 @@ namespace SilkyNvg.Commands
             _p = p;
         }
 
-        public void Fill(FrameContainer frame)
+        public Vector2 Fill(Matrix3x2 transform, Vector2 p0, FrameContainer frame, RenderTolerances tol)
         {
             frame.BeginSubpath(_p);
+
+            return _p;
         }
         
     }
