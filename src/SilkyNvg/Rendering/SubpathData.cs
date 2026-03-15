@@ -3,11 +3,11 @@ namespace SilkyNvg.Rendering
     public readonly struct SubpathData
     {
 
-        internal readonly int CommandIndex;
-        internal readonly int CommandNumber;
+        internal readonly uint CommandIndex;
+        internal readonly uint CommandNumber;
         internal readonly bool Closed;
 
-        public SubpathData(int commandIndex, int commandNumber, bool closed)
+        public SubpathData(uint commandIndex, uint commandNumber, bool closed)
         {
             CommandIndex = commandIndex;
             CommandNumber = commandNumber;

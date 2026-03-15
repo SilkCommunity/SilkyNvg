@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using SilkyNvg.Commands;
@@ -8,29 +9,37 @@ namespace SilkyNvg.Rendering
     public sealed class FrameContainer
     {
         
-        private readonly List<Vector2> _points = new List<Vector2>();
-        private readonly List<CommandData> _commands = new List<CommandData>();
-        private readonly List<SubpathData> _subpaths = new List<SubpathData>();
-        private readonly List<PathData> _paths = new List<PathData>();
+        private readonly DataAccessibleArrayList<Vector2> _points = new DataAccessibleArrayList<Vector2>();
+        private readonly DataAccessibleArrayList<CommandData> _commands = new DataAccessibleArrayList<CommandData>();
+        private readonly DataAccessibleArrayList<SubpathData> _subpaths = new DataAccessibleArrayList<SubpathData>();
+        private readonly DataAccessibleArrayList<PathData> _paths = new DataAccessibleArrayList<PathData>();
 
         private readonly RenderTolerances _tolerances;
         
-        public int PointCount => _points.Count;
+        public uint PointCount => (uint)_points.Count;
         
-        public int CommandCount => _commands.Count;
+        public uint CommandCount => (uint)_commands.Count;
         
-        public int SubpathCount => _subpaths.Count;
+        public uint SubpathCount => (uint)_subpaths.Count;
         
-        public int PathCount => _paths.Count;
+        public uint PathCount => (uint)_paths.Count;
+        
+        public ReadOnlySpan<Vector2> Points => _points.ElementData;
+        
+        public ReadOnlySpan<CommandData> Commands => _commands.ElementData;
+        
+        public ReadOnlySpan<SubpathData> Subpaths => _subpaths.ElementData;
+        
+        public ReadOnlySpan<PathData> Paths => _paths.ElementData;
         
         // Current subpath cache
-        private int _spCommandIndex;
-        private int _spCommandNumber;
+        private uint _spCommandIndex;
+        private uint _spCommandNumber;
         private bool _spClosed;
         
         // Current path cache
-        private int _pSubpathIndex;
-        private int _pSubpathNumber;
+        private uint _pSubpathIndex;
+        private uint _pSubpathNumber;
         private FillRule _pFillRule;
 
         internal FrameContainer(RenderTolerances tolerances)
@@ -101,7 +110,7 @@ namespace SilkyNvg.Rendering
 
         internal void CloseSubpath()
         {
-            Vector2 start = _points[_commands[_spCommandIndex].PointIndex - 1];
+            Vector2 start = _points[(int)_commands[(int)_spCommandIndex].PointIndex - 1];
             Vector2 end = _points[_points.Count - 1];
 
             if (!start.FpEquals(end, _tolerances.FloatingPointTol))

@@ -3,12 +3,12 @@ namespace SilkyNvg.Rendering
     public readonly struct PathData
     {
 
-        public readonly int SubpathIndex;
-        public readonly int SubpathNumber;
+        public readonly uint SubpathIndex;
+        public readonly uint SubpathNumber;
 
         public readonly FillRule FillRule;
 
-        internal PathData(int subpathIndex, int subpathNumber, FillRule fillRule)
+        internal PathData(uint subpathIndex, uint subpathNumber, FillRule fillRule)
         {
             SubpathIndex = subpathIndex;
             SubpathNumber = subpathNumber;

@@ -55,18 +55,18 @@ namespace SilkyNvg
         public void BeginFrame()
         {
             _frameContainer.Clear();
+            _renderer.PrepareFrame();
         }
 
         public void EndFrame()
         {
-            
+            _renderer.AddFrame(_frameContainer);
+            _renderer.Render();
         }
 
         public void FillPath(Path path)
         {
             path.Fill(_frameContainer, _renderTolerances);
-            
-            _renderer.Render(_frameContainer);
         }
 
         public void Dispose()

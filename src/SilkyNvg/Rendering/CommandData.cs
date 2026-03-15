@@ -5,10 +5,10 @@ namespace SilkyNvg.Rendering
     public readonly struct CommandData
     {
 
-        public readonly int PointIndex;
+        public readonly uint PointIndex;
         public readonly CommandType Type;
 
-        public CommandData(int pointIndex, CommandType type)
+        public CommandData(uint pointIndex, CommandType type)
         {
             PointIndex = pointIndex;
             Type = type;

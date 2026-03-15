@@ -7,29 +7,53 @@ namespace SilkyNvg.Rendering.OpenGL.Buffers
         where T : unmanaged
     {
 
-        private readonly uint _capacity;
+        private readonly BufferUsageARB _usage;
 
         private readonly uint _bufferId;
         private readonly GL _gl;
-
+        
+        private uint _capacity;
+        
         internal unsafe Buffer(uint binding, uint capacity, BufferUsageARB usage, GL gl)
         {
             _gl = gl;
-
+            _usage = usage;
+            
             _capacity = capacity;
             
             _bufferId = gl.GenBuffer();
             Bind();
-            _gl.BufferData(BufferTargetARB.ShaderStorageBuffer, _capacity * (uint)sizeof(T), null, usage);
+            _gl.BufferData(BufferTargetARB.ShaderStorageBuffer, _capacity * (uint)sizeof(T), null, _usage);
             _gl.BindBufferBase(BufferTargetARB.ShaderStorageBuffer, binding, _bufferId);
             Unbind();
         }
 
+        internal unsafe void EnsureCapacity(uint necessaryCapacity)
+        {
+            if (_capacity < necessaryCapacity)
+            {
+                Bind();
+                _gl.BufferData(BufferTargetARB.ShaderStorageBuffer, _capacity * (uint)sizeof(T), null, _usage);
+                Unbind();
+                _capacity = necessaryCapacity;
+            }
+        }
+
+        internal unsafe void Update(ReadOnlySpan<T> data, uint offset, uint dataCount)
+        {
+            uint size = dataCount * (uint)sizeof(T);
+            EnsureCapacity(offset + dataCount);
+            Bind();
+            fixed (void* ptr = data)
+            {
+                _gl.BufferSubData(BufferTargetARB.ShaderStorageBuffer, (int)offset, size, ptr);
+            }
+            Unbind();
+        }
+        
         internal void Update(ReadOnlySpan<T> data)
         {
-            Bind();
-            _gl.BufferSubData(BufferTargetARB.ShaderStorageBuffer, 0, data);
-            Unbind();
+            Update(data, 0, (uint)data.Length);
         }
 
         internal unsafe void Read(T[] output)
