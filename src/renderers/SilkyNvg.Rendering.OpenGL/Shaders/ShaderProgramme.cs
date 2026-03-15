@@ -1,4 +1,7 @@
 using System;
+using System.IO;
+using System.Reflection;
+using System.Resources;
 using Silk.NET.OpenGL;
 
 namespace SilkyNvg.Rendering.OpenGL.Shaders
@@ -65,6 +68,21 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
         public void Dispose()
         {
             Gl.DeleteProgram(ProgrammeID);
+        }
+
+        protected static string LoadShaderCode(string shaderName)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            using (var stream = assembly.GetManifestResourceStream("SilkyNvg.Rendering.OpenGL.Shaders.ShaderCode." + shaderName))
+            {
+                if (stream == null)
+                {
+                    throw new FileLoadException("Failed to load shader: " + shaderName);
+                }
+
+                var reader = new StreamReader(stream);
+                return reader.ReadToEnd();
+            }
         }
         
     }

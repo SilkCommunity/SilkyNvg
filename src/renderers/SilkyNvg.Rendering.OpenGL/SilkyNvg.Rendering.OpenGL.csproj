@@ -21,4 +21,9 @@
       <PackageReference Include="System.Numerics.Vectors" Version="4.6.1" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="Shaders\ShaderCode\fragmentGenerationShader.comp.glsl" />
+      <EmbeddedResource Include="Shaders\ShaderCode\fragmentGenerationShader.comp.glsl" />
+    </ItemGroup>
+
 </Project>
