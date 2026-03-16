@@ -1,6 +1,6 @@
 namespace SilkyNvg
 {
-    public enum FillRule : byte
+    public enum FillRule : uint
     {
         
         EvenOdd = 0,

@@ -1,11 +1,11 @@
 namespace SilkyNvg.Commands
 {
-    public enum CommandType : byte
+    public enum CommandType : uint
     {
         
-        LineTo,
-        QuadraticCurveTo,
-        BezierCurveTo
+        LineTo = 0,
+        QuadraticCurveTo = 1,
+        BezierCurveTo = 2
         
     }
 }

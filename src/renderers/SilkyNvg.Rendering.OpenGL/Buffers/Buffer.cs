@@ -11,31 +11,31 @@ namespace SilkyNvg.Rendering.OpenGL.Buffers
 
         private readonly uint _bufferId;
         private readonly GL _gl;
-        
-        private uint _capacity;
-        
+
+        internal uint Capacity { get; private set; }
+
         internal unsafe Buffer(uint binding, uint capacity, BufferUsageARB usage, GL gl)
         {
             _gl = gl;
             _usage = usage;
             
-            _capacity = capacity;
+            Capacity = capacity;
             
             _bufferId = gl.GenBuffer();
             Bind();
-            _gl.BufferData(BufferTargetARB.ShaderStorageBuffer, _capacity * (uint)sizeof(T), null, _usage);
+            _gl.BufferData(BufferTargetARB.ShaderStorageBuffer, Capacity * (uint)sizeof(T), null, _usage);
             _gl.BindBufferBase(BufferTargetARB.ShaderStorageBuffer, binding, _bufferId);
             Unbind();
         }
 
         internal unsafe void EnsureCapacity(uint necessaryCapacity)
         {
-            if (_capacity < necessaryCapacity)
+            if (Capacity < necessaryCapacity)
             {
                 Bind();
-                _gl.BufferData(BufferTargetARB.ShaderStorageBuffer, _capacity * (uint)sizeof(T), null, _usage);
+                _gl.BufferData(BufferTargetARB.ShaderStorageBuffer, necessaryCapacity * (uint)sizeof(T), null, _usage);
                 Unbind();
-                _capacity = necessaryCapacity;
+                Capacity = necessaryCapacity;
             }
         }
 
@@ -58,7 +58,7 @@ namespace SilkyNvg.Rendering.OpenGL.Buffers
 
         internal unsafe void Read(T[] output)
         {
-            if (output.Length < _capacity)
+            if (output.Length < Capacity)
             {
                 throw new Exception("Output buffer is too small!");
             }
@@ -70,7 +70,7 @@ namespace SilkyNvg.Rendering.OpenGL.Buffers
                 throw new Exception("Failed to map buffer!");
             }
 
-            var data = new Span<T>(dataPtr, (int)_capacity);
+            var data = new Span<T>(dataPtr, (int)Capacity);
             data.CopyTo(output);
             
             _gl.UnmapBuffer(BufferTargetARB.ShaderStorageBuffer);

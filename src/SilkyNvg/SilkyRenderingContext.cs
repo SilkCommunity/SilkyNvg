@@ -22,6 +22,7 @@ namespace SilkyNvg
             _frameContainer = new FrameContainer(_renderTolerances);
 
             Resize(1.0f, 1.0f, 1.0f);
+            _renderer.Init(_renderTolerances);
         }
 
         #region Viewport

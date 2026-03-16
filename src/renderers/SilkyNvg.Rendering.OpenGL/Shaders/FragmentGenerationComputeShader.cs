@@ -5,17 +5,17 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
     internal class FragmentGenerationComputeShader : ShaderProgramme
     {
 
-        private readonly int _factorUniformLocation;
+        private readonly int _fpTolUniformLocation;
         
         internal FragmentGenerationComputeShader(GL gl)
             : base(gl, (LoadShaderCode("fragmentGenerationShader.comp.glsl"), ShaderType.ComputeShader))
         {
-            _factorUniformLocation = Gl.GetUniformLocation(ProgrammeID, "factor");
+            _fpTolUniformLocation = Gl.GetUniformLocation(ProgrammeID, "fpTol");
         }
 
-        internal void LoadFactor(uint factor)
+        internal void LoadFpTol(float factor)
         {
-            Gl.Uniform1(_factorUniformLocation, factor);
+            Gl.Uniform1(_fpTolUniformLocation, factor);
         }
         
     }

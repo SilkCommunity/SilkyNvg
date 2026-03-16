@@ -1,7 +1,9 @@
+using System.Runtime.InteropServices;
 using SilkyNvg.Commands;
 
 namespace SilkyNvg.Rendering
 {
+    [StructLayout(LayoutKind.Sequential)]
     public readonly struct CommandData
     {
 

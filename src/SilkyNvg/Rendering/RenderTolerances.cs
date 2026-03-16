@@ -5,7 +5,7 @@ namespace SilkyNvg.Rendering
         
         public float FloatingPointTol { get; private set; }
 
-        public float MaxPathLength { get; } = 32.0f;
+        public float MaxPathLength => 33.0f;
         
         internal RenderTolerances()
         {

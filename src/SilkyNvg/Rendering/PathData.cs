@@ -1,5 +1,8 @@
+using System.Runtime.InteropServices;
+
 namespace SilkyNvg.Rendering
 {
+    [StructLayout(LayoutKind.Sequential)]
     public readonly struct PathData
     {
 

@@ -15,7 +15,7 @@ namespace SilkyNvg.Commands
 
         public Vector2 Fill(Matrix3x2 transform, Vector2 p0, FrameContainer frame, RenderTolerances tol)
         {
-            Vector2 p = Vector2.Transform(p0, transform);
+            Vector2 p = Vector2.Transform(_p, transform);
             Vector2 d = p - p0;
             
             float length = d.Length();
