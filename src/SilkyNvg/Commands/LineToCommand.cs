@@ -1,5 +1,7 @@
+using System;
 using System.Numerics;
 using SilkyNvg.Rendering;
+using SilkyNvg.Utils;
 
 namespace SilkyNvg.Commands
 {
@@ -31,10 +33,20 @@ namespace SilkyNvg.Commands
                 Vector2 bottomRight = Vector2.Max(prev, p1);
                 
                 // Double cast necessary because we want rounding down both before subtracting
-                uint pxWidth = (uint)bottomRight.X - (uint)topLeft.X;
-                uint pxHeight = (uint)bottomRight.Y - (uint)topLeft.Y;
+                uint nIntX = (uint)bottomRight.X - (uint)topLeft.X;
+                uint nIntY = (uint)bottomRight.Y - (uint)topLeft.Y;
                 
-                frame.AddCommand(pxWidth, pxHeight, CommandType.LineTo);
+                // If the last pixel lies exactly on a line, we must ignore it in our count since we always add 0 and 1 anyway.
+                if (bottomRight.X.FpEquals((float)Math.Floor(bottomRight.X), tol.FloatingPointTol))
+                {
+                    nIntX--;
+                }
+                if (bottomRight.Y.FpEquals((float)Math.Floor(bottomRight.Y), tol.FloatingPointTol))
+                {
+                    nIntY--;
+                }
+                
+                frame.AddCommand(nIntX, nIntY, CommandType.LineTo);
                 frame.AddPoint(p0 + i * d);
 
                 prev = p1;

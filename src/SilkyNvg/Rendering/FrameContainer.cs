@@ -83,6 +83,8 @@ namespace SilkyNvg.Rendering
             var commandData = new CommandData(
                 pointIndex: PointCount,
                 intersectionsTimeIndex: IntersectionsCount,
+                nIntersectionsX: nIntX,
+                nIntersectionsY: nIntY,
                 type: type
             );
             _commands.Add(commandData);

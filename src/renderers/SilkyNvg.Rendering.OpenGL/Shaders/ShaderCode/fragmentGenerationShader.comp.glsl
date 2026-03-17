@@ -11,6 +11,8 @@ layout(local_size_x=32, local_size_y=1, local_size_z=1) in;
 struct CommandData {
     uint pointIndex;
     uint intersectionsIndex;
+    uint nIntX;
+    uint nIntY;
     uint type;
 };
 
@@ -146,71 +148,82 @@ void main() {
 
     vec2 p0, p1, p2, p3;
     vec2 a, b, c, d;
-    vec2 topLeft, currentGridLine;
+    vec2 topLeft;
+    float currentGridLineX, currentGridLineY;
     float tx, ty;
 
     addTime(0.0, command.intersectionsIndex);
-    for (uint i = 1; i <= 32; i++) {
-        switch (command.type) {
-            case COMMAND_TYPE_LINE_TO:
-                p0 = vertices[command.pointIndex - 1];
-                p1 = vertices[command.pointIndex + 0];
+    switch (command.type) {
+        case COMMAND_TYPE_LINE_TO:
+            p0 = vertices[command.pointIndex - 1];
+            p1 = vertices[command.pointIndex + 0];
 
-                a = p1 - p0;
-                b = p0;
+            a = p1 - p0;
+            b = p0;
 
-                // Segment is monotonic. Therefore min coordinates are either p0 or p1 respectively.
-                topLeft = floor(min(p0, p1));
-                currentGridLine = topLeft + vec2(i, i);
+            // Segment is monotonic. Therefore min coordinates are either p0 or p1 respectively.
+            topLeft = floor(min(p0, p1));
 
-                tx = solveLinear(a.x, b.x - currentGridLine.x);
-                ty = solveLinear(a.y, b.y - currentGridLine.y);
-
+            for (int i = 1; i <= command.nIntX; i++) {
+                currentGridLineX = topLeft.x + i;
+                tx = solveLinear(a.x, b.x - currentGridLineX);
                 if (tx > 0.0 && tx < 1.0)
                     addTime(tx, command.intersectionsIndex);
+            }
+            for (int i = 1; i <= command.nIntY; i++) {
+                currentGridLineY = topLeft.y + i;
+                ty = solveLinear(a.y, b.y - currentGridLineY);
                 if (ty > 0.0 && ty < 1.0)
                     addTime(ty, command.intersectionsIndex);
-                break;
-            case COMMAND_TYPE_QUADRATIC_CURVE_TO:
-                p0 = vertices[command.pointIndex - 1];
-                p1 = vertices[command.pointIndex + 0];
-                p2 = vertices[command.pointIndex + 1];
+            }
+            break;
+        case COMMAND_TYPE_QUADRATIC_CURVE_TO:
+            p0 = vertices[command.pointIndex - 1];
+            p1 = vertices[command.pointIndex + 0];
+            p2 = vertices[command.pointIndex + 1];
 
-                a = p0 - 2 * p1 + p2;
-                b = 2 * (-p0 + p1);
-                c = p0;
+            a = p0 - 2 * p1 + p2;
+            b = 2 * (-p0 + p1);
+            c = p0;
 
-                // Segment is monotonic. Therefore min coordinates are either p0 or p2 respectively.
-                topLeft = floor(min(p0, p2));
-                currentGridLine = topLeft + vec2(i, i);
+            // Segment is monotonic. Therefore min coordinates are either p0 or p2 respectively.
+            topLeft = floor(min(p0, p2));
 
-                tx = solveQuadratic(a.x, b.x, c.x - currentGridLine.x);
-                ty = solveQuadratic(a.y, b.y, c.y - currentGridLine.y);
-
+            for (int i = 1; i <= command.nIntX; i++) {
+                currentGridLineX = topLeft.x + i;
+                tx = solveQuadratic(a.x, b.x, c.x - currentGridLineX);
                 if (tx > 0.0 && tx < 1.0)
                     addTime(tx, command.intersectionsIndex);
+            }
+            for (int i = 1; i <= command.nIntY; i++) {
+                currentGridLineY = topLeft.y + i;
+                ty = solveQuadratic(a.y, b.y, c.y - currentGridLineY);
                 if (ty > 0.0 && ty < 1.0)
                     addTime(ty, command.intersectionsIndex);
-                break;
-            case COMMAND_TYPE_BEZIER_CURVE_TO:
-                p0 = vertices[command.pointIndex - 1];
-                p1 = vertices[command.pointIndex + 0];
-                p2 = vertices[command.pointIndex + 1];
-                p3 = vertices[command.pointIndex + 2];
+            }
+            break;
+        case COMMAND_TYPE_BEZIER_CURVE_TO:
+            p0 = vertices[command.pointIndex - 1];
+            p1 = vertices[command.pointIndex + 0];
+            p2 = vertices[command.pointIndex + 1];
+            p3 = vertices[command.pointIndex + 2];
 
-                // Segment is monotonic. Therefore min coordinates are either p0 or p3 respectively.
-                topLeft = floor(min(p0, p3));
-                currentGridLine = topLeft + vec2(i, i);
+            // Segment is monotonic. Therefore min coordinates are either p0 or p3 respectively.
+            topLeft = floor(min(p0, p3));
 
-                tx = bisectCubic(p0.x, p1.x, p2.x, p3.x, currentGridLine.x);
-                ty = bisectCubic(p0.y, p1.y, p2.y, p3.y, currentGridLine.y);
-
+            for (int i = 1; i <= command.nIntX; i++) {
+                currentGridLineX = topLeft.x + i;
+                tx = bisectCubic(p0.x, p1.x, p2.x, p3.x, currentGridLineX);
                 if (tx > 0.0 && tx < 1.0)
                     addTime(tx, command.intersectionsIndex);
-                if(ty > 0.0 && ty < 1.0)
+            }
+            for (int i = 1; i <= command.nIntY; i++) {
+                currentGridLineY = topLeft.y + i;
+                ty = bisectCubic(p0.y, p1.y, p2.y, p3.y, currentGridLineY);
+                if (ty > 0.0 && ty < 1.0)
                     addTime(ty, command.intersectionsIndex);
-                break;
-        }
+            }
+            break;
     }
     addTime(1.0, command.intersectionsIndex);
 }

@@ -79,6 +79,16 @@ namespace SilkyNvg.Commands
 
                 uint nIntX = (uint)bottomRight.X - (uint)topLeft.X;
                 uint nIntY = (uint)bottomRight.Y - (uint)topLeft.Y;
+                
+                // If the last pixel lies exactly on a line, we must ignore it in our count since we always add 0 and 1 anyway.
+                if (bottomRight.X.FpEquals((float)Math.Floor(bottomRight.X), tol.FloatingPointTol))
+                {
+                    nIntX--;
+                }
+                if (bottomRight.Y.FpEquals((float)Math.Floor(bottomRight.Y), tol.FloatingPointTol))
+                {
+                    nIntY--;
+                }
 
                 frame.AddCommand(nIntX, nIntY, CommandType.QuadraticCurveTo);
                 frame.AddPoint(cp, p1);
