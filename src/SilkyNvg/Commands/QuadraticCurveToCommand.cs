@@ -74,7 +74,13 @@ namespace SilkyNvg.Commands
 
             if (upperLengthBound <= tol.MaxPathLength)
             {
-                frame.AddCommand(CommandType.QuadraticCurveTo);
+                Vector2 topLeft = Vector2.Min(p0, p1);
+                Vector2 bottomRight = Vector2.Max(p0, p1);
+
+                uint nIntX = (uint)bottomRight.X - (uint)topLeft.X;
+                uint nIntY = (uint)bottomRight.Y - (uint)topLeft.Y;
+
+                frame.AddCommand(nIntX, nIntY, CommandType.QuadraticCurveTo);
                 frame.AddPoint(cp, p1);
                 return;
             }

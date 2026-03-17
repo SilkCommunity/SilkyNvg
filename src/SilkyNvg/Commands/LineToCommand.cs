@@ -21,11 +21,23 @@ namespace SilkyNvg.Commands
             float length = d.Length();
             int numSegments = (int)(length / tol.MaxPathLength) + 1;
             d /= numSegments;
-            
+
+            Vector2 prev = p0;
             for (int i = 1; i <= numSegments; i++)
             {
-                frame.AddCommand(CommandType.LineTo);
+                Vector2 p1 = p0 + i * d;
+
+                Vector2 topLeft = Vector2.Min(prev, p1);
+                Vector2 bottomRight = Vector2.Max(prev, p1);
+                
+                // Double cast necessary because we want rounding down both before subtracting
+                uint pxWidth = (uint)bottomRight.X - (uint)topLeft.X;
+                uint pxHeight = (uint)bottomRight.Y - (uint)topLeft.Y;
+                
+                frame.AddCommand(pxWidth, pxHeight, CommandType.LineTo);
                 frame.AddPoint(p0 + i * d);
+
+                prev = p1;
             }
 
             return p;

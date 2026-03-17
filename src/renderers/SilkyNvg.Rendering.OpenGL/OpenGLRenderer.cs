@@ -24,6 +24,8 @@ namespace SilkyNvg.Rendering.OpenGL
         private uint _commandCount = 0;
         private uint _subpathCount = 0;
         private uint _pathCount = 0;
+
+        private uint _intersectionsCount = 0;
         
         public OpenGLRenderer(GL gl)
         {
@@ -59,6 +61,8 @@ namespace SilkyNvg.Rendering.OpenGL
             _commandCount += frame.CommandCount;
             _subpathCount += frame.SubpathCount;
             _pathCount += frame.PathCount;
+
+            _intersectionsCount += frame.IntersectionsCount;
         }
 
         public void Render()
@@ -67,8 +71,7 @@ namespace SilkyNvg.Rendering.OpenGL
             
             _fragmentGenerationShader.LoadFpTol(_tolerances.FloatingPointTol);
 
-            uint maxIntersections = _commandCount * (2 * 32 + 2);
-            _intersectionTimes.EnsureCapacity(maxIntersections);    
+            _intersectionTimes.EnsureCapacity(_intersectionsCount);    
             
             uint fragmentGenerationWorkgroupCount = _commandCount / 32 + 1;
             _gl.DispatchCompute(fragmentGenerationWorkgroupCount, 1, 1);

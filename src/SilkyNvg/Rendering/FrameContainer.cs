@@ -31,6 +31,11 @@ namespace SilkyNvg.Rendering
         public ReadOnlySpan<SubpathData> Subpaths => _subpaths.ElementData;
         
         public ReadOnlySpan<PathData> Paths => _paths.ElementData;
+
+        public uint IntersectionsCount { get; private set; } = 0;
+
+        internal Vector2 SubpathFirstPoint => _points.Count == 0 ? Vector2.Zero
+            : _points[(int)_commands[(int)_spCommandIndex].PointIndex];
         
         // Current subpath cache
         private uint _spCommandIndex;
@@ -73,13 +78,16 @@ namespace SilkyNvg.Rendering
             _points.Add(p2);
         }
 
-        internal void AddCommand(CommandType type)
+        internal void AddCommand(uint nIntX, uint nIntY, CommandType type)
         {
             var commandData = new CommandData(
                 pointIndex: PointCount,
+                intersectionsTimeIndex: IntersectionsCount,
                 type: type
             );
             _commands.Add(commandData);
+
+            IntersectionsCount += nIntX + nIntY + 2; // Add 0 and 1 at start / end
             
             // increment number of commands in current subpath
             _spCommandNumber++;
@@ -108,17 +116,8 @@ namespace SilkyNvg.Rendering
             ));
         }
 
-        internal void CloseSubpath()
+        internal void MarkSubpathClosed()
         {
-            Vector2 start = _points[(int)_commands[(int)_spCommandIndex].PointIndex - 1];
-            Vector2 end = _points[_points.Count - 1];
-
-            if (!start.FpEquals(end, _tolerances.FloatingPointTol))
-            {
-                AddCommand(CommandType.LineTo);
-                AddPoint(start);
-            }
-
             _spClosed = true;
         }
         
@@ -144,6 +143,16 @@ namespace SilkyNvg.Rendering
             _commands.Clear();
             _subpaths.Clear();
             _paths.Clear();
+
+            IntersectionsCount = 0;
+            
+            _spCommandIndex = 0;
+            _spCommandNumber = 0;
+            _spClosed = false;
+
+            _pSubpathIndex = 0;
+            _pSubpathNumber = 0;
+            _pFillRule = FillRule.NonZero;
         }
         
     }

@@ -10,6 +10,7 @@ layout(local_size_x=32, local_size_y=1, local_size_z=1) in;
 
 struct CommandData {
     uint pointIndex;
+    uint intersectionsIndex;
     uint type;
 };
 
@@ -142,14 +143,13 @@ void main() {
     }
 
     CommandData command = commands[commandIndex];
-    uint intersectionsIndex = (2 * 32 + 2) * commandIndex;
 
     vec2 p0, p1, p2, p3;
     vec2 a, b, c, d;
     vec2 topLeft, currentGridLine;
     float tx, ty;
 
-    addTime(0.0, intersectionsIndex);
+    addTime(0.0, command.intersectionsIndex);
     for (uint i = 1; i <= 32; i++) {
         switch (command.type) {
             case COMMAND_TYPE_LINE_TO:
@@ -167,9 +167,9 @@ void main() {
                 ty = solveLinear(a.y, b.y - currentGridLine.y);
 
                 if (tx > 0.0 && tx < 1.0)
-                    addTime(tx, intersectionsIndex);
+                    addTime(tx, command.intersectionsIndex);
                 if (ty > 0.0 && ty < 1.0)
-                    addTime(ty, intersectionsIndex);
+                    addTime(ty, command.intersectionsIndex);
                 break;
             case COMMAND_TYPE_QUADRATIC_CURVE_TO:
                 p0 = vertices[command.pointIndex - 1];
@@ -188,9 +188,9 @@ void main() {
                 ty = solveQuadratic(a.y, b.y, c.y - currentGridLine.y);
 
                 if (tx > 0.0 && tx < 1.0)
-                    addTime(tx, intersectionsIndex);
+                    addTime(tx, command.intersectionsIndex);
                 if (ty > 0.0 && ty < 1.0)
-                    addTime(ty, intersectionsIndex);
+                    addTime(ty, command.intersectionsIndex);
                 break;
             case COMMAND_TYPE_BEZIER_CURVE_TO:
                 p0 = vertices[command.pointIndex - 1];
@@ -206,11 +206,11 @@ void main() {
                 ty = bisectCubic(p0.y, p1.y, p2.y, p3.y, currentGridLine.y);
 
                 if (tx > 0.0 && tx < 1.0)
-                    addTime(tx, intersectionsIndex);
+                    addTime(tx, command.intersectionsIndex);
                 if(ty > 0.0 && ty < 1.0)
-                    addTime(ty, intersectionsIndex);
+                    addTime(ty, command.intersectionsIndex);
                 break;
         }
     }
-    addTime(1.0, intersectionsIndex);
+    addTime(1.0, command.intersectionsIndex);
 }
