@@ -1,9 +1,23 @@
 *.swp
 *.*~
 project.lock.json
+packages.lock.json
 .DS_Store
 *.pyc
 nupkg/
+*.disable
+
+#####
+# user build config files
+# 
+# we disallow checking these in so the user has them to override configs
+#
+Directory.Build.props
+Directory.Build.targets
+Directory.Packages.props
+global.json
+nuget.config
+.editorconfig
 
 # Visual Studio Code
 .vscode
@@ -32,6 +46,15 @@ bld/
 msbuild.log
 msbuild.err
 msbuild.wrn
+NuGet.Config
 
 # Visual Studio 2015
 .vs/
+
+# Local NuGet config (machine-specific local feed paths)
+NuGet.Config
+
+# Local dev scripts (machine-specific paths)
+cmd/
+
+.claude/

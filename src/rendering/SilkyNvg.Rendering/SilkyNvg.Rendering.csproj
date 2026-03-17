@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFrameworks>net9.0;net10.0-android</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Version />
   </PropertyGroup>
@@ -11,4 +11,5 @@
     <ProjectReference Include="..\..\SilkyNvg.Common\SilkyNvg.Common.csproj" />
   </ItemGroup>
 
+  <Import Project="$(MSBuildThisFileDirectory)../../SilkyNvg.Build.props" />
 </Project>

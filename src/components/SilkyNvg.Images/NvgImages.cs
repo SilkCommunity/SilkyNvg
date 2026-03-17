@@ -51,7 +51,7 @@ namespace SilkyNvg.Images
             {
                 return 0;
             }
-            int image = CreateImageRgba(nvg, result.Width, result.Height, imageFlags, data);
+            int image = CreateImageRgba(nvg, result.Width, result.Height, imageFlags, result.Data);
             return image;
         }
 

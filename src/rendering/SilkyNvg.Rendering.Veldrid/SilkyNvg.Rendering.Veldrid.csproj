@@ -1,0 +1,83 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net9.0;net10.0-android</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <!-- UseLegacyVeldrid is inherited from Directory.Build.props (workspace root or parent).
+         Default (undefined): uses ppy.Veldrid — the actively maintained fork used by osu!
+         Set UseLegacyVeldrid=true in your Directory.Build.props to use upstream Veldrid 4.9.0.
+         If pulling SilkyNvg into a standalone project, ppy.Veldrid is used by default. -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SilkyNvg.Rendering\SilkyNvg.Rendering.csproj" />
+    <ProjectReference Include="..\..\components\SilkyNvg.Blending\SilkyNvg.Blending.csproj" />
+    <ProjectReference Include="..\..\components\SilkyNvg.Images\SilkyNvg.Images.csproj" />
+    <ProjectReference Include="..\..\components\SilkyNvg.Tools\SilkyNvg.Tools.csproj" />
+    
+  </ItemGroup>
+
+  <!-- ppy.Veldrid fork: actively maintained, Android/iOS support (default) -->
+  <!-- Veldrid.SPIRV removed: shaders are precompiled at build time by Scripts/CompileShaders.cs -->
+  <!-- DEV_LOCAL_VELDRID property: set to local Veldrid.csproj path to use local source instead of NuGet
+       DEV_LOCAL_VELDRID takes precedence over UseLegacyVeldrid - if set, always uses local project reference -->
+  
+  <!-- Use local Veldrid source if DEV_LOCAL_VELDRID is set (regardless of legacy mode) -->
+  <ItemGroup Condition="'$(DEV_LOCAL_VELDRID)' != ''">
+    <ProjectReference Include="$(DEV_LOCAL_VELDRID)" />
+  </ItemGroup>
+  
+  <!-- Use ppy.Veldrid NuGet package (default, non-legacy mode, no local override) -->
+  <ItemGroup Condition="'$(UseLegacyVeldrid)' != 'true' and '$(DEV_LOCAL_VELDRID)' == ''">
+    <PackageReference Include="ppy.Veldrid" Version="4.9.69-ga405fe8484" />
+  </ItemGroup>
+
+  <!-- Use legacy upstream Veldrid 4.9.0 NuGet package (legacy mode, no local override) -->
+  <ItemGroup Condition="'$(UseLegacyVeldrid)' == 'true' and '$(DEV_LOCAL_VELDRID)' == ''">
+    <PackageReference Include="Veldrid" Version="4.9.0" />
+  </ItemGroup>
+
+  <!-- Exclude build-time scripts and GLSL source from compilation -->
+  <ItemGroup>
+    <Compile Remove="Scripts\**" />
+    <None Include="Scripts\**" />
+    <Compile Remove="Shaders\Source\**" />
+    <None Include="Shaders\Source\**" />
+    <!-- Disable SDK auto-discovery for Shaders/Compiled/ to avoid duplicates -->
+    <Compile Remove="Shaders\Compiled\**" />
+    <!-- Exclude CompileShaders build outputs from Android packaging -->
+    <AndroidNativeLibrary Remove="Scripts\**" />
+    <Content Remove="Scripts\**" />
+  </ItemGroup>
+
+  <!-- Explicitly include generated shader files (needed for first-time builds before files exist) -->
+  <ItemGroup>
+    <Compile Include="Shaders\Compiled\SolidFillShaders.generated.cs" />
+    <Compile Include="Shaders\Compiled\TexturedShaders.generated.cs" />
+    <Compile Include="Shaders\Compiled\GradientShaders.generated.cs" />
+    <Compile Include="Shaders\Compiled\ImagePatternShaders.generated.cs" />
+  </ItemGroup>
+
+  <!-- Run shader compiler before build to generate .generated.cs files.
+       Completely isolated from the MSBuild graph: forces the compiler tool to net9.0,
+       so it works regardless of the parent build's TFM (desktop, android, etc.).
+       The CompileShaders.csproj targets net9.0 only and uses Veldrid.SPIRV (desktop native lib). -->
+  <Target Name="CompileShadersBeforeBuild" BeforeTargets="CoreCompile">
+    <Message Text="Running shader compiler (isolated net9.0 exec) to generate precompiled shaders..." Importance="high" />
+    <Exec Command="dotnet run --project &quot;$(MSBuildThisFileDirectory)Scripts\CompileShaders.csproj&quot; --framework net9.0"
+          WorkingDirectory="$(MSBuildThisFileDirectory)" />
+  </Target>
+
+  <!-- Clean target: remove generated shader files when 'dotnet clean' is run -->
+  <Target Name="CleanGeneratedShaders" AfterTargets="Clean">
+    <Delete Files="$(MSBuildThisFileDirectory)Shaders\Compiled\SolidFillShaders.generated.cs" />
+    <Delete Files="$(MSBuildThisFileDirectory)Shaders\Compiled\TexturedShaders.generated.cs" />
+    <Delete Files="$(MSBuildThisFileDirectory)Shaders\Compiled\GradientShaders.generated.cs" />
+    <Delete Files="$(MSBuildThisFileDirectory)Shaders\Compiled\ImagePatternShaders.generated.cs" />
+    <Message Text="Cleaned generated shader files from Shaders/Compiled/" Importance="high" />
+  </Target>
+
+  <Import Project="$(MSBuildThisFileDirectory)../../SilkyNvg.Build.props" />
+</Project>

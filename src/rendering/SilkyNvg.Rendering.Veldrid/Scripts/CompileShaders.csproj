@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <!-- This is a build-time tool, not part of the runtime project -->
+    <IsPackable>false</IsPackable>
+    <!-- Suppress Mono runtime restore (not needed for build-time tool) -->
+    <UseMonoRuntime>false</UseMonoRuntime>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ppy.Veldrid" Version="4.9.69-ga405fe8484" />
+    <ProjectReference Include="C:\PROJECTS\ppy-veldrid-spirv\src\Veldrid.SPIRV\Veldrid.SPIRV.csproj" />
+  </ItemGroup>
+
+  <!-- Copy native library from Veldrid.SPIRV project after build -->
+  <Target Name="CopyNativeLibrary" AfterTargets="Build" BeforeTargets="RunShaderCompiler">
+    <Copy SourceFiles="C:\PROJECTS\ppy-veldrid-spirv\build\Debug\win-x64\Debug\libveldrid-spirv.dll"
+          DestinationFolder="$(OutputPath)"
+          SkipUnchangedFiles="false"
+          Condition="Exists('C:\PROJECTS\ppy-veldrid-spirv\build\Debug\win-x64\Debug\libveldrid-spirv.dll')" />
+  </Target>
+
+  <!-- After building the compiler, run it to generate shader files -->
+  <Target Name="RunShaderCompiler" AfterTargets="Build">
+    <Message Text="Running shader compiler to generate precompiled shaders..." Importance="high" />
+    <Exec Command="dotnet run --project $(MSBuildProjectFullPath) --no-build"
+          WorkingDirectory="$(MSBuildProjectDirectory)\.." />
+  </Target>
+
+</Project>

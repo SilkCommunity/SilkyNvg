@@ -1,0 +1,58 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-android</TargetFramework>
+    <SupportedOSPlatformVersion>24</SupportedOSPlatformVersion>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Veldrid_Android_Example</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ApplicationId>com.arcane.veldrid.android.example</ApplicationId>
+    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <!-- Performance: AOT compilation disabled due to .NET 10 Preview bug with multi-targeted dependencies
+         (XAPRAS7004: ABI metadata null/empty error in ProcessAssemblies task)
+         Release mode still provides JIT optimizations vs Debug -->
+    <RunAOTCompilation>false</RunAOTCompilation>
+    <RuntimeIdentifiers>android-arm64;android-x64</RuntimeIdentifiers>
+    <!-- Force Mono runtime (CoreCLR on Android is experimental and crashes with Vulkan interop) -->
+    <UseMonoRuntime>true</UseMonoRuntime>
+  </PropertyGroup>
+
+  <!-- Stop win/linux/osx native libs from leaking into Android build
+       (ppy.Veldrid ships desktop native libs that confuse ProcessAssemblies ABI detection) -->
+  <ItemGroup>
+    <None Remove="**\runtimes\win-*\**" />
+    <None Remove="**\runtimes\linux-*\**" />
+    <None Remove="**\runtimes\osx*\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\SilkyNvg\SilkyNvg.csproj" />
+    <ProjectReference Include="..\..\src\rendering\SilkyNvg.Rendering.Veldrid\SilkyNvg.Rendering.Veldrid.csproj" />
+    <ProjectReference Include="..\NvgExample\NvgExample.csproj" />
+  </ItemGroup>
+
+  <!-- Link NvgExample assets (fonts + images) as AndroidAsset items.
+       These are read at runtime via AssetManager, not copied to output. -->
+  <ItemGroup>
+    <AndroidAsset Include="..\NvgExample\fonts\entypo.ttf" Link="Assets\fonts\entypo.ttf" />
+    <AndroidAsset Include="..\NvgExample\fonts\NotoEmoji-Regular.ttf" Link="Assets\fonts\NotoEmoji-Regular.ttf" />
+    <AndroidAsset Include="..\NvgExample\fonts\Roboto-Bold.ttf" Link="Assets\fonts\Roboto-Bold.ttf" />
+    <AndroidAsset Include="..\NvgExample\fonts\Roboto-Light.ttf" Link="Assets\fonts\Roboto-Light.ttf" />
+    <AndroidAsset Include="..\NvgExample\fonts\Roboto-Regular.ttf" Link="Assets\fonts\Roboto-Regular.ttf" />
+    <AndroidAsset Include="..\NvgExample\images\image0.jpg" Link="Assets\images\image0.jpg" />
+    <AndroidAsset Include="..\NvgExample\images\image1.jpg" Link="Assets\images\image1.jpg" />
+    <AndroidAsset Include="..\NvgExample\images\image2.jpg" Link="Assets\images\image2.jpg" />
+    <AndroidAsset Include="..\NvgExample\images\image3.jpg" Link="Assets\images\image3.jpg" />
+    <AndroidAsset Include="..\NvgExample\images\image4.jpg" Link="Assets\images\image4.jpg" />
+    <AndroidAsset Include="..\NvgExample\images\image5.jpg" Link="Assets\images\image5.jpg" />
+    <AndroidAsset Include="..\NvgExample\images\image6.jpg" Link="Assets\images\image6.jpg" />
+    <AndroidAsset Include="..\NvgExample\images\image7.jpg" Link="Assets\images\image7.jpg" />
+    <AndroidAsset Include="..\NvgExample\images\image8.jpg" Link="Assets\images\image8.jpg" />
+    <AndroidAsset Include="..\NvgExample\images\image9.jpg" Link="Assets\images\image9.jpg" />
+    <AndroidAsset Include="..\NvgExample\images\image10.jpg" Link="Assets\images\image10.jpg" />
+    <AndroidAsset Include="..\NvgExample\images\image11.jpg" Link="Assets\images\image11.jpg" />
+  </ItemGroup>
+
+</Project>

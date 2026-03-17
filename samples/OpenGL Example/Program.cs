@@ -70,6 +70,15 @@ namespace OpenGL_Example
 
             gl = window.CreateOpenGL();
 
+            // Diagnostic: compare window logical size vs framebuffer physical size
+            Vector2 diagnosticWinSize = window.Size.As<float>().ToSystem();
+            Vector2 diagnosticFbSize = window.FramebufferSize.As<float>().ToSystem();
+            float diagnosticPixelRatio = diagnosticFbSize.X / diagnosticWinSize.X;
+            Console.WriteLine($"[OPENGL DIAG] Window logical size: {diagnosticWinSize.X}x{diagnosticWinSize.Y}");
+            Console.WriteLine($"[OPENGL DIAG] Framebuffer pixel size: {diagnosticFbSize.X}x{diagnosticFbSize.Y}");
+            Console.WriteLine($"[OPENGL DIAG] Pixel ratio (fb/win): {diagnosticPixelRatio:F3}x{diagnosticFbSize.Y / diagnosticWinSize.Y:F3}");
+            Console.WriteLine($"[OPENGL DIAG] NVG viewport: {diagnosticWinSize.X}x{diagnosticWinSize.Y}, pixelRatio={diagnosticPixelRatio:F3}");
+
             OpenGLRenderer nvgRenderer = new(CreateFlags.StencilStrokes | CreateFlags.Debug, gl);
             nvg = Nvg.Create(nvgRenderer);
 
@@ -106,20 +115,10 @@ namespace OpenGL_Example
 
             nvg.BeginFrame(winSize, pxRatio);
 
-            nvg.BeginPath();
-            nvg.MoveTo(250f, 75f);
-            nvg.LineTo(323f, 301f);
-            nvg.LineTo(131f, 161f);
-            nvg.LineTo(369f, 161f);
-            nvg.LineTo(177f, 301f);
-            nvg.ClosePath();
-            nvg.FillColour(Colour.Red);
-            nvg.Fill();
-            
-            /*demo.Render(mx, my, winSize.X, winSize.Y, (float)t, blowup);
+            demo.Render(mx, my, winSize.X, winSize.Y, (float)t, blowup);
 
             frameGraph.Render(5.0f, 5.0f, nvg);
-            cpuGraph.Render(5.0f + 200.0f + 5.0f, 5.0f, nvg);*/
+            cpuGraph.Render(5.0f + 200.0f + 5.0f, 5.0f, nvg);
 
             nvg.EndFrame();
 
@@ -158,7 +157,7 @@ namespace OpenGL_Example
             windowOptions.FramesPerSecond = -1;
             windowOptions.ShouldSwapAutomatically = true;
             windowOptions.Size = new Vector2D<int>(1000, 600);
-            windowOptions.Title = "SilkyNvg";
+            windowOptions.Title = "SilkyNvg OpenGL Reference Example";
             windowOptions.VSync = false;
             windowOptions.PreferredDepthBufferBits = 24;
             windowOptions.PreferredStencilBufferBits = 8;

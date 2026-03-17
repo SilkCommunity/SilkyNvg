@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <RootNamespace>Veldrid_Example</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- UseLegacyVeldrid is inherited from Directory.Build.props (workspace root or parent).
+         Default (undefined): uses ppy.Veldrid — the actively maintained fork used by osu!
+         Set UseLegacyVeldrid=true in your Directory.Build.props to use upstream Veldrid 4.9.0.
+         If pulling SilkyNvg into a standalone project, ppy.Veldrid is used by default. -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\rendering\SilkyNvg.Rendering.Veldrid\SilkyNvg.Rendering.Veldrid.csproj" />
+    <ProjectReference Include="..\NvgExample\NvgExample.csproj" />
+  </ItemGroup>
+
+  <!-- ppy.Veldrid fork: actively maintained, Android/iOS support (default) -->
+  <!-- DEV_LOCAL_VELDRID env var: set to local Veldrid.csproj path to use local source instead of NuGet -->
+  <ItemGroup Condition="'$(UseLegacyVeldrid)' != 'true' and '$(DEV_LOCAL_VELDRID)' == ''">
+    <PackageReference Include="ppy.Veldrid" Version="4.9.69-ga405fe8484" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(UseLegacyVeldrid)' != 'true' and '$(DEV_LOCAL_VELDRID)' != ''">
+    <ProjectReference Include="$(DEV_LOCAL_VELDRID)" />
+  </ItemGroup>
+
+  <!-- Legacy upstream Veldrid 4.9.0 (abandoned March 2024, desktop-only) -->
+  <ItemGroup Condition="'$(UseLegacyVeldrid)' == 'true'">
+    <PackageReference Include="Veldrid" Version="4.9.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Use Silk.NET windowing (same as OpenGL example) for proper DPI awareness.
+         Veldrid.StartupUtilities uses SDL2 which is NOT DPI-aware on Windows,
+         causing the window to be upscaled by the OS and everything looks blurry. -->
+    <PackageReference Include="Silk.NET.Windowing" Version="2.22.0" />
+    <PackageReference Include="Silk.NET.Input" Version="2.22.0" />
+    <PackageReference Include="Silk.NET.OpenGL" Version="2.22.0" />
+  </ItemGroup>
+
+</Project>

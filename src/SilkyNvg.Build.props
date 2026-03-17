@@ -1,0 +1,21 @@
+<Project>
+    <PropertyGroup>
+        <!-- UseLegacyVeldrid: set to true to use upstream Veldrid 4.9.0 (abandoned March 2024).
+             Default (undefined/false): uses ppy.Veldrid fork (actively maintained, Android/iOS support).
+             Control via environment variable USE_LEGACY_VELDRID=1 or MSBuild property UseLegacyVeldrid=true
+             This property is inherited from parent Directory.Build.props if set there.
+             IMPORTANT: Only set from environment if not already set by parent. -->
+        <UseLegacyVeldrid Condition="'$(UseLegacyVeldrid)' == '' and '$(USE_LEGACY_VELDRID)' == '1'">true</UseLegacyVeldrid>
+        <DefineConstants Condition="'$(UseLegacyVeldrid)' == 'true'">$(DefineConstants);USE_LEGACY_VELDRID</DefineConstants>
+        <!-- TargetFramework removed: each project now specifies its own TargetFrameworks (net9.0;net9.0-android) -->
+        <Version>1.0.7</Version>
+        <Authors>Matija Brown</Authors>
+        <Description>A port of memononen/nanovg to .NET9.0 with multi-platform support (desktop + Android).</Description>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <RepositoryUrl>https://github.com/SilkyNvg/SilkyNvg</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>NanoVG Graphics UI VectorGraphics VG Silky SilkyNvg SimpleUI</PackageTags>
+        <PackageReleaseNotes>Fixed package restoration issues.</PackageReleaseNotes>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+</Project>
