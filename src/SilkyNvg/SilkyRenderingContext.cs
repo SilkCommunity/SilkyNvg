@@ -21,8 +21,8 @@ namespace SilkyNvg
 
             _frameContainer = new FrameContainer(_renderTolerances);
 
-            Resize(1.0f, 1.0f, 1.0f);
             _renderer.Init(_renderTolerances);
+            Resize(1.0f, 1.0f, 1.0f);
         }
 
         #region Viewport
@@ -50,6 +50,7 @@ namespace SilkyNvg
             _height = height;
             _pixelRatio = pixelRatio;
             _renderTolerances.Update(_pixelRatio);
+            _renderer.Resize((uint)Math.Ceiling(_width), (uint)Math.Ceiling(_height));
         }
         #endregion
 

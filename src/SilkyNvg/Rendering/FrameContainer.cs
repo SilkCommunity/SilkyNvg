@@ -85,6 +85,7 @@ namespace SilkyNvg.Rendering
                 intersectionsTimeIndex: IntersectionsCount,
                 nIntersectionsX: nIntX,
                 nIntersectionsY: nIntY,
+                pathIndex: PathCount,
                 type: type
             );
             _commands.Add(commandData);

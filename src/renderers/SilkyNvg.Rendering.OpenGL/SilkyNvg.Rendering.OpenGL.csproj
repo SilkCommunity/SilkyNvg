@@ -23,6 +23,14 @@
 
     <ItemGroup>
       <None Remove="Shaders\ShaderCode\fragmentGenerationShader.comp.glsl" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Shaders\ShaderCode\intersectionFindingShader.comp.glsl" />
+      <EmbeddedResource Include="Shaders\ShaderCode\intersectionFindingShader.comp.glsl" />
+    </ItemGroup>
+
+    <ItemGroup>
       <EmbeddedResource Include="Shaders\ShaderCode\fragmentGenerationShader.comp.glsl" />
     </ItemGroup>
 

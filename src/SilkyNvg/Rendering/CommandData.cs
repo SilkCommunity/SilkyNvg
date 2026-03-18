@@ -11,14 +11,16 @@ namespace SilkyNvg.Rendering
         public readonly uint IntersectionsTimeIndex;
         public readonly uint NIntersectionsX;
         public readonly uint NIntersectionsY;
+        public readonly uint PathIndex;
         public readonly CommandType Type;
 
-        internal CommandData(uint pointIndex, uint intersectionsTimeIndex, uint nIntersectionsX, uint nIntersectionsY, CommandType type)
+        internal CommandData(uint pointIndex, uint intersectionsTimeIndex, uint nIntersectionsX, uint nIntersectionsY, uint pathIndex, CommandType type)
         {
             PointIndex = pointIndex;
             IntersectionsTimeIndex = intersectionsTimeIndex;
             NIntersectionsX = nIntersectionsX;
             NIntersectionsY = nIntersectionsY;
+            PathIndex = pathIndex;
             Type = type;
         }
 

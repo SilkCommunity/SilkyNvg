@@ -2,13 +2,13 @@ using Silk.NET.OpenGL;
 
 namespace SilkyNvg.Rendering.OpenGL.Shaders
 {
-    internal class FragmentGenerationComputeShader : ShaderProgramme
+    internal class IntersectionFindingShader : ShaderProgramme
     {
 
         private readonly int _fpTolUniformLocation;
         
-        internal FragmentGenerationComputeShader(GL gl)
-            : base(gl, (LoadShaderCode("fragmentGenerationShader.comp.glsl"), ShaderType.ComputeShader))
+        internal IntersectionFindingShader(GL gl)
+            : base(gl, (LoadShaderCode("intersectionFindingShader.comp.glsl"), ShaderType.ComputeShader))
         {
             _fpTolUniformLocation = Gl.GetUniformLocation(ProgrammeID, "fpTol");
         }

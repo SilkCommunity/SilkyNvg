@@ -7,6 +7,8 @@ namespace SilkyNvg.Rendering
 
         void Init(RenderTolerances tolerances);
 
+        void Resize(uint newWidth, uint newHeight);
+
         void PrepareFrame();
 
         void AddFrame(FrameContainer frame);
