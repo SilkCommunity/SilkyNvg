@@ -18,10 +18,11 @@ namespace SilkyNvg.Rendering.OpenGL
 
         // Stores: 32 bits of floating point intersection time | ID of associated path taken from CommandData struct
         private readonly Buffer<ulong> _intersectionsBuffer;
-        private readonly Buffer<FragmentData> _fragmentBuffer;
+        private readonly FragmentBuffer _fragmentBuffer;
         
         private readonly IntersectionFindingShader _intersectionFindingShader;
         private readonly FragmentGenerationShader _fragmentGenerationShader;
+        private readonly FragmentSortingShader _fragmentSortingShader;
         
         private readonly GL _gl;
 
@@ -39,6 +40,7 @@ namespace SilkyNvg.Rendering.OpenGL
             
             _intersectionFindingShader = new IntersectionFindingShader(gl);
             _fragmentGenerationShader = new FragmentGenerationShader(gl);
+            _fragmentSortingShader = new FragmentSortingShader(gl);
 
             _vertexBuffer = new Buffer<Vector2>(0, 128, BufferUsageARB.DynamicDraw, _gl);
             _commandBuffer = new Buffer<CommandData>(1, 16, BufferUsageARB.DynamicDraw, _gl);
@@ -46,7 +48,7 @@ namespace SilkyNvg.Rendering.OpenGL
             _pathBuffer = new Buffer<PathData>(3, 16, BufferUsageARB.DynamicDraw, _gl);
 
             _intersectionsBuffer = new Buffer<ulong>(4, 128, BufferUsageARB.StreamCopy, _gl);
-            _fragmentBuffer = new Buffer<FragmentData>(5, 128, BufferUsageARB.StreamCopy, _gl);
+            _fragmentBuffer = new FragmentBuffer(5, 128, _gl);
         }
 
         public void Init(RenderTolerances tolerances)
@@ -82,13 +84,13 @@ namespace SilkyNvg.Rendering.OpenGL
 
         public void Render()
         {
+            _intersectionsBuffer.EnsureCapacity(_intersectionsCount);
+            _fragmentBuffer.EnsureCapacity(_intersectionsCount);
+            
             // ---------- CALCULATE INTERSECTION TIMES ---------- //
             _intersectionFindingShader.Start();
             
             _intersectionFindingShader.LoadFpTol(_tolerances.FloatingPointTol);
-
-            _intersectionsBuffer.EnsureCapacity(_intersectionsCount);
-            _fragmentBuffer.EnsureCapacity(_intersectionsCount);
             
             uint intersectionFindingWorkgroupCount = _commandCount / 32 + 1;
             _gl.DispatchCompute(intersectionFindingWorkgroupCount, 1, 1);
@@ -106,9 +108,47 @@ namespace SilkyNvg.Rendering.OpenGL
             _gl.MemoryBarrier(MemoryBarrierMask.ShaderStorageBarrierBit);
             
             var outputData = new FragmentData[_fragmentBuffer.Capacity];
-            _fragmentBuffer.Read(outputData);
+            _fragmentBuffer.Read(outputData, out uint emptyFragmentCount);
             
             _fragmentGenerationShader.Stop();
+            
+            // ---------- SORT THE FRAGMENTS BY PATH AND PIXEL LOCATION ---------- //
+            _fragmentSortingShader.Start();
+
+            uint nSortingDispatches = (uint)Math.Pow(2, (uint)Math.Log(_intersectionsCount, 2) + 1);
+            uint mergeGroupSize = 2;
+            while (mergeGroupSize <= nSortingDispatches)
+            {
+                uint stride = mergeGroupSize / 2;
+                uint innerReminder = 0;
+                while (stride >= 1)
+                {
+                    uint strideTrailingZeros = (uint)Math.Log(stride, 2);
+                    uint innerLastIdx = (mergeGroupSize / stride) - 1;
+
+                    _fragmentSortingShader.LoadFragmentCount(_intersectionsCount);
+                    _fragmentSortingShader.LoadStride(stride);
+                    _fragmentSortingShader.LoadStrideTrailingZeros(strideTrailingZeros);
+                    _fragmentSortingShader.LoadInnerReminder(innerReminder);
+                    _fragmentSortingShader.LoadInnerLastIdx(innerLastIdx);
+
+                    _gl.DispatchCompute(_intersectionsCount / 32 + 1, 1, 1);
+                    _gl.MemoryBarrier(MemoryBarrierMask.ShaderStorageBarrierBit);
+
+                    innerReminder = 1;
+                    stride /= 2;
+                }
+
+                mergeGroupSize *= 2;
+            }
+            
+            _gl.MemoryBarrier(MemoryBarrierMask.ShaderStorageBarrierBit);
+            _fragmentBuffer.Read(outputData, out emptyFragmentCount);
+            
+            _fragmentSortingShader.Stop();
+            
+            // ---------- WINDING NUMBER PREFIX SUM ---------- //
+            
         }
 
         public void Dispose()
@@ -122,6 +162,7 @@ namespace SilkyNvg.Rendering.OpenGL
             
             _intersectionFindingShader.Dispose();
             _fragmentGenerationShader.Dispose();
+            _fragmentSortingShader.Dispose();
         }
         
     }

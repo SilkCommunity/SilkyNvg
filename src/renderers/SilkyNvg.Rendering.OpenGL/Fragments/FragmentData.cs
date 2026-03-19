@@ -3,12 +3,20 @@ namespace SilkyNvg.Rendering.OpenGL.Fragments
     internal readonly struct FragmentData
     {
 
-        public readonly uint PixelX;
-        public readonly uint PixelY;
+        public readonly int PixelX;
+        public readonly int PixelY;
 
-        public readonly int DeltaWindingNumber;
+        public readonly int WindingNumber;
         
         public readonly uint PathID;
 
+        public FragmentData(int pixelX, int pixelY, int windingNumber, uint pathId)
+        {
+            PixelX = pixelX;
+            PixelY = pixelY;
+            WindingNumber = windingNumber;
+            PathID = pathId;
+        }
+        
     }
 }

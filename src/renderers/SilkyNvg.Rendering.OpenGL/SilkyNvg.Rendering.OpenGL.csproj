@@ -28,6 +28,8 @@
     <ItemGroup>
       <None Remove="Shaders\ShaderCode\intersectionFindingShader.comp.glsl" />
       <EmbeddedResource Include="Shaders\ShaderCode\intersectionFindingShader.comp.glsl" />
+      <None Remove="Shaders\ShaderCode\fragmentSortingShader.comp.glsl" />
+      <EmbeddedResource Include="Shaders\ShaderCode\fragmentSortingShader.comp.glsl" />
     </ItemGroup>
 
     <ItemGroup>

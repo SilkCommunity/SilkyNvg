@@ -16,9 +16,9 @@ struct CommandData {
 };
 
 struct FragmentData {
-    uint pixelX;
-    uint pixelY;
-    int deltaWindingNumber;
+    int pixelX;
+    int pixelY;
+    int windingNumber;
     uint pathID;
 };
 
@@ -35,6 +35,7 @@ layout(std430, binding = 4) readonly buffer IntersectionsBuffer {
 };
 
 layout(std430, binding = 5) writeonly buffer FragmentBuffer {
+    uint emptyFragmentCount;
     FragmentData data[];
 };
 
@@ -86,8 +87,10 @@ void main() {
 
     // Commands are defined back-to-back on closed curves.
     // Therefore we can ignore segments not defined on the same command.
-    if (cmdId0 != cmdId1)
+    if (cmdId0 != cmdId1) {
+        atomicAdd(emptyFragmentCount, 1);
         return;
+    }
 
     CommandData cmd = commands[cmdId0];
     uint pathID = cmd.pathIndex;
@@ -118,19 +121,21 @@ void main() {
         // Define fragment pixel coordinate by the pixel coordinate in-between the two fragment intersections.
         vec2 centre = 0.5 * v0 + 0.5 * v1;
 
-        data[intersectionIndex].pixelX = uint(floor(centre.x));
-        data[intersectionIndex].pixelY = uint(floor(centre.y));
+        data[intersectionIndex].pixelX = int(floor(centre.x));
+        data[intersectionIndex].pixelY = int(floor(centre.y));
 
         // Let right-to-left be positive, left-to-right be negative
         if (v0.y < v1.y) { // Left-to-right crossing <=> line goes down
-            data[intersectionIndex].deltaWindingNumber = -1;
+            data[intersectionIndex].windingNumber = -1;
         } else if (v1.y < v0.y) { // Right-to-left crossing <=> line goes up
-            data[intersectionIndex].deltaWindingNumber = 1;
+            data[intersectionIndex].windingNumber = 1;
         } else { // Line is parallel to ray, no intersection (even if they are congruent on the fragment)
-            data[intersectionIndex].deltaWindingNumber = 0;
+            data[intersectionIndex].windingNumber = 0;
         }
 
         // Save path ID for paint
         data[intersectionIndex].pathID = pathID;
+    } else {
+        atomicAdd(emptyFragmentCount, 1);
     }
 }
