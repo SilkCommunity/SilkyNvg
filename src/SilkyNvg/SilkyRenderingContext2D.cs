@@ -1,6 +1,6 @@
 namespace SilkyNvg
 {
-    public class SilkyNvg
+    public class SilkyRenderingContext2D
     {
         
     }
