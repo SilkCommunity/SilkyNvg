@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Numerics;
 using SilkyNvg.Commands;
 using SilkyNvg.Paths;
+using SilkyNvg.Rendering;
 using SilkyNvg.Utils;
 
 namespace SilkyNvg
@@ -25,6 +27,26 @@ namespace SilkyNvg
                 _subPaths.Add(new SubPath(p));
                 _needsNewSubpath = false;
             }
+        }
+
+        internal void FillToScene(Scene scene, RenderTolerances tolerances)
+        {
+            var bounds = new Vector4(float.PositiveInfinity, float.PositiveInfinity, float.NegativeInfinity,
+                float.NegativeInfinity);
+            
+            scene.BeginPath();
+            foreach (var subPath in _subPaths)
+            {
+                if (subPath.Closed)
+                {
+                    Vector4 subPathBounds = subPath.FillToScene(scene, Matrix3x2.Identity, tolerances);
+                    bounds.X = Math.Min(bounds.X, subPathBounds.X);
+                    bounds.Y = Math.Min(bounds.Y, subPathBounds.Y);
+                    bounds.Z = Math.Max(bounds.Z, subPathBounds.Z);
+                    bounds.W = Math.Max(bounds.W, subPathBounds.W);
+                }
+            }
+            scene.EndPath(bounds);
         }
         
         public void ClosePath()

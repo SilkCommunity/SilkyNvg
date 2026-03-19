@@ -1,6 +1,8 @@
 ﻿using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
+using SilkyNvg;
+using SilkyNvg.Rendering.OpenGL;
 
 namespace OpenGLExample;
 
@@ -10,7 +12,10 @@ internal class Program : IDisposable
     private readonly IWindow _window;
     
     private GL? _gl;
-
+    
+    private SilkyOpenGLRenderer? _renderer;
+    private SilkyRenderingContext2D? _ctx;
+    
     private Program(IWindow window)
     {
         _window = window;
@@ -25,13 +30,17 @@ internal class Program : IDisposable
     private void Load()
     {
         _gl = GL.GetApi(_window);
+
+        _renderer = new SilkyOpenGLRenderer(_gl);
+        _ctx = new SilkyRenderingContext2D(_renderer);
         
         Resize(_window.Size);
     }
 
     private void Resize(Vector2D<int> newSize)
     {
-        _gl.Viewport(newSize);
+        _ctx!.Resize(newSize.X, newSize.Y, 1.0f);
+        _gl!.Viewport(newSize);
     }
 
     private void Update(double delta)
@@ -41,13 +50,27 @@ internal class Program : IDisposable
 
     private void Render(double _)
     {
-        _gl.ClearColor(0.2f, 0.3f, 0.4f, 1.0f);
+        _gl!.ClearColor(0.2f, 0.3f, 0.4f, 1.0f);
         _gl.Clear(ClearBufferMask.ColorBufferBit);
+        
+        _ctx!.BeginFrame();
+
+        var path = new Path2D();
+        path.MoveTo(1000.0f, 500.0f);
+        path.BezierCurveTo(0.0f, 800.0f, 1200.0f, 800.0f, 200.0f, 500.0f);
+        path.ClosePath();
+        
+        _ctx.Fill(path);
+        
+        _ctx.EndFrame();
     }
 
     private void Close()
     {
-        _gl.Dispose();
+        _ctx!.Dispose();
+        _renderer!.Dispose();
+        
+        _gl!.Dispose();
     }
 
     public void Dispose()
