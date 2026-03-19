@@ -13,10 +13,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilkyNvg", "src\SilkyNvg\Si
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenGLExample", "samples\OpenGLExample\OpenGLExample.csproj", "{3C59AC2D-D3C1-45AA-BC0F-24A26CC37E2A}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "renderers", "renderers", "{587E3ED4-D16F-4099-8BD1-59479A7E0D4A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilkyNvg.Rendering.OpenGL", "src\renderers\SilkyNvg.Rendering.OpenGL\SilkyNvg.Rendering.OpenGL.csproj", "{3B2C9192-53A8-43F0-BFCA-D2A9BA45F0D6}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,10 +27,6 @@ Global
 		{3C59AC2D-D3C1-45AA-BC0F-24A26CC37E2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3C59AC2D-D3C1-45AA-BC0F-24A26CC37E2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3C59AC2D-D3C1-45AA-BC0F-24A26CC37E2A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3B2C9192-53A8-43F0-BFCA-D2A9BA45F0D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3B2C9192-53A8-43F0-BFCA-D2A9BA45F0D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3B2C9192-53A8-43F0-BFCA-D2A9BA45F0D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3B2C9192-53A8-43F0-BFCA-D2A9BA45F0D6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -42,8 +34,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{25FD6130-BCE1-4A7A-B8A7-11E12E4253DC} = {C5CB43B2-2946-4FD0-A035-B5FFCF9A0F4C}
 		{3C59AC2D-D3C1-45AA-BC0F-24A26CC37E2A} = {E94958C3-5109-4384-A9CB-E165EC5754CE}
-		{587E3ED4-D16F-4099-8BD1-59479A7E0D4A} = {C5CB43B2-2946-4FD0-A035-B5FFCF9A0F4C}
-		{3B2C9192-53A8-43F0-BFCA-D2A9BA45F0D6} = {587E3ED4-D16F-4099-8BD1-59479A7E0D4A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {08FE0BD8-4253-419D-9FBF-7F9671C9AAC2}
