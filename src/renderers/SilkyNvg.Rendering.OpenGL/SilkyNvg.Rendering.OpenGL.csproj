@@ -4,12 +4,27 @@
         <TargetFramework>netstandard2.0</TargetFramework>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
     <ItemGroup>
       <ProjectReference Include="..\..\SilkyNvg\SilkyNvg.csproj" />
     </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="Silk.NET.OpenGL" Version="2.23.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Shaders\ShaderCode\paintingShader.frag.glsl" />
+      <EmbeddedResource Include="Shaders\ShaderCode\paintingShader.frag.glsl" />
+      <None Remove="Shaders\ShaderCode\paintingShader.vert.glsl" />
+      <EmbeddedResource Include="Shaders\ShaderCode\paintingShader.vert.glsl" />
     </ItemGroup>
 
 </Project>

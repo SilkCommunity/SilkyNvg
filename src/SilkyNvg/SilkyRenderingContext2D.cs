@@ -43,6 +43,7 @@ namespace SilkyNvg
         public void BeginFrame()
         {
             _scene.Clear();
+            _renderer.PrepareRender();
         }
 
         public void EndFrame()
