@@ -65,8 +65,7 @@ namespace SilkyNvg.Commands
                 bounds.W = Math.Max(bounds.W, extremeY);
             }
             
-            scene.FlagAddingCubic();
-            scene.AddPoint(cp1, cp2, p);
+            scene.AddCubicPoints(cp1, cp2, p);
 
             return p;
         }

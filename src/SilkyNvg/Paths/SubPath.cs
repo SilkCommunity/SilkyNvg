@@ -18,7 +18,6 @@ namespace SilkyNvg.Paths
         {
             Closed = false;
             FirstPoint = p;
-            _commands.Add(new MoveToCommand(p));
         }
 
         internal void AddCommand(ICommand command)
@@ -34,22 +33,26 @@ namespace SilkyNvg.Paths
 
         internal Vector4 FillToScene(Scene scene, Matrix3x2 transform, RenderTolerances tolerances)
         {
-            var bounds = new Vector4(float.PositiveInfinity, float.PositiveInfinity, float.NegativeInfinity,
-                float.NegativeInfinity);
+            var bounds = new Vector4(FirstPoint.X, FirstPoint.Y, FirstPoint.X, FirstPoint.Y);
             
             // Ignore subpaths with <= 1 point (see: HTML5 Canvas API Spec)
-            if (_commands.Count <= 1)
+            // By definition we always have at least one point, the FirstPoint.
+            if (_commands.Count < 1)
             {
                 return bounds;
             }
             
             Vector2 firstPoint = Vector2.Transform(FirstPoint, transform);
             
-            Vector2 p0 = default;
+            scene.BeginSubPath(firstPoint);
+            
+            Vector2 p0 = firstPoint;
             foreach (var cmd in _commands)
             {
                 p0 = cmd.FillToScene(transform, p0, firstPoint, ref bounds, scene, tolerances);
             }
+
+            scene.EndSubPath();
 
             return bounds;
         }

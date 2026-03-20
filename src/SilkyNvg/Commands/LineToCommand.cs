@@ -25,7 +25,7 @@ namespace SilkyNvg.Commands
             bounds.Z = Math.Max(bounds.Z, p.X);
             bounds.W = Math.Max(bounds.W, p.Y);
             
-            scene.AddPoint(p);
+            scene.AddLinePoint(p);
             return p;
         }
     }

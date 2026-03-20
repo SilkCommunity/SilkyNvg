@@ -1,4 +1,4 @@
-#version 330 core
+#version 420 core
 
 vec2 positions[4] = vec2[](
     vec2(0.5, 0.5),
@@ -8,10 +8,10 @@ vec2 positions[4] = vec2[](
 );
 
 uvec2 boundPositions[4] = uvec2[](
-    uvec2(2, 1),
-    uvec2(2, 3),
+    uvec2(0, 1),
     uvec2(0, 3),
-    uvec2(0, 1)
+    uvec2(2, 1),
+    uvec2(2, 3)
 );
 
 uniform vec4 pathBounds;

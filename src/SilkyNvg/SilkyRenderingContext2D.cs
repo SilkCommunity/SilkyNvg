@@ -15,6 +15,7 @@ namespace SilkyNvg
         public SilkyRenderingContext2D(ISilkyRenderer renderer)
         {
             _renderer = renderer;
+            _renderer.Init(_tolerances);
 
             _scene = new Scene();
         }

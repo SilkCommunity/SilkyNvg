@@ -54,9 +54,8 @@ namespace SilkyNvg.Commands
             bounds.Z = Math.Max(Math.Max(bounds.Z, p0.X), Math.Max(extremeX, p.X));
             bounds.W = Math.Max(Math.Max(bounds.W, p0.Y), Math.Max(extremeY, p.Y));
 
-            scene.FlagAddingQuadratic();
-            scene.AddPoint(cp, p);
-
+            scene.AddQuadraticPoints(cp, p);
+            
             return p;
         }
     }
