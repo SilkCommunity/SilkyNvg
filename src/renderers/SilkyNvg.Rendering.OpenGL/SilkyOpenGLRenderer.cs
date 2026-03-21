@@ -4,7 +4,6 @@ using System.Numerics;
 using Silk.NET.OpenGL;
 using SilkyNvg.Rendering.OpenGL.Buffers;
 using SilkyNvg.Rendering.OpenGL.Shaders;
-using Buffer = SilkyNvg.Rendering.OpenGL.Buffers.Buffer;
 
 namespace SilkyNvg.Rendering.OpenGL
 {
@@ -13,53 +12,39 @@ namespace SilkyNvg.Rendering.OpenGL
         
         private static readonly uint[] QuadIndices = new uint[6] { 0, 1, 2, 1, 3, 2 };
 
-        private readonly List<Scene> _scenes = new List<Scene>();
-        
-        private readonly Buffer _vertexBuffer;
-        private readonly Buffer _boundingBoxBuffer;
-
-        // Anchor geometry
-        private readonly AnchorGeometryShader _anchorGeometryShader;
-        private readonly VAO _anchorGeometryVertexArray;
-        
-        // Rendering a quad behind every path to apply the paint
         private readonly PaintingShader _paintingShader;
-        private readonly Buffer _quadIndexBuffer;
-        private readonly VAO _quadVertexArray;
+        private readonly AnchorGeometryShader _anchorGeometryShader;
+
+        private readonly Ssbo _pointsSsbo;
+        
+        private readonly Vao _vao;
+        
+        private readonly IndexBuffer _quadIndexBuffer;
+        private readonly IndexBuffer _anchorGeometryIndexBuffer;
         
         private readonly GL _gl;
 
         private RenderTolerances _tolerances;
 
         private Vector2 _viewSize;
+        private Scene _scene;
 
         public unsafe SilkyOpenGLRenderer(GL gl)
         {
             _gl = gl;
             
-            _vertexBuffer = new Buffer(BufferTargetARB.ArrayBuffer, BufferUsageARB.DynamicDraw, _gl);
-            _boundingBoxBuffer = new Buffer(BufferTargetARB.ArrayBuffer, BufferUsageARB.DynamicDraw, _gl);
-
-            // Anchor geometry stenciling
+            _paintingShader = new PaintingShader(_gl);
             _anchorGeometryShader = new AnchorGeometryShader(_gl);
 
-            _anchorGeometryVertexArray = new VAO(_gl);
-
-            _anchorGeometryVertexArray.Bind();
-            _vertexBuffer.Bind();
-            _anchorGeometryVertexArray.VertexAttributePointer<float>(0, 2, VertexAttribPointerType.Float, 2, 0);
-            _vertexBuffer.Unbind();
-            _anchorGeometryVertexArray.Unbind();
+            _pointsSsbo = new Ssbo(0, _gl);
             
-            // Set up drawing of a quad to paint paths
-            _paintingShader = new PaintingShader(_gl);
+            _vao = new Vao(_gl);
+            _vao.Bind();
             
-            _quadVertexArray = new VAO(_gl);
+            _quadIndexBuffer = new IndexBuffer(BufferUsageARB.StaticDraw, _gl);
+            _quadIndexBuffer.Load((uint)QuadIndices.Length, QuadIndices);
             
-            _quadVertexArray.Bind();
-            _quadIndexBuffer = new Buffer(BufferTargetARB.ElementArrayBuffer, BufferUsageARB.StaticDraw, _gl);
-            _quadIndexBuffer.UpdateDynamicRange(0, QuadIndices);
-            _quadVertexArray.Unbind();
+            _anchorGeometryIndexBuffer = new IndexBuffer(BufferUsageARB.DynamicDraw, _gl);
         }
 
         public void Init(RenderTolerances tolerances)
@@ -74,43 +59,77 @@ namespace SilkyNvg.Rendering.OpenGL
 
         public void PrepareRender()
         {
-            _scenes.Clear();
+            
         }
 
-        public void AddScene(Scene scene)
+        public void SetScene(Scene scene)
         {
-            _vertexBuffer.Update(0, scene.PointCount, scene.Points);
-            _boundingBoxBuffer.Update(0, scene.PathCount, scene.PathBounds);
+            _scene = scene;
             
-            _scenes.Add(scene);
+            _pointsSsbo.Store(BufferStorageMask.DynamicStorageBit, scene.PointCount, scene.Points);
+            _anchorGeometryIndexBuffer.Load(scene.AnchorGeometryIndexCount, scene.AnchorGeometryIndices);
         }
 
-        private void RenderSubPath(SubPathData subPath)
+        private unsafe void RenderSubPath(SubPathData subPath)
         {
-            // ---------- ANCHOR GEOMETRY STENCIL PASS ---------- //
-            _anchorGeometryShader.Start();
+            /*// ---------- ANCHOR GEOMETRY STENCIL PASS ---------- //
+            if (subPath.AnchorGeometryCount > 0)
+            {
+                _anchorGeometryShader.Start();
+                _anchorGeometryShader.LoadViewSize(_viewSize);
 
-            _anchorGeometryShader.LoadViewSize(_viewSize);
+                _anchorGeometryIndexBuffer.Bind();
 
-            _anchorGeometryVertexArray.Bind();
-            _vertexBuffer.Bind();
+                _gl.EnableVertexAttribArray(0);
+            
+                _gl.DrawElements(PrimitiveType.TriangleFan, subPath.AnchorGeometryCount, DrawElementsType.UnsignedInt,
+                    (void*)(subPath.AnchorGeometryIndex * sizeof(uint)));
+                
+                _gl.DisableVertexAttribArray(0);
 
-            _gl.EnableVertexAttribArray(0);
+                _anchorGeometryIndexBuffer.Unbind();
             
-            _gl.DrawArrays(PrimitiveType.TriangleFan, (int)subPath.AnchorGeometryIndex, subPath.AnchorGeometryCount);
+                _anchorGeometryShader.Stop();
+            }
             
-            _gl.DisableVertexAttribArray(0);
-            
-            _vertexBuffer.Unbind();
-            _anchorGeometryVertexArray.Unbind();
-            
-            _anchorGeometryShader.Stop();
+            // ---------- QUADRATIC DISCARD STENCIL PASS ---------- //
+            if (subPath.QuadraticDiscardTrianglesCount > 0)
+            {
+                _quadraticDiscardShader.Start();
+                _quadraticDiscardShader.LoadViewSize(_viewSize);
+                
+                _quadraticDiscardIndexBuffer.Bind();
+
+                _gl.EnableVertexAttribArray(0);
+                
+                _gl.DrawElements(PrimitiveType.Triangles, subPath.QuadraticDiscardTrianglesCount, DrawElementsType.UnsignedInt,
+                    (void*)(subPath.QuadraticDiscardTrianglesIndex * sizeof(uint)));
+                
+                _gl.DisableVertexAttribArray(0);
+                
+                _quadraticDiscardIndexBuffer.Unbind();
+                
+                _quadraticDiscardShader.Stop();
+            }*/
+
+            if (subPath.AnchorGeometryCount > 0)
+            {
+                _anchorGeometryShader.Start();
+                _anchorGeometryShader.LoadViewSize(_viewSize);
+
+                _anchorGeometryIndexBuffer.Bind();
+                
+                _gl.DrawElements(PrimitiveType.TriangleFan, subPath.AnchorGeometryCount, DrawElementsType.UnsignedInt,
+                    (void*)(subPath.AnchorGeometryIndex * sizeof(uint)));
+            }
         }
 
         private unsafe void RenderPath(Vector4 pathBounds, PathData path, ReadOnlySpan<SubPathData> subPaths)
         {
             // Disable colours for stencil pass
             _gl.ColorMask(false, false, false, false);
+            
+            _gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
             
             // EvenOdd Fill Rule
             if (true)
@@ -141,20 +160,15 @@ namespace SilkyNvg.Rendering.OpenGL
             _paintingShader.LoadPathBounds(pathBounds);
             _paintingShader.LoadViewSize(_viewSize);
 
-            _quadVertexArray.Bind();
+            _vao.Bind();
             _quadIndexBuffer.Bind();
             
             _gl.DrawElements(PrimitiveType.Triangles, (uint)QuadIndices.Length, DrawElementsType.UnsignedInt,null);
-
-            _quadIndexBuffer.Unbind();
-            _quadVertexArray.Unbind();
-            
-            _paintingShader.Stop();
         }
 
         public void Render()
         {
-            if (_scenes.Count == 0)
+            if (_scene is null)
             {
                 return;
             }
@@ -166,27 +180,24 @@ namespace SilkyNvg.Rendering.OpenGL
             _gl.Enable(EnableCap.StencilTest);
             _gl.ClearStencil(0);
             _gl.Clear(ClearBufferMask.StencilBufferBit);
-            
-            foreach (Scene scene in _scenes)
+
+            _vao.Bind();            
+            for (int i = 0; i < _scene.PathCount; i++)
             {
-                for (int i = 0; i < scene.PathCount; i++)
-                {
-                    RenderPath(scene.PathBounds[i], scene.Paths[i], scene.SubPaths);
-                }
+                RenderPath(_scene.PathBounds[i], _scene.Paths[i], _scene.SubPaths);
             }
         }
             
         public void Dispose()
         {
-            _vertexBuffer.Dispose();
-            _boundingBoxBuffer.Dispose();
-            
             _quadIndexBuffer.Dispose();
-            _quadVertexArray.Dispose();
-            _paintingShader.Dispose();
+            
+            _vao.Dispose();
 
-            _anchorGeometryVertexArray.Dispose();
+            _pointsSsbo.Dispose();
+
             _anchorGeometryShader.Dispose();
+            _paintingShader.Dispose();
         }
         
     }

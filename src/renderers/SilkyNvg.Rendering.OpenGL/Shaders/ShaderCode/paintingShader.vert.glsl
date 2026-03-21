@@ -1,11 +1,4 @@
-#version 420 core
-
-vec2 positions[4] = vec2[](
-    vec2(0.5, 0.5),
-    vec2(0.5, -0.5),
-    vec2(-0.5, -0.5),
-    vec2(-0.5, 0.5)
-);
+#version 460 core
 
 uvec2 boundPositions[4] = uvec2[](
     uvec2(0, 1),

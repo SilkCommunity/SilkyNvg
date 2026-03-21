@@ -59,11 +59,6 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
             Gl.UseProgram(ProgrammeID);
         }
 
-        internal void Stop()
-        {
-            Gl.UseProgram(0);
-        }
-
         public void Dispose()
         {
             Gl.DeleteProgram(ProgrammeID);

@@ -8,6 +8,7 @@ namespace SilkyNvg.Rendering
     {
 
         private readonly DataAccessibleArrayList<Vector2> _points = new DataAccessibleArrayList<Vector2>();
+        
         private readonly DataAccessibleArrayList<uint> _anchorGeometryIndices = new DataAccessibleArrayList<uint>();
         private readonly DataAccessibleArrayList<uint> _quadraticDiscardIndices = new DataAccessibleArrayList<uint>();
         private readonly DataAccessibleArrayList<uint> _cubicDiscardIndices = new DataAccessibleArrayList<uint>();
@@ -47,9 +48,9 @@ namespace SilkyNvg.Rendering
         private uint _spAnchorGeometryIndex;
         private uint _spAnchorGeometryCount;
         private uint _spQuadraticDiscardTrianglesIndex;
-        private uint _spQuadraticDiscardTrianglesCount;
+        private uint _spQuadraticDiscardIndexCount;
         private uint _spCubicDiscardTrianglesIndex;
-        private uint _spCubicDiscardTrianglesCount;
+        private uint _spCubicDiscardIndexCount;
         
         // Current path cache
         private uint _pSubPathIndex;
@@ -75,10 +76,12 @@ namespace SilkyNvg.Rendering
 
         internal void AddQuadraticPoints(Vector2 cp, Vector2 p)
         {
-            _quadraticDiscardIndices.Add(PointCount - 1);
-            _quadraticDiscardIndices.Add(PointCount + 0);
-            _quadraticDiscardIndices.Add(PointCount + 1);
-            _spQuadraticDiscardTrianglesCount++;
+            // Quadratic discard index shape:
+            // | canonical form position index (8 bits) | points index (24 bits) |
+            _quadraticDiscardIndices.Add((0 << 24) & 0xFF000000 | (PointCount - 1) & 0x00FFFFFF);
+            _quadraticDiscardIndices.Add((1 << 24) & 0xFF000000 | (PointCount + 0) & 0x00FFFFFF);
+            _quadraticDiscardIndices.Add((2 << 24) & 0xFF000000 | (PointCount + 1) & 0x00FFFFFF);
+            _spQuadraticDiscardIndexCount += 3;
             
             AddPoint(cp);
             
@@ -93,7 +96,7 @@ namespace SilkyNvg.Rendering
             _cubicDiscardIndices.Add(PointCount + 0);
             _cubicDiscardIndices.Add(PointCount + 1);
             _cubicDiscardIndices.Add(PointCount + 2);
-            _spCubicDiscardTrianglesCount++;
+            _spCubicDiscardIndexCount += 4;
 
             AddPoint(cp1);
             AddPoint(cp2);
@@ -111,9 +114,9 @@ namespace SilkyNvg.Rendering
             AddPoint(p);
             
             _spQuadraticDiscardTrianglesIndex = QuadraticDiscardIndexCount;
-            _spQuadraticDiscardTrianglesCount = 0;
+            _spQuadraticDiscardIndexCount = 0;
             _spCubicDiscardTrianglesIndex = CubicDiscardIndexCount;
-            _spCubicDiscardTrianglesCount = 0;
+            _spCubicDiscardIndexCount = 0;
         }
 
         internal void EndSubPath()
@@ -122,9 +125,9 @@ namespace SilkyNvg.Rendering
                 anchorGeometryIndex: _spAnchorGeometryIndex,
                 anchorGeometryCount: _spAnchorGeometryCount,
                 quadraticDiscardTrianglesIndex: _spQuadraticDiscardTrianglesIndex,
-                quadraticDiscardTrianglesCount: _spQuadraticDiscardTrianglesCount,
+                quadraticDiscardTrianglesCount: _spQuadraticDiscardIndexCount,
                 cubicDiscardTrianglesIndex: _spCubicDiscardTrianglesIndex,
-                cubicDiscardTrianglesCount: _spCubicDiscardTrianglesCount
+                cubicDiscardTrianglesCount: _spCubicDiscardIndexCount
             ));
             _pSubPathCount++;
         }
@@ -159,9 +162,9 @@ namespace SilkyNvg.Rendering
             _spAnchorGeometryIndex = 0;
             _spAnchorGeometryCount = 0;
             _spQuadraticDiscardTrianglesIndex = 0;
-            _spQuadraticDiscardTrianglesCount = 0;
+            _spQuadraticDiscardIndexCount = 0;
             _spCubicDiscardTrianglesIndex = 0;
-            _spCubicDiscardTrianglesCount = 0;
+            _spCubicDiscardIndexCount = 0;
 
             _pSubPathIndex = 0;
             _pSubPathCount = 0;

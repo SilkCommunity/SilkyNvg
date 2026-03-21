@@ -3,14 +3,14 @@ using Silk.NET.OpenGL;
 
 namespace SilkyNvg.Rendering.OpenGL.Buffers
 {
-    internal class VAO : IDisposable
+    internal class Vao : IDisposable
     {
 
         private readonly uint _vaoId;
 
         private readonly GL _gl;
 
-        internal VAO(GL gl)
+        internal Vao(GL gl)
         {
             _gl = gl;
             
@@ -22,15 +22,16 @@ namespace SilkyNvg.Rendering.OpenGL.Buffers
         {
             _gl.VertexAttribPointer(location, count, type, false, elementSize * (uint)sizeof(T), (void*)(offset * sizeof(T)));
         }
+        
+        internal unsafe void VertexAttributeIPointer<T>(uint location, int count, VertexAttribIType type, uint elementSize, uint offset)
+            where T : unmanaged
+        {
+            _gl.VertexAttribIPointer(location, count, type, elementSize * (uint)sizeof(T), (void*)(offset * sizeof(T)));
+        }
 
         internal void Bind()
         {
             _gl.BindVertexArray(_vaoId);
-        }
-
-        internal void Unbind()
-        {
-            _gl.BindVertexArray(0);
         }
         
         public void Dispose()

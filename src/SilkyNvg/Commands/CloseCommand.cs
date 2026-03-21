@@ -11,8 +11,9 @@ namespace SilkyNvg.Commands
         {
             if (!subpathFirstPoint.FpEquals(p0, tol.FloatingPointTol))
             {
-                var cmd = new LineToCommand(subpathFirstPoint);
-                cmd.FillToScene(transform, p0, subpathFirstPoint, ref bounds, scene, tol);
+                // We don't need this?
+                //var cmd = new LineToCommand(subpathFirstPoint);
+                //cmd.FillToScene(transform, p0, subpathFirstPoint, ref bounds, scene, tol);
             }
 
             return subpathFirstPoint;

@@ -49,7 +49,7 @@ namespace SilkyNvg
 
         public void EndFrame()
         {
-            _renderer.AddScene(_scene);
+            _renderer.SetScene(_scene);
             _renderer.Render();
         }
         

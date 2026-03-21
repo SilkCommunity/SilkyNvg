@@ -11,7 +11,7 @@ namespace SilkyNvg.Rendering
 
         void PrepareRender();
         
-        void AddScene(Scene scene);
+        void SetScene(Scene scene);
 
         void Render();
 

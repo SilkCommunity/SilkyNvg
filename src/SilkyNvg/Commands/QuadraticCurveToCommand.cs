@@ -11,7 +11,7 @@ namespace SilkyNvg.Commands
         private readonly Vector2 _cp;
         private readonly Vector2 _p;
 
-        internal QuadraticCurveToCommand(Vector2 p, Vector2 cp)
+        internal QuadraticCurveToCommand(Vector2 cp, Vector2 p)
         {
             _cp = cp;
             _p = p;
