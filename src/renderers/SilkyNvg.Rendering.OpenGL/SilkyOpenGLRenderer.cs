@@ -14,6 +14,7 @@ namespace SilkyNvg.Rendering.OpenGL
 
         private readonly PaintingShader _paintingShader;
         private readonly AnchorGeometryShader _anchorGeometryShader;
+        private readonly QuadraticDiscardShader _quadraticDiscardShader;
 
         private readonly Ssbo _pointsSsbo;
         
@@ -21,6 +22,7 @@ namespace SilkyNvg.Rendering.OpenGL
         
         private readonly IndexBuffer _quadIndexBuffer;
         private readonly IndexBuffer _anchorGeometryIndexBuffer;
+        private readonly IndexBuffer _quadraticDiscardIndexBuffer;
         
         private readonly GL _gl;
 
@@ -29,13 +31,14 @@ namespace SilkyNvg.Rendering.OpenGL
         private Vector2 _viewSize;
         private Scene _scene;
 
-        public unsafe SilkyOpenGLRenderer(GL gl)
+        public SilkyOpenGLRenderer(GL gl)
         {
             _gl = gl;
             
             _paintingShader = new PaintingShader(_gl);
             _anchorGeometryShader = new AnchorGeometryShader(_gl);
-
+            _quadraticDiscardShader = new QuadraticDiscardShader(_gl);
+            
             _pointsSsbo = new Ssbo(0, _gl);
             
             _vao = new Vao(_gl);
@@ -45,6 +48,7 @@ namespace SilkyNvg.Rendering.OpenGL
             _quadIndexBuffer.Load((uint)QuadIndices.Length, QuadIndices);
             
             _anchorGeometryIndexBuffer = new IndexBuffer(BufferUsageARB.DynamicDraw, _gl);
+            _quadraticDiscardIndexBuffer = new IndexBuffer(BufferUsageARB.DynamicDraw, _gl);
         }
 
         public void Init(RenderTolerances tolerances)
@@ -67,7 +71,9 @@ namespace SilkyNvg.Rendering.OpenGL
             _scene = scene;
             
             _pointsSsbo.Store(BufferStorageMask.DynamicStorageBit, scene.PointCount, scene.Points);
+            
             _anchorGeometryIndexBuffer.Load(scene.AnchorGeometryIndexCount, scene.AnchorGeometryIndices);
+            _quadraticDiscardIndexBuffer.Load(scene.QuadraticDiscardIndexCount, scene.QuadraticDiscardIndices);
         }
 
         private unsafe void RenderSubPath(SubPathData subPath)
@@ -122,11 +128,22 @@ namespace SilkyNvg.Rendering.OpenGL
                 _gl.DrawElements(PrimitiveType.TriangleFan, subPath.AnchorGeometryCount, DrawElementsType.UnsignedInt,
                     (void*)(subPath.AnchorGeometryIndex * sizeof(uint)));
             }
+
+            if (subPath.QuadraticDiscardTrianglesCount > 0)
+            {
+                _quadraticDiscardShader.Start();
+                _quadraticDiscardShader.LoadViewSize(_viewSize);
+                
+                _quadraticDiscardIndexBuffer.Bind();
+                
+                _gl.DrawElements(PrimitiveType.Triangles, subPath.QuadraticDiscardTrianglesCount, DrawElementsType.UnsignedInt,
+                    (void*)(subPath.QuadraticDiscardTrianglesIndex * sizeof(uint)));
+            }
         }
 
         private unsafe void RenderPath(Vector4 pathBounds, PathData path, ReadOnlySpan<SubPathData> subPaths)
         {
-            // Disable colours for stencil pass
+            // Disable colours for stencil passes
             _gl.ColorMask(false, false, false, false);
             
             _gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
@@ -190,12 +207,14 @@ namespace SilkyNvg.Rendering.OpenGL
             
         public void Dispose()
         {
+            _anchorGeometryIndexBuffer.Dispose();
             _quadIndexBuffer.Dispose();
             
             _vao.Dispose();
 
             _pointsSsbo.Dispose();
 
+            _quadraticDiscardIndexBuffer.Dispose();
             _anchorGeometryShader.Dispose();
             _paintingShader.Dispose();
         }

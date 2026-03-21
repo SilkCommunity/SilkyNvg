@@ -1,4 +1,4 @@
-#version 420 core
+#version 460 core
 
 layout(location = 0) in vec2 implicitCoord;
 
@@ -9,9 +9,9 @@ bool pointInCurve(void) {
 }
 
 void main(void) {
-    /*if (!pointInCurve()) {
+    if (!pointInCurve()) {
         discard;
-    }*/
+    }
 
-    out_color = vec4(implicitCoord.x, 0, 0, 1);
+    out_color = vec4(1, 1, 1, 1);
 }

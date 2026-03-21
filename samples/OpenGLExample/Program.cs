@@ -56,18 +56,23 @@ internal class Program : IDisposable
         _ctx!.BeginFrame();
 
         var path = new Path2D();
-        /*path.MoveTo(250, 250);
-        path.LineTo(500, 250);
-        //path.LineTo(500, 500);
-        path.QuadraticCurveTo(400, 375, 500, 500);
-        path.LineTo(250, 500);
+        path.MoveTo(100.0f, 500.0f);
+        path.QuadraticCurveTo(250.0f, 425.0f, 400.0f, 500.0f);
+        path.QuadraticCurveTo(250.0f, 575.0f, 100.0f, 500.0f);
+        path.ClosePath();
+        path.MoveTo(200.0f, 500.0f);
+        path.QuadraticCurveTo(250.0f, 450.0f, 300.0f, 500.0f);
+        path.QuadraticCurveTo(250.0f, 550.0f, 200.0f, 500.0f);
+        path.ClosePath();
+        /*path.LineTo(300.0f, 500.0f);
         path.ClosePath();*/
-        path.MoveTo(250, 75);
+        
+        /*path.MoveTo(250, 75);
         path.LineTo(323, 301);
         path.LineTo(131, 161);
         path.LineTo(369, 161);
         path.LineTo(177, 301);
-        path.ClosePath();
+        path.ClosePath();*/
         /*path.MoveTo(320, 525);
         path.LineTo(445, 1025);
         path.LineTo(770, 700);
