@@ -27,4 +27,11 @@
       <None Remove="Shaders\ShaderCode\anchorGeometryShader.vert.glsl" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="Shaders\ShaderCode\shader.frag.glsl" />
+      <EmbeddedResource Include="Shaders\ShaderCode\shader.frag.glsl" />
+      <None Remove="Shaders\ShaderCode\shader.vert.glsl" />
+      <EmbeddedResource Include="Shaders\ShaderCode\shader.vert.glsl" />
+    </ItemGroup>
+
 </Project>

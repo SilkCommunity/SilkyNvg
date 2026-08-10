@@ -44,9 +44,9 @@ namespace SilkyNvg
             _subPaths.Clear();
         }
 
-        internal void RenderPath(Scene scene)
+        internal void RenderPath(ISilkyRenderer renderer)
         {
-            
+            renderer.FillPath(null, null, 0);
         }
 
         private void CreateNewSubpath(Vector2 start)

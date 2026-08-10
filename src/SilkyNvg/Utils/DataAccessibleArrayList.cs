@@ -39,11 +39,16 @@ namespace SilkyNvg.Utils
             _count++;
         }
 
-        internal void AddRange(T[] items)
+        internal void AddRange(params T[] items)
         {
             EnsureCapacity(_count + items.Length);
             Array.Copy(items, 0, _data, _count, items.Length);
             _count += items.Length;
+        }
+
+        internal void Clear()
+        {
+            _count = 0;
         }
 
     }
