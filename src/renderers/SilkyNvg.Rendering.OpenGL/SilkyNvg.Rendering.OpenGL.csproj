@@ -22,15 +22,9 @@
 
     <ItemGroup>
       <None Remove="Shaders\ShaderCode\paintingShader.frag.glsl" />
-      <EmbeddedResource Include="Shaders\ShaderCode\paintingShader.frag.glsl" />
       <None Remove="Shaders\ShaderCode\paintingShader.vert.glsl" />
-      <EmbeddedResource Include="Shaders\ShaderCode\paintingShader.vert.glsl" />
       <None Remove="Shaders\ShaderCode\anchorGeometryShader.frag.glsl" />
-      <EmbeddedResource Include="Shaders\ShaderCode\quadraticDiscardShader.frag.glsl" />
-      <EmbeddedResource Include="Shaders\ShaderCode\quadraticDiscardShader.vert.glsl" />
-      <EmbeddedResource Include="Shaders\ShaderCode\anchorGeometryShader.frag.glsl" />
       <None Remove="Shaders\ShaderCode\anchorGeometryShader.vert.glsl" />
-      <EmbeddedResource Include="Shaders\ShaderCode\anchorGeometryShader.vert.glsl" />
     </ItemGroup>
 
 </Project>
