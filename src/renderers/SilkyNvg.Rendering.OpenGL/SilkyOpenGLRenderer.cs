@@ -18,8 +18,7 @@ namespace SilkyNvg.Rendering.OpenGL
 
         private readonly GL _gl;
 
-        private Vbo _fillPointsVbo;
-        private Vbo _fillCurveCoordsVbo;
+        private Vbo _fillVbo;
         private Vao _fillVao;
 
         private SimpleShader _shader;
@@ -29,25 +28,18 @@ namespace SilkyNvg.Rendering.OpenGL
             _gl = gl;
 
             _fillVao = new Vao(_gl);
-            _fillVao.Bind();
-
-            _fillPointsVbo = new Vbo(BufferTargetARB.ArrayBuffer, _gl);
-            _fillCurveCoordsVbo = new Vbo(BufferTargetARB.ArrayBuffer, _gl);
+            _fillVbo = new Vbo(BufferTargetARB.ArrayBuffer, _gl);
             
             _shader = new SimpleShader(_gl);
         }
 
-        public void FillPath(Vector2[] points, Vector3[] curveSpacePoints, int pointCount)
+        public void FillPath(float[] vertexData, uint vertexCount)
         {
             _fillVao.Bind();
             
-            _fillPointsVbo.Bind();
-            _fillPointsVbo.Store<Vector2>(points, (uint)pointCount, BufferUsageARB.DynamicDraw);
-            _fillVao.VertexAttributePointer<Vector2>(0, 2, VertexAttribPointerType.Float, 1, 0);
-            
-            _fillCurveCoordsVbo.Bind();
-            _fillCurveCoordsVbo.Store<Vector3>(curveSpacePoints, (uint)pointCount, BufferUsageARB.DynamicDraw);
-            _fillVao.VertexAttributePointer<Vector3>(1, 3, VertexAttribPointerType.Float, 1, 0);
+            _fillVbo.Store<float>(vertexData, 5 * vertexCount, BufferUsageARB.DynamicDraw);
+            _fillVao.VertexAttributePointer<float>(0, 2, VertexAttribPointerType.Float, 5, 0);
+            _fillVao.VertexAttributePointer<float>(1, 3, VertexAttribPointerType.Float, 5, 2);
             
             _shader.Start();
             _shader.LoadViewSize(new Vector2(1280f, 720f));
@@ -73,7 +65,7 @@ namespace SilkyNvg.Rendering.OpenGL
                 _gl.StencilMask(0xFF);
             }
 
-            _gl.DrawArrays(PrimitiveType.Triangles, 0, (uint)pointCount);
+            _gl.DrawArrays(PrimitiveType.Triangles, 0, vertexCount);
             
             _gl.ColorMask(true, true, true, true);
             
@@ -84,7 +76,7 @@ namespace SilkyNvg.Rendering.OpenGL
                 _gl.StencilMask(0xFF);
             }
             
-            _gl.DrawArrays(PrimitiveType.Triangles, 0, (uint)pointCount);
+            _gl.DrawArrays(PrimitiveType.Triangles, 0, vertexCount);
             
             _gl.DisableVertexAttribArray(0);
             _gl.DisableVertexAttribArray(1);
@@ -92,7 +84,7 @@ namespace SilkyNvg.Rendering.OpenGL
 
         public void Dispose()
         {
-            _fillPointsVbo.Dispose();
+            _fillVbo.Dispose();
             _fillVao.Dispose();
             _shader.Dispose();
         }

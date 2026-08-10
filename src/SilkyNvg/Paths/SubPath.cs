@@ -23,23 +23,28 @@ namespace SilkyNvg.Paths
             _segments.Add(PathSegment.Move);
         }
 
-        internal void BuildGeometry(DataAccessibleArrayList<Vector2> coords, DataAccessibleArrayList<Vector3> curveSpaceCoords)
+        internal uint BuildGeometry(DataAccessibleArrayList<float> verts, Matrix3x2 transform)
         {
-            Vector2 p0, p1, p2;
             int pointIndex = 0;
+            uint vertexCount = 0;
             foreach (var segmentType in _segments)
             {
+                Vector2 p0, p1, p2;
                 switch (segmentType)
                 {
                     case PathSegment.Line:
-                        p0 = _points[pointIndex + 0];
-                        p1 = _points[pointIndex + 1];
+                        p0 = Vector2.Transform(_points[pointIndex + 0], transform);
+                        p1 = Vector2.Transform(_points[pointIndex + 1], transform);
 
                         // Make sure triangle is a triangle
                         if (!Start.FpEquals(p0))
                         {
-                            coords.AddRange(Start, p0, p1);
-                            curveSpaceCoords.AddRange(Vector3.One, Vector3.One, Vector3.One);
+                            verts.AddRange(
+                                Start.X, Start.Y, 1f, 1f, 1f,
+                                p0.X, p0.Y, 1f, 1f, 1f,
+                                p1.X, p1.Y, 1f, 1f, 1f
+                            );
+                            vertexCount += 3;
                         }
                         
                         pointIndex += 1;
@@ -51,17 +56,27 @@ namespace SilkyNvg.Paths
 
                         if (!Start.FpEquals(p0))
                         {
-                            coords.AddRange(Start, p0, p2);
-                            curveSpaceCoords.AddRange(Vector3.One, Vector3.One, Vector3.One);
+                            verts.AddRange(
+                                Start.X, Start.Y, 1f, 1f, 1f,
+                                p0.X, p0.Y, 1f, 1f, 1f,
+                                p2.X, p2.Y, 1f, 1f, 1f
+                            );
+                            vertexCount += 3;
                         }
 
-                        coords.AddRange(p0, p1, p2);
-                        curveSpaceCoords.AddRange(Vector3.Zero, new Vector3(0.5f, 0.0f, 0.5f), Vector3.One);
-
+                        verts.AddRange(
+                            p0.X, p0.Y, 0f, 0f, 0f,
+                            p1.X, p1.Y, 0.5f, 0f, 0.5f,
+                            p2.X, p2.Y, 1f, 1f, 1f
+                        );
+                        vertexCount += 3;
+                        
                         pointIndex += 2;
                         break;
                 }
             }
+
+            return vertexCount;
         }
 
         internal void AddLine(Vector2 p)

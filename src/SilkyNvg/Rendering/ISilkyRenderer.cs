@@ -6,7 +6,7 @@ namespace SilkyNvg.Rendering
     public interface ISilkyRenderer : IDisposable
     {
 
-        void FillPath(Vector2[] points, Vector3[] curveSpacePoints, int pointCount);
+        void FillPath(float[] vertexData, uint vertexCount);
 
     }
 }

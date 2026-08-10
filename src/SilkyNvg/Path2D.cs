@@ -11,8 +11,7 @@ namespace SilkyNvg
         
         private readonly List<SubPath> _subPaths = new List<SubPath>();
         
-        private readonly DataAccessibleArrayList<Vector2> _pointCoords = new DataAccessibleArrayList<Vector2>();
-        private readonly DataAccessibleArrayList<Vector3> _curveSpaceCoords = new DataAccessibleArrayList<Vector3>();
+        private readonly DataAccessibleArrayList<float> _vertices = new DataAccessibleArrayList<float>();
         
         private bool _needNewSubPath;
 
@@ -49,15 +48,15 @@ namespace SilkyNvg
 
         internal void RenderPath(ISilkyRenderer renderer)
         {
-            _pointCoords.Clear();
-            _curveSpaceCoords.Clear();
+            _vertices.Clear();
 
+            uint vertexCount = 0;
             foreach (var subPath in _subPaths)
             {
-                subPath.BuildGeometry(_pointCoords, _curveSpaceCoords);
+                vertexCount += subPath.BuildGeometry(_vertices, Matrix3x2.Identity);
             }
             
-            renderer.FillPath(_pointCoords.Data, _curveSpaceCoords.Data, _pointCoords.Count);
+            renderer.FillPath(_vertices.Data, vertexCount);
         }
 
         private void CreateNewSubpath(Vector2 start)
