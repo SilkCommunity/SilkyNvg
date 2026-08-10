@@ -1,0 +1,116 @@
+using System.Collections.Generic;
+using System.Numerics;
+using SilkyNvg.Rendering;
+using SilkyNvg.Utils;
+
+namespace SilkyNvg.Paths
+{
+    internal class SubPath
+    {
+        
+        private readonly List<Vector2> _points = new List<Vector2>();
+        private readonly List<PathSegment> _segments = new List<PathSegment>();
+        
+        internal bool IsClosed { get; private set; }
+        
+        internal Vector2 Start => _points[0]; // _points always has at least one element
+        
+        private Vector2 Last => _points[_points.Count - 1];
+
+        internal SubPath(Vector2 start)
+        {
+            _points.Add(start);
+            _segments.Add(PathSegment.Move);
+        }
+
+        internal void Render(Scene scene)
+        {
+            int pointIndex = 0;
+            foreach (var segmentType in _segments)
+            {
+                Vector2 p0, p1, p2;
+                switch (segmentType)
+                {
+                    case PathSegment.Line:
+                        p0 = _points[pointIndex];
+                        p1 = _points[pointIndex + 1];
+
+                        // Make sure triangle is a triangle
+                        if (!Start.FpEquals(p0))
+                        {
+                            scene.PushVertices(Start, p0, p1);
+                            scene.PushCurveSpaceVerts(Vector3.One, Vector3.One, Vector3.One);
+                        }
+                        
+                        pointIndex += 1;
+                        break;
+                    case PathSegment.Quadratic:
+                        p0 = _points[pointIndex];
+                        p1 =  _points[pointIndex + 1];
+                        p2 = _points[pointIndex + 2];
+
+                        if (!Start.FpEquals(p0))
+                        {
+                            scene.PushVertices(Start, p0, p2);
+                            scene.PushCurveSpaceVerts(Vector3.One, Vector3.One, Vector3.One);
+                        }
+
+                        scene.PushVertices(p0, p1, p2);
+                        scene.PushCurveSpaceVerts(Vector3.Zero, new Vector3(0.5f, 0.0f, 0.5f), Vector3.One);
+
+                        pointIndex += 2;
+                        break;
+                }
+            }
+        }
+
+        internal void AddLine(Vector2 p)
+        {
+            _points.Add(p);
+            _segments.Add(PathSegment.Line);
+        }
+
+        internal void AddQuadratic(Vector2 cp, Vector2 p)
+        {
+            if (Last.FpEquals(cp))
+            {
+                AddLine(p);
+            }
+            else
+            {
+                _points.Add(cp);
+                _points.Add(p);
+                _segments.Add(PathSegment.Quadratic);
+            }
+        }
+
+        internal void AddCubic(Vector2 cp1, Vector2 cp2, Vector2 p)
+        {
+            if (Last.FpEquals(cp1))
+            {
+                AddQuadratic(cp2, p);
+            }
+            else if (cp1.FpEquals(cp2))
+            {
+                AddQuadratic((cp1 + cp2) / 2, p);
+            }
+            else
+            {
+                _points.Add(cp1);
+                _points.Add(cp2);
+                _points.Add(p);
+                _segments.Add(PathSegment.Cubic);
+            }
+        }
+
+        internal void Close()
+        {
+            IsClosed = true;
+            if (_points.Count > 1) // Don't close if we only have one point anyway
+            {
+                AddLine(_points[0]);
+            }
+        }
+
+    }
+}
