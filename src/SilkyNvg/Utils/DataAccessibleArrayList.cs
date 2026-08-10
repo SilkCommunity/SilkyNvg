@@ -26,7 +26,7 @@ namespace SilkyNvg.Utils
         {
             if (capacity > _capacity)
             {
-                int newCapacity = _count + 1 + _capacity / 2;
+                int newCapacity = _count + capacity + _capacity / 2;
                 Array.Resize(ref _data, newCapacity);
                 _capacity = newCapacity;
             }

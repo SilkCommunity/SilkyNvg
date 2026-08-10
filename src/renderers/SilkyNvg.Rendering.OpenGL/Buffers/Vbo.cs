@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using Silk.NET.OpenGL;
 
 namespace SilkyNvg.Rendering.OpenGL.Buffers
@@ -18,11 +19,11 @@ namespace SilkyNvg.Rendering.OpenGL.Buffers
             _bufferId = gl.GenBuffer();
         }
 
-        internal void Store<T>(ReadOnlySpan<T> data, BufferUsageARB usage)
+        internal void Store<T>(ReadOnlySpan<T> data, uint dataCount, BufferUsageARB usage)
             where T : unmanaged
         {
             Bind();
-            _gl.BufferData(_bufferType, data, usage);
+            _gl.BufferData(_bufferType, dataCount * (uint)Marshal.SizeOf<T>(), data, usage);
         }
 
         internal void Bind()

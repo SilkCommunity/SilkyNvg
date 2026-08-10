@@ -11,9 +11,6 @@ namespace SilkyNvg.Paths
         private readonly List<Vector2> _points = new List<Vector2>();
         private readonly List<PathSegment> _segments = new List<PathSegment>();
         
-        private readonly DataAccessibleArrayList<Vector2> _pointCoords = new DataAccessibleArrayList<Vector2>();
-        private readonly DataAccessibleArrayList<Vector3> _curveSpaceCoords = new DataAccessibleArrayList<Vector3>();
-        
         internal bool IsClosed { get; private set; }
         
         internal Vector2 Start => _points[0]; // _points always has at least one element
@@ -26,11 +23,8 @@ namespace SilkyNvg.Paths
             _segments.Add(PathSegment.Move);
         }
 
-        private void BuildGeometry()
+        internal void BuildGeometry(DataAccessibleArrayList<Vector2> coords, DataAccessibleArrayList<Vector3> curveSpaceCoords)
         {
-            _pointCoords.Clear();
-            _curveSpaceCoords.Clear();
-            
             Vector2 p0, p1, p2;
             int pointIndex = 0;
             foreach (var segmentType in _segments)
@@ -44,8 +38,8 @@ namespace SilkyNvg.Paths
                         // Make sure triangle is a triangle
                         if (!Start.FpEquals(p0))
                         {
-                            _pointCoords.AddRange(Start, p0, p1);
-                            _curveSpaceCoords.AddRange(Vector3.One, Vector3.One, Vector3.One);
+                            coords.AddRange(Start, p0, p1);
+                            curveSpaceCoords.AddRange(Vector3.One, Vector3.One, Vector3.One);
                         }
                         
                         pointIndex += 1;
@@ -57,24 +51,17 @@ namespace SilkyNvg.Paths
 
                         if (!Start.FpEquals(p0))
                         {
-                            _pointCoords.AddRange(Start, p0, p2);
-                            _curveSpaceCoords.AddRange(Vector3.One, Vector3.One, Vector3.One);
+                            coords.AddRange(Start, p0, p2);
+                            curveSpaceCoords.AddRange(Vector3.One, Vector3.One, Vector3.One);
                         }
 
-                        _pointCoords.AddRange(p0, p1, p2);
-                        _curveSpaceCoords.AddRange(Vector3.Zero, new Vector3(0.5f, 0.0f, 0.5f), Vector3.One);
+                        coords.AddRange(p0, p1, p2);
+                        curveSpaceCoords.AddRange(Vector3.Zero, new Vector3(0.5f, 0.0f, 0.5f), Vector3.One);
 
                         pointIndex += 2;
                         break;
                 }
             }
-        }
-
-        internal void Fill(ISilkyRenderer renderer)
-        {
-            BuildGeometry();
-            
-            renderer.FillPath(_pointCoords.Data, _curveSpaceCoords.Data, _pointCoords.Count);
         }
 
         internal void AddLine(Vector2 p)

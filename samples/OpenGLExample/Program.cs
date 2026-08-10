@@ -54,10 +54,11 @@ internal class Program : IDisposable
         _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.StencilBufferBit);
 
         var path = new Path2D();
-        path.MoveTo(100f, 100f);
-        path.LineTo(200f, 100f);
-        path.LineTo(200f, 200f);
-        path.LineTo(100f, 200f);
+        path.MoveTo(250f, 75f);
+        path.LineTo(323f, 301f);
+        path.LineTo(131f, 161f);
+        path.LineTo(369f, 161f);
+        path.LineTo(177f, 301f);
         path.ClosePath();
         
         _ctx?.Fill(path);
