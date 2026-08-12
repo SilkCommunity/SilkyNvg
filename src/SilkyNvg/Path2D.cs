@@ -132,6 +132,20 @@ namespace SilkyNvg
         public void QuadraticCurveTo(float cpx, float cpy, float x, float y)
             => QuadraticCurveTo(new Vector2(cpx, cpy), new Vector2(x, y));
 
+        public void BezierCurveTo(Vector2 cp1, Vector2 cp2, Vector2 p)
+        {
+            if (cp1.IsInfinityOrNan() || cp2.IsInfinityOrNan() || p.IsInfinityOrNan())
+            {
+                return;
+            }
+            
+            EnsureSubPathExists(cp1);
+            CurrentSubPath.AddCubic(cp1, cp2, p);
+        }
+        
+        public void BezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float x, float y)
+            => BezierCurveTo(new Vector2(cp1x, cp1y), new Vector2(cp2x, cp2y), new Vector2(x, y));
+        
         #endregion
         
     }

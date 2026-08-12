@@ -1,7 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
+        <LangVersion>14</LangVersion>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -32,6 +34,10 @@
       <EmbeddedResource Include="Shaders\ShaderCode\shader.frag.glsl" />
       <None Remove="Shaders\ShaderCode\shader.vert.glsl" />
       <EmbeddedResource Include="Shaders\ShaderCode\shader.vert.glsl" />
+      <None Remove="Shaders\ShaderCode\debug.vert.glsl" />
+      <EmbeddedResource Include="Shaders\ShaderCode\debug.vert.glsl" />
+      <None Remove="Shaders\ShaderCode\debug.frag.glsl" />
+      <EmbeddedResource Include="Shaders\ShaderCode\debug.frag.glsl" />
     </ItemGroup>
 
 </Project>
