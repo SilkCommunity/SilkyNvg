@@ -6,6 +6,7 @@ namespace SilkyNvg
     public class SilkyRenderingContext2D
     {
 
+        private readonly GeometryBuilder _defaultGeometryBuilder;
         private readonly ISilkyRenderer _renderer;
         
         private readonly Path2D _defaultPath;
@@ -25,6 +26,7 @@ namespace SilkyNvg
 
             _renderer = renderer;
             
+            _defaultGeometryBuilder = new GeometryBuilder();
             _defaultPath = new Path2D();
         }
         
@@ -37,8 +39,11 @@ namespace SilkyNvg
 
         public void Fill(Path2D path)
         {
+            _defaultGeometryBuilder.Clear();
+            
             // TODO: Apply Transform
-            path.RenderPath(_renderer);
+            path.RenderPath(_defaultGeometryBuilder);
+            _renderer.FillPath(_defaultGeometryBuilder.Vertices, _defaultGeometryBuilder.VertexCount);
         }
         
         #endregion
