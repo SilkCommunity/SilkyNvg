@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using Silk.NET.OpenGL;
 using SilkyNvg.Rendering.OpenGL.Buffers;
@@ -35,23 +36,8 @@ namespace SilkyNvg.Rendering.OpenGL
             _debugShader = new DebugShader(_gl);
         }
 
-        public void FillPath(Vertex[] vertexData, uint vertexCount)
+        private void FillPath(int firstVertex, uint vertexCount)
         {
-            _fillVao.Bind();
-            
-            _fillVbo.Store(vertexData, vertexCount, BufferUsageARB.DynamicDraw);
-            _fillVao.VertexAttributePointer<float>(0, 2, VertexAttribPointerType.Float, 5, 0);
-            _fillVao.VertexAttributePointer<float>(1, 3, VertexAttribPointerType.Float, 5, 2);
-            
-            _shader.Start();
-            _shader.LoadViewSize(new Vector2(1280f, 720f));
-            
-            _gl.EnableVertexAttribArray(0);
-            _gl.EnableVertexAttribArray(1);
-
-            _gl.Disable(EnableCap.DepthTest);
-            _gl.Disable(EnableCap.CullFace);
-
             _gl.Enable(EnableCap.StencilTest);
             _gl.ClearStencil(0);
             _gl.Clear(ClearBufferMask.StencilBufferBit);
@@ -67,7 +53,7 @@ namespace SilkyNvg.Rendering.OpenGL
                 _gl.StencilMask(0xFF);
             }
 
-            _gl.DrawArrays(PrimitiveType.Triangles, 0, vertexCount);
+            _gl.DrawArrays(PrimitiveType.Triangles, firstVertex, vertexCount);
             
             _gl.ColorMask(true, true, true, true);
             _gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
@@ -79,18 +65,44 @@ namespace SilkyNvg.Rendering.OpenGL
                 _gl.StencilMask(0xFF);
             }
             
-            _gl.DrawArrays(PrimitiveType.Triangles, 0, vertexCount);
+            _gl.DrawArrays(PrimitiveType.Triangles, firstVertex, vertexCount);
 
-            _gl.Disable(EnableCap.StencilTest);
+            /*_gl.Disable(EnableCap.StencilTest);
             
             _debugShader.Start();
             _debugShader.LoadViewSize(new Vector2(1280f, 720f));
             _gl.LineWidth(15.0f);
             _gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Line);
-            _gl.DrawArrays(PrimitiveType.Triangles, 0, vertexCount);
+            _gl.DrawArrays(PrimitiveType.Triangles, firstVertex, vertexCount);*/
+            
+        }
+
+        public void Render(Vertex[] vertexData, uint vertexCount, IReadOnlyList<PathData> pathData)
+        {
+            _fillVao.Bind();
+            
+            _fillVbo.Store(vertexData, vertexCount, BufferUsageARB.DynamicDraw);
+            _fillVao.VertexAttributePointer<float>(0, 2, VertexAttribPointerType.Float, 5, 0);
+            _fillVao.VertexAttributePointer<float>(1, 3, VertexAttribPointerType.Float, 5, 2);
+            
+            _shader.Start();
+            _shader.LoadViewSize(new Vector2(1280f, 720f));
+            
+            _gl.Disable(EnableCap.DepthTest);
+            _gl.Disable(EnableCap.CullFace);
+            
+            _gl.EnableVertexAttribArray(0);
+            _gl.EnableVertexAttribArray(1);
+            
+            foreach (PathData path in pathData)
+            {
+                FillPath(path.FirstVertex, path.VertexCount);
+            }
             
             _gl.DisableVertexAttribArray(0);
             _gl.DisableVertexAttribArray(1);
+            
+            _gl.Disable(EnableCap.StencilTest);
         }
 
         public void Dispose()

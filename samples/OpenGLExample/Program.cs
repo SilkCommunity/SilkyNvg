@@ -62,13 +62,15 @@ internal class Program : IDisposable
         /*path.MoveTo(200.0f, 300.0f);
         path.QuadraticCurveTo(400.0f, 50.0f, 600.0f, 300.0f);
         path.QuadraticCurveTo(800.0f, 550.0f, 1000.0f, 300.0f);*/
-        path.MoveTo(400f, 200f);
-        path.BezierCurveTo(0f, 400f, 550f, 400f, 150f, 200f);
-        //path.MoveTo(600.0f, 500.0f);
-        //path.BezierCurveTo(600f, 350f, 900f, 650f, 900f, 500f);
+        path.MoveTo(600.0f, 500.0f);
+        path.BezierCurveTo(600f, 350f, 900f, 650f, 900f, 500f);
         path.ClosePath();
+
+        _ctx?.BeginFrame();
         
         _ctx?.Fill(path);
+        
+        _ctx?.EndFrame();
     }
 
     private void Close()

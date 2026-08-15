@@ -9,6 +9,7 @@ namespace SilkyNvg
         private readonly ISilkyRenderer _renderer;
         
         private readonly Path2D _defaultPath;
+        private readonly GeometryBuilder _geometryBuilder;
         
         #region Meta
         
@@ -26,6 +27,17 @@ namespace SilkyNvg
             _renderer = renderer;
             
             _defaultPath = new Path2D();
+            _geometryBuilder = new GeometryBuilder();
+        }
+
+        public void BeginFrame()
+        {
+            _geometryBuilder.ClearGeometry();
+        }
+
+        public void EndFrame()
+        {
+            _renderer.Render(_geometryBuilder.VertexData, _geometryBuilder.VertexCount, _geometryBuilder.Paths);
         }
         
         #region DrawPath
@@ -38,7 +50,7 @@ namespace SilkyNvg
         public void Fill(Path2D path)
         {
             // TODO: Apply Transform
-            path.RenderPath(_renderer);
+            path.FillPath(_geometryBuilder);
         }
         
         #endregion
