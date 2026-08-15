@@ -42,9 +42,9 @@ internal class GeometryBuilder
         if (first.FpEquals(last)) return;
         
         _vertices.AddRange(
-            new Vertex(_pathStart, Vector3.One),
-            new Vertex(first, Vector3.One),
-            new Vertex(last, Vector3.One)
+            new Vertex(_pathStart, Vector3.One, Vertex.VertexFlagPolynomial),
+            new Vertex(first, Vector3.One, Vertex.VertexFlagPolynomial),
+            new Vertex(last, Vector3.One, Vertex.VertexFlagPolynomial)
         );
     }
     
@@ -56,9 +56,9 @@ internal class GeometryBuilder
     internal void AddQuadratic(Vector2 p0, Vector2 p1, Vector2 p2)
     {
         _vertices.AddRange(
-            new Vertex(p0, Vector3.Zero),
-            new Vertex(p1, new Vector3(0.5f, 0f, 0.5f)),
-            new Vertex(p2, Vector3.One)
+            new Vertex(p0, Vector3.Zero, Vertex.VertexFlagPolynomial),
+            new Vertex(p1, new Vector3(0.5f, 0f, 0.5f), Vertex.VertexFlagPolynomial),
+            new Vertex(p2, Vector3.One, Vertex.VertexFlagPolynomial)
         );
 
         AddAnchorGeometry(p0, p2);
@@ -265,9 +265,9 @@ internal class GeometryBuilder
             }
 
             _vertices.AddRange(
-                new Vertex(points[orderedHull[0]], new Vector3(outside * C[orderedHull[0], 0], outside * C[orderedHull[0], 1], C[orderedHull[0], 2])),
-                new Vertex(points[orderedHull[1]], new Vector3(outside * C[orderedHull[1], 0], outside * C[orderedHull[1], 1], C[orderedHull[1], 2])),
-                new Vertex(points[orderedHull[2]], new Vector3(outside * C[orderedHull[2], 0], outside * C[orderedHull[2], 1], C[orderedHull[2], 2]))
+                new Vertex(points[orderedHull[0]], new Vector3(outside * C[orderedHull[0], 0], outside * C[orderedHull[0], 1], C[orderedHull[0], 2]), Vertex.VertexFlagPolynomial),
+                new Vertex(points[orderedHull[1]], new Vector3(outside * C[orderedHull[1], 0], outside * C[orderedHull[1], 1], C[orderedHull[1], 2]), Vertex.VertexFlagPolynomial),
+                new Vertex(points[orderedHull[2]], new Vector3(outside * C[orderedHull[2], 0], outside * C[orderedHull[2], 1], C[orderedHull[2], 2]), Vertex.VertexFlagPolynomial)
             );
         }
         // From here on it follows hullCount = 4
@@ -289,14 +289,14 @@ internal class GeometryBuilder
             }
             
             _vertices.AddRange(
-                new Vertex(points[orderedHull[0]], new Vector3(outside1 * C[orderedHull[0], 0], outside1 * C[orderedHull[0], 1], C[orderedHull[0], 2])),
-                new Vertex(points[orderedHull[1]], new Vector3(outside1 * C[orderedHull[1], 0], outside1 * C[orderedHull[1], 1], C[orderedHull[1], 2])),
-                new Vertex(points[orderedHull[2]], new Vector3(outside1 * C[orderedHull[2], 0], outside1 * C[orderedHull[2], 1], C[orderedHull[2], 2]))
+                new Vertex(points[orderedHull[0]], new Vector3(outside1 * C[orderedHull[0], 0], outside1 * C[orderedHull[0], 1], C[orderedHull[0], 2]), Vertex.VertexFlagPolynomial),
+                new Vertex(points[orderedHull[1]], new Vector3(outside1 * C[orderedHull[1], 0], outside1 * C[orderedHull[1], 1], C[orderedHull[1], 2]), Vertex.VertexFlagPolynomial),
+                new Vertex(points[orderedHull[2]], new Vector3(outside1 * C[orderedHull[2], 0], outside1 * C[orderedHull[2], 1], C[orderedHull[2], 2]), Vertex.VertexFlagPolynomial)
             );
             _vertices.AddRange(
-                new Vertex(points[orderedHull[0]], new Vector3(outside2 * C[orderedHull[0], 0], outside2 * C[orderedHull[0], 1], C[orderedHull[0], 2])),
-                new Vertex(points[orderedHull[2]], new Vector3(outside2 * C[orderedHull[2], 0], outside2 * C[orderedHull[2], 1], C[orderedHull[2], 2])),
-                new Vertex(points[orderedHull[3]], new Vector3(outside2 * C[orderedHull[3], 0], outside2 * C[orderedHull[3], 1], C[orderedHull[3], 2]))
+                new Vertex(points[orderedHull[0]], new Vector3(outside2 * C[orderedHull[0], 0], outside2 * C[orderedHull[0], 1], C[orderedHull[0], 2]), Vertex.VertexFlagPolynomial),
+                new Vertex(points[orderedHull[2]], new Vector3(outside2 * C[orderedHull[2], 0], outside2 * C[orderedHull[2], 1], C[orderedHull[2], 2]), Vertex.VertexFlagPolynomial),
+                new Vertex(points[orderedHull[3]], new Vector3(outside2 * C[orderedHull[3], 0], outside2 * C[orderedHull[3], 1], C[orderedHull[3], 2]), Vertex.VertexFlagPolynomial)
             );
         }
         else // p1 and p2 are on the same side of (p0, p3), the outside test is the same for both triangles
@@ -308,18 +308,34 @@ internal class GeometryBuilder
             }
             
             _vertices.AddRange(
-                new Vertex(points[orderedHull[0]], new Vector3(outside * C[orderedHull[0], 0], outside * C[orderedHull[0], 1], C[orderedHull[0], 2])),
-                new Vertex(points[orderedHull[1]], new Vector3(outside * C[orderedHull[1], 0], outside * C[orderedHull[1], 1], C[orderedHull[1], 2])),
-                new Vertex(points[orderedHull[2]], new Vector3(outside * C[orderedHull[2], 0], outside * C[orderedHull[2], 1], C[orderedHull[2], 2]))
+                new Vertex(points[orderedHull[0]], new Vector3(outside * C[orderedHull[0], 0], outside * C[orderedHull[0], 1], C[orderedHull[0], 2]), Vertex.VertexFlagPolynomial),
+                new Vertex(points[orderedHull[1]], new Vector3(outside * C[orderedHull[1], 0], outside * C[orderedHull[1], 1], C[orderedHull[1], 2]), Vertex.VertexFlagPolynomial),
+                new Vertex(points[orderedHull[2]], new Vector3(outside * C[orderedHull[2], 0], outside * C[orderedHull[2], 1], C[orderedHull[2], 2]), Vertex.VertexFlagPolynomial)
             );
             _vertices.AddRange(
-                new Vertex(points[orderedHull[0]], new Vector3(outside * C[orderedHull[0], 0], outside * C[orderedHull[0], 1], C[orderedHull[0], 2])),
-                new Vertex(points[orderedHull[2]], new Vector3(outside * C[orderedHull[2], 0], outside * C[orderedHull[2], 1], C[orderedHull[2], 2])),
-                new Vertex(points[orderedHull[3]], new Vector3(outside * C[orderedHull[3], 0], outside * C[orderedHull[3], 1], C[orderedHull[3], 2]))
+                new Vertex(points[orderedHull[0]], new Vector3(outside * C[orderedHull[0], 0], outside * C[orderedHull[0], 1], C[orderedHull[0], 2]), Vertex.VertexFlagPolynomial),
+                new Vertex(points[orderedHull[2]], new Vector3(outside * C[orderedHull[2], 0], outside * C[orderedHull[2], 1], C[orderedHull[2], 2]), Vertex.VertexFlagPolynomial),
+                new Vertex(points[orderedHull[3]], new Vector3(outside * C[orderedHull[3], 0], outside * C[orderedHull[3], 1], C[orderedHull[3], 2]), Vertex.VertexFlagPolynomial)
             );
         }
         
         AddAnchorGeometry(p0, p3);
+    }
+
+    internal void AddArcTo(Vector2 start, Vector2 p1, Vector2 end, Vector2 center, float radius)
+    {
+        // Calculate implicit coordinates
+        Vector2 implicitStart = (start - center) / radius;
+        Vector2 implicit1 = (p1 - center) / radius;
+        Vector2 implicitEnd = (end - center) / radius;
+        
+        _vertices.AddRange(
+            new Vertex(start, new Vector3(implicitStart, 0), Vertex.VertexFlagEllipse),
+            new Vertex(p1, new Vector3(implicit1, 0), Vertex.VertexFlagEllipse),
+            new Vertex(end, new Vector3(implicitEnd, 0), Vertex.VertexFlagEllipse)
+        );
+        
+        AddAnchorGeometry(start, end);
     }
 
     internal void ClearGeometry()

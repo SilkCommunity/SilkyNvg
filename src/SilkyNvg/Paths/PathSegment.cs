@@ -6,7 +6,7 @@ namespace SilkyNvg.Paths
         Line = 1,
         Quadratic = 2,
         Cubic = 3,
-        Arc = 4
+        ArcTo = 4
         
     }
 }

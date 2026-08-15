@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using SilkyNvg.Paths;
@@ -138,6 +139,26 @@ namespace SilkyNvg
         
         public void BezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float x, float y)
             => BezierCurveTo(new Vector2(cp1x, cp1y), new Vector2(cp2x, cp2y), new Vector2(x, y));
+
+        public void ArcTo(Vector2 p1, Vector2 p2, float radius)
+        {
+            if (p1.IsInfinityOrNan() || p2.IsInfinityOrNan() || radius.IsInfinityOrNan())
+            {
+                return;
+            }
+            
+            EnsureSubPathExists(p1);
+
+            if (radius < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(radius), "Radius cannot be negative!");
+            }
+
+            CurrentSubPath.AddArcTo(p1, p2, radius);
+        }
+        
+        public void ArcTo(float x1, float y1, float x2, float y2, float radius)
+            => ArcTo(new Vector2(x1, y1), new Vector2(x2, y2), radius);
         
         #endregion
         

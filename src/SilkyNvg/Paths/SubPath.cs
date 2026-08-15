@@ -9,14 +9,15 @@ namespace SilkyNvg.Paths
     internal class SubPath
     {
         
-        private readonly List<Vector2> _points = new List<Vector2>();
+        private readonly List<Vector2> _points = [];
+        private readonly List<float> _scalars = [];
         private readonly List<PathSegment> _segments = new List<PathSegment>();
         
         internal bool IsClosed { get; private set; }
         
         internal Vector2 Start => _points[0]; // _points always has at least one element
         
-        private Vector2 Last => _points[_points.Count - 1];
+        private Vector2 Last => _points[^1];
 
         internal SubPath(Vector2 start)
         {
@@ -34,6 +35,7 @@ namespace SilkyNvg.Paths
             geometry.BeginPath(Start);
             
             int pointIndex = 0;
+            int scalarIndex = 0;
             foreach (var segmentType in _segments)
             {
                 Vector2 p0, p1, p2, p3;
@@ -59,6 +61,16 @@ namespace SilkyNvg.Paths
                         p3 = _points[pointIndex + 3];
                         geometry.AddCubic(p0, p1, p2, p3);
                         pointIndex += 3;  
+                        break;
+                    case PathSegment.ArcTo:
+                        Vector2 s = _points[pointIndex + 0];
+                        Vector2 c = _points[pointIndex + 1];
+                        p1 = _points[pointIndex + 2];
+                        Vector2 e = _points[pointIndex + 3];
+                        float radius = _scalars[scalarIndex + 0];
+                        geometry.AddArcTo(s, p1, e, c, radius);
+                        pointIndex += 3;
+                        scalarIndex += 1;
                         break;
                 }
             }
@@ -103,6 +115,61 @@ namespace SilkyNvg.Paths
                 _points.Add(p);
                 _segments.Add(PathSegment.Cubic);
             }
+        }
+
+        internal void AddArcTo(Vector2 p1, Vector2 p2, float radius)
+        {
+            Vector2 p0 = Last;
+
+            if (p0.FpEquals(p1) || p1.FpEquals(p2) || radius.FpEquals(0))
+            {
+                AddLine(p1);
+                return;
+            }
+
+            if (Maths.PointsAreCollinear(p0, p1, p2))
+            {
+                AddLine(p1);
+                return;
+            }
+            
+            // let ln be length of side opposite pn in triangle p0-p1-p2
+            // See: https://www.analyzemath.com/Geometry_calculators/radius_inscribed_circle.html
+            float l0 = (p2 - p1).Length();
+            float l1 = (p2 - p0).Length();
+            float l2 = (p1 - p0).Length();
+
+            float s = (l0 + l1 + l2) / 2;
+            
+            // Find inscribed circle
+            float inscribedRadius = MathF.Sqrt((s - l0) * (s - l1) * (s - l2) / s);
+            Vector2 inscribedCenter = (l0 * p0 + l1 * p1 + l2 * p2) / (l0 + l1 + l2);
+            
+            // ratio of inscribed radius to wanted radius
+            float k = radius / inscribedRadius;
+            
+            // center of circle arc
+            Vector2 center = p1 + k * (inscribedCenter - p1);
+            
+            // Tangent points that touch the lines
+            Vector2 inscribedStart = (p0 + p1) / 2 + (l0 - l1) / (2 * l2) * (p0 - p1);
+            Vector2 inscribedEnd = (p1 + p2) / 2 + (l1 - l2) / (2 * l0) * (p1 - p2);
+            
+            Vector2 toInscribedStart = inscribedStart - inscribedCenter;
+            Vector2 toInscribedEnd = inscribedEnd - inscribedCenter;
+
+            Vector2 start = center + k * toInscribedStart;
+            Vector2 end = center + k * toInscribedEnd;
+
+            AddLine(start);
+            
+            // NOTE: End needs to be last!
+            // This is because the following segment needs to start where this one ended!
+            _points.Add(center);
+            _points.Add(p1);
+            _points.Add(end);
+            _scalars.Add(radius);
+            _segments.Add(PathSegment.ArcTo);
         }
 
         internal void Close()

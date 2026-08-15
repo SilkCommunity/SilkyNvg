@@ -2,6 +2,7 @@
 
 layout(location = 0) in vec2 pos;
 layout(location = 1) in vec3 klm;
+layout(location = 2) in uint flags;
 
 out vec3 pass_klm;
 
