@@ -87,7 +87,7 @@ namespace SilkyNvg.Rendering.OpenGL
             _debugShader.LoadViewSize(new Vector2(1280f, 720f));
             _gl.LineWidth(15.0f);
             _gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Line);
-            //_gl.DrawArrays(PrimitiveType.Triangles, 0, vertexCount);
+            _gl.DrawArrays(PrimitiveType.Triangles, 0, vertexCount);
             
             _gl.DisableVertexAttribArray(0);
             _gl.DisableVertexAttribArray(1);

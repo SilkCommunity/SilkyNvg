@@ -96,7 +96,7 @@ namespace SilkyNvg
         }
 
         public void MoveTo(float x, float y)
-            => MoveTo(new Vector2(x, y) + new Vector2(80, -250));
+            => MoveTo(new Vector2(x, y));
 
         public void LineTo(Vector2 p)
         {
@@ -116,7 +116,7 @@ namespace SilkyNvg
         }
         
         public void LineTo(float x, float y)
-            => LineTo(new Vector2(x, y) + new Vector2(80, -250));
+            => LineTo(new Vector2(x, y));
 
         public void QuadraticCurveTo(Vector2 cp, Vector2 p)
         {
@@ -130,7 +130,7 @@ namespace SilkyNvg
         }
 
         public void QuadraticCurveTo(float cpx, float cpy, float x, float y)
-            => QuadraticCurveTo(new Vector2(cpx, cpy) + new Vector2(80, -250), new Vector2(x, y) + new Vector2(80, -250));
+            => QuadraticCurveTo(new Vector2(cpx, cpy), new Vector2(x, y));
 
         public void BezierCurveTo(Vector2 cp1, Vector2 cp2, Vector2 p)
         {
@@ -144,7 +144,7 @@ namespace SilkyNvg
         }
         
         public void BezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float x, float y)
-            => BezierCurveTo(new Vector2(cp1x, cp1y) + new Vector2(80, -250), new Vector2(cp2x, cp2y) + new Vector2(80, -250), new Vector2(x, y) + new Vector2(80, -250));
+            => BezierCurveTo(new Vector2(cp1x, cp1y), new Vector2(cp2x, cp2y), new Vector2(x, y));
         
         #endregion
         
