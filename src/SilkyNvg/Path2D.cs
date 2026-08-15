@@ -11,7 +11,7 @@ namespace SilkyNvg
         
         private readonly List<SubPath> _subPaths = new List<SubPath>();
         
-        private readonly DataAccessibleArrayList<float> _vertices = new DataAccessibleArrayList<float>();
+        private readonly DataAccessibleArrayList<Vertex> _vertices = new();
         
         private bool _needNewSubPath;
 
@@ -53,7 +53,7 @@ namespace SilkyNvg
             uint vertexCount = 0;
             foreach (var subPath in _subPaths)
             {
-                vertexCount += subPath.BuildGeometry(_vertices, Matrix3x2.Identity);
+                vertexCount += subPath.BuildGeometry(_vertices);
             }
             
             renderer.FillPath(_vertices.Data, vertexCount);

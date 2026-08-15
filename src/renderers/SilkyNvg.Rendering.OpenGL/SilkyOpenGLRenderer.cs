@@ -35,11 +35,11 @@ namespace SilkyNvg.Rendering.OpenGL
             _debugShader = new DebugShader(_gl);
         }
 
-        public void FillPath(float[] vertexData, uint vertexCount)
+        public void FillPath(Vertex[] vertexData, uint vertexCount)
         {
             _fillVao.Bind();
             
-            _fillVbo.Store(vertexData, 5 * vertexCount, BufferUsageARB.DynamicDraw);
+            _fillVbo.Store(vertexData, vertexCount, BufferUsageARB.DynamicDraw);
             _fillVao.VertexAttributePointer<float>(0, 2, VertexAttribPointerType.Float, 5, 0);
             _fillVao.VertexAttributePointer<float>(1, 3, VertexAttribPointerType.Float, 5, 2);
             
