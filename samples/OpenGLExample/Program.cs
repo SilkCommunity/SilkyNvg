@@ -77,7 +77,7 @@ internal class Program : IDisposable
         path.BezierCurveTo(381, -212, 400, -210, 420, -206);
         path.ClosePath();
         
-        path.MoveTo(332, 822);
+        path.MoveTo(122, -513);
         path.BezierCurveTo(324, 791, 321, 757, 321, 720);
         path.BezierCurveTo(321, 678, 326, 639, 332, 599);
         path.BezierCurveTo(401, 667, 478, 745, 478, 849);
