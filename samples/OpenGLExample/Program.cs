@@ -1,4 +1,5 @@
-﻿using Silk.NET.Maths;
+﻿using System.Numerics;
+using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using SilkyNvg;
@@ -56,10 +57,10 @@ internal class Program : IDisposable
         var path = new Path2D();
 
         float alpha0 = MathF.PI * 0.25f;
-        path.Ellipse(600, 350, 500, 300, 0, MathF.PI * 0, MathF.PI * 3 / 2, true);
-        path.LineTo(1100, 650);
-        path.ClosePath();
-
+        path.RoundRect(10, 20, 150, 100, 40);
+        path.RoundRect(10, 150, 150, 100, 10, 40);
+        path.RoundRect(400, 20, 200, 100, 0, 30, 50, 60);
+        path.RoundRect(400, 150, -200, 100, 0, 30, 50, 60);
         _ctx?.BeginFrame();
         
         _ctx?.Fill(path);

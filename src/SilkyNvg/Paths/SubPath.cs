@@ -187,8 +187,6 @@ namespace SilkyNvg.Paths
         internal void AddEllipse(Vector2 origin, float radiusX, float radiusY, float startAngle, float endAngle,
             float rotation, Vector2 startPoint, Vector2 endPoint)
         {
-            AddLine(startPoint);
-            
             _points.Add(new Vector2(radiusX, radiusY));
             _points.Add(new Vector2(startAngle, endAngle));
             _points.Add(origin);
