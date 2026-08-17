@@ -10,21 +10,37 @@ namespace SilkyNvg
         
         private readonly Path2D _defaultPath;
         private readonly GeometryBuilder _geometryBuilder;
+
+        private uint _width;
+        private uint _height;
         
         #region Meta
-        
-        public uint Width { get; set; }
-        
-        public uint Height { get; set; }
+
+        public uint Width
+        {
+            get => _width;
+            set => Resize(value, _height);
+        }
+
+        public uint Height
+        {
+            get => _height;
+            set => Resize(_width, value);
+        }
+
+        public void Resize(uint newWidth, uint newHeight)
+        {
+            _width = newWidth;
+            _height = newHeight;
+            _renderer.Resize(newWidth, newHeight);
+        }
         
         #endregion
         
-        public SilkyRenderingContext2D(uint width, uint height, ISilkyRenderer renderer)
+        public SilkyRenderingContext2D(uint initialWidth, uint initialHeight, ISilkyRenderer renderer)
         {
-            Width = width;
-            Height = height;
-
             _renderer = renderer;
+            Resize(initialWidth, initialHeight);
             
             _defaultPath = new Path2D();
             _geometryBuilder = new GeometryBuilder();

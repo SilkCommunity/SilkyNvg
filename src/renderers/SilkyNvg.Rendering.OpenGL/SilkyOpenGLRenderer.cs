@@ -36,12 +36,21 @@ namespace SilkyNvg.Rendering.OpenGL
             _debugShader = new DebugShader(_gl);
         }
 
-        private void FillPath(int firstVertex, uint vertexCount)
+        public void Resize(uint width, uint height)
         {
             _shader.Start();
-            _shader.LoadViewSize(new Vector2(1280f, 720f));
+            _shader.LoadViewSize(new Vector2(width, height));
+            _shader.Stop();
+            _debugShader.Start();
+            _debugShader.LoadViewSize(new Vector2(width, height));
+            _debugShader.Stop();
+        }
+
+        private void FillPath(int firstVertex, uint vertexCount, int coverStart)
+        {
+            _shader.Start();
             
-            _gl.Enable(EnableCap.StencilTest);
+            // _gl.Enable(EnableCap.StencilTest);
             _gl.ClearStencil(0);
             _gl.Clear(ClearBufferMask.StencilBufferBit);
             
@@ -68,14 +77,13 @@ namespace SilkyNvg.Rendering.OpenGL
                 _gl.StencilMask(0xFF);
             }
             
-            _gl.DrawArrays(PrimitiveType.Triangles, firstVertex, vertexCount);
+            _gl.DrawArrays(PrimitiveType.Triangles, coverStart, 6);
 
-            _gl.Disable(EnableCap.StencilTest);
+            /*_gl.Disable(EnableCap.StencilTest);
             
             _debugShader.Start();
-            _debugShader.LoadViewSize(new Vector2(1280f, 720f));
             _gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Line);
-            _gl.DrawArrays(PrimitiveType.Triangles, firstVertex, vertexCount);
+            _gl.DrawArrays(PrimitiveType.Triangles, coverStart, 6);*/
             
         }
 
@@ -86,9 +94,9 @@ namespace SilkyNvg.Rendering.OpenGL
             _fillVbo.Store(vertexData, vertexCount, BufferUsageARB.DynamicDraw);
             _fillVao.VertexAttributePointer<float>(0, 2, VertexAttribPointerType.Float, 6, 0);
             _fillVao.VertexAttributePointer<float>(1, 3, VertexAttribPointerType.Float, 6, 2);
-            _fillVao.VertexAttributeIPointer<int>(2, 1, VertexAttribIType.Int, 6, 5);
+            _fillVao.VertexAttributeIPointer<VertexFlags>(2, 1, VertexAttribIType.Int, 6, 5);
             
-            
+            _gl.Enable(EnableCap.StencilTest);
             _gl.Disable(EnableCap.DepthTest);
             _gl.Disable(EnableCap.CullFace);
             
@@ -96,9 +104,9 @@ namespace SilkyNvg.Rendering.OpenGL
             _gl.EnableVertexAttribArray(1);
             _gl.EnableVertexAttribArray(2);
             
-            foreach (PathData path in pathData)
+            foreach (var path in pathData)
             {
-                FillPath(path.FirstVertex, path.VertexCount);
+                FillPath(path.FirstVertex, path.VertexCount, path.CoverStart);
             }
             
             _gl.DisableVertexAttribArray(0);
@@ -113,6 +121,7 @@ namespace SilkyNvg.Rendering.OpenGL
             _fillVbo.Dispose();
             _fillVao.Dispose();
             _shader.Dispose();
+            _debugShader.Dispose();
         }
         
     }

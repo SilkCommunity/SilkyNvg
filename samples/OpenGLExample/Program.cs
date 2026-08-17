@@ -40,8 +40,8 @@ internal class Program : IDisposable
 
     private void Resize(Vector2D<int> newSize)
     {
-        
         _gl!.Viewport(newSize);
+        _ctx?.Resize((uint)newSize.X, (uint)newSize.Y);
     }
 
     private void Update(double delta)
@@ -61,6 +61,7 @@ internal class Program : IDisposable
         path.RoundRect(10, 150, 150, 100, 10, 40);
         path.RoundRect(400, 20, 200, 100, 0, 30, 50, 60);
         path.RoundRect(400, 150, -200, 100, 0, 30, 50, 60);
+        
         _ctx?.BeginFrame();
         
         _ctx?.Fill(path);

@@ -17,21 +17,60 @@ internal class GeometryBuilder
 
     internal IReadOnlyList<PathData> Paths => _paths;
 
+    // Current path data
     private Vector2 _pathStart;
     private int _currentFirstVertex;
+    private Vector4 _currentBounds; // min x | min y | max x | max y
     
     internal void BeginPath(Vector2 start)
     {
         _pathStart = start;
         _currentFirstVertex = _vertices.Count;
+        _currentBounds = new Vector4(start.X, start.Y, start.X, start.Y);
     }
 
     internal void EndPath()
     {
+        // Add covering rectangle for rendering paint
+        // We do it this way, so that the renderer can easily use the same shader for stenciling and painting
+        //  operations. This avoids costly pipeline switches, instead you just render another two triangles
+        //  which have a flag that tells the shader to render the paint instead of the stenciling.
+        //  Notice that
+        //      (a) stencil operation is applied before shading, so we avoid calculating color of pixels we don't need
+        //      (b) the stenciling / drawing flag is always either true or false in the same draw call. Therefore
+        //          the GPU takes little issue with the if-statement in the shader.
+        int coverStart = _vertices.Count;
+        _vertices.AddRange(
+            new Vertex(new Vector2(_currentBounds.X, _currentBounds.Y), Vector3.Zero, VertexFlags.None),
+            new Vertex(new Vector2(_currentBounds.X, _currentBounds.W), Vector3.Zero, VertexFlags.None),
+            new Vertex(new Vector2(_currentBounds.Z, _currentBounds.W), Vector3.Zero, VertexFlags.None),
+            
+            new Vertex(new Vector2(_currentBounds.X, _currentBounds.Y), Vector3.Zero, VertexFlags.None),
+            new Vertex(new Vector2(_currentBounds.Z, _currentBounds.W), Vector3.Zero, VertexFlags.None),
+            new Vertex(new Vector2(_currentBounds.Z, _currentBounds.Y), Vector3.Zero, VertexFlags.None)
+        );
+        
         _paths.Add(new PathData(
             FirstVertex: _currentFirstVertex,
-            VertexCount: VertexCount - (uint)_currentFirstVertex
+            VertexCount: (uint)(coverStart - _currentFirstVertex),
+            CoverStart: coverStart
         ));
+    }
+
+    private void ExpandBounds(Vector2 p)
+    {
+        _currentBounds.X = MathF.Min(_currentBounds.X, p.X);
+        _currentBounds.Y = MathF.Min(_currentBounds.Y, p.Y);
+        _currentBounds.Z = MathF.Max(_currentBounds.Z, p.X);
+        _currentBounds.W = MathF.Max(_currentBounds.W, p.Y);
+    }
+
+    private void UpdateBounds(Vector4 segmentBounds)
+    {
+        _currentBounds.X = MathF.Min(_currentBounds.X, segmentBounds.X);
+        _currentBounds.Y = MathF.Min(_currentBounds.Y, segmentBounds.Y);
+        _currentBounds.Z = MathF.Max(_currentBounds.Z, segmentBounds.Z);
+        _currentBounds.W = MathF.Max(_currentBounds.W, segmentBounds.W);
     }
     
     private void AddAnchorGeometry(Vector2 first, Vector2 last)
@@ -42,26 +81,29 @@ internal class GeometryBuilder
         if (first.FpEquals(last)) return;
         
         _vertices.AddRange(
-            new Vertex(_pathStart, Vector3.One, Vertex.VertexFlagPolynomial),
-            new Vertex(first, Vector3.One, Vertex.VertexFlagPolynomial),
-            new Vertex(last, Vector3.One, Vertex.VertexFlagPolynomial)
+            new Vertex(_pathStart, Vector3.One, VertexFlags.Stencil),
+            new Vertex(first, Vector3.One, VertexFlags.Stencil),
+            new Vertex(last, Vector3.One, VertexFlags.Stencil)
         );
     }
     
     internal void AddLine(Vector2 p0, Vector2 p1)
     {
         AddAnchorGeometry(p0, p1);
+        ExpandBounds(p1);
     }
     
     internal void AddQuadratic(Vector2 p0, Vector2 p1, Vector2 p2)
     {
         _vertices.AddRange(
-            new Vertex(p0, Vector3.Zero, Vertex.VertexFlagPolynomial),
-            new Vertex(p1, new Vector3(0.5f, 0f, 0.5f), Vertex.VertexFlagPolynomial),
-            new Vertex(p2, Vector3.One, Vertex.VertexFlagPolynomial)
+            new Vertex(p0, Vector3.Zero, VertexFlags.Stencil),
+            new Vertex(p1, new Vector3(0.5f, 0f, 0.5f), VertexFlags.Stencil),
+            new Vertex(p2, Vector3.One, VertexFlags.Stencil)
         );
 
         AddAnchorGeometry(p0, p2);
+        ExpandBounds(p1);
+        ExpandBounds(p2);
     }
     
     private void SplitCubicAndAdd(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3, float splitTime)
@@ -265,9 +307,9 @@ internal class GeometryBuilder
             }
 
             _vertices.AddRange(
-                new Vertex(points[orderedHull[0]], new Vector3(outside * C[orderedHull[0], 0], outside * C[orderedHull[0], 1], C[orderedHull[0], 2]), Vertex.VertexFlagPolynomial),
-                new Vertex(points[orderedHull[1]], new Vector3(outside * C[orderedHull[1], 0], outside * C[orderedHull[1], 1], C[orderedHull[1], 2]), Vertex.VertexFlagPolynomial),
-                new Vertex(points[orderedHull[2]], new Vector3(outside * C[orderedHull[2], 0], outside * C[orderedHull[2], 1], C[orderedHull[2], 2]), Vertex.VertexFlagPolynomial)
+                new Vertex(points[orderedHull[0]], new Vector3(outside * C[orderedHull[0], 0], outside * C[orderedHull[0], 1], C[orderedHull[0], 2]), VertexFlags.Stencil),
+                new Vertex(points[orderedHull[1]], new Vector3(outside * C[orderedHull[1], 0], outside * C[orderedHull[1], 1], C[orderedHull[1], 2]), VertexFlags.Stencil),
+                new Vertex(points[orderedHull[2]], new Vector3(outside * C[orderedHull[2], 0], outside * C[orderedHull[2], 1], C[orderedHull[2], 2]), VertexFlags.Stencil)
             );
         }
         // From here on it follows hullCount = 4
@@ -289,14 +331,14 @@ internal class GeometryBuilder
             }
             
             _vertices.AddRange(
-                new Vertex(points[orderedHull[0]], new Vector3(outside1 * C[orderedHull[0], 0], outside1 * C[orderedHull[0], 1], C[orderedHull[0], 2]), Vertex.VertexFlagPolynomial),
-                new Vertex(points[orderedHull[1]], new Vector3(outside1 * C[orderedHull[1], 0], outside1 * C[orderedHull[1], 1], C[orderedHull[1], 2]), Vertex.VertexFlagPolynomial),
-                new Vertex(points[orderedHull[2]], new Vector3(outside1 * C[orderedHull[2], 0], outside1 * C[orderedHull[2], 1], C[orderedHull[2], 2]), Vertex.VertexFlagPolynomial)
+                new Vertex(points[orderedHull[0]], new Vector3(outside1 * C[orderedHull[0], 0], outside1 * C[orderedHull[0], 1], C[orderedHull[0], 2]), VertexFlags.Stencil),
+                new Vertex(points[orderedHull[1]], new Vector3(outside1 * C[orderedHull[1], 0], outside1 * C[orderedHull[1], 1], C[orderedHull[1], 2]), VertexFlags.Stencil),
+                new Vertex(points[orderedHull[2]], new Vector3(outside1 * C[orderedHull[2], 0], outside1 * C[orderedHull[2], 1], C[orderedHull[2], 2]), VertexFlags.Stencil)
             );
             _vertices.AddRange(
-                new Vertex(points[orderedHull[0]], new Vector3(outside2 * C[orderedHull[0], 0], outside2 * C[orderedHull[0], 1], C[orderedHull[0], 2]), Vertex.VertexFlagPolynomial),
-                new Vertex(points[orderedHull[2]], new Vector3(outside2 * C[orderedHull[2], 0], outside2 * C[orderedHull[2], 1], C[orderedHull[2], 2]), Vertex.VertexFlagPolynomial),
-                new Vertex(points[orderedHull[3]], new Vector3(outside2 * C[orderedHull[3], 0], outside2 * C[orderedHull[3], 1], C[orderedHull[3], 2]), Vertex.VertexFlagPolynomial)
+                new Vertex(points[orderedHull[0]], new Vector3(outside2 * C[orderedHull[0], 0], outside2 * C[orderedHull[0], 1], C[orderedHull[0], 2]), VertexFlags.Stencil),
+                new Vertex(points[orderedHull[2]], new Vector3(outside2 * C[orderedHull[2], 0], outside2 * C[orderedHull[2], 1], C[orderedHull[2], 2]), VertexFlags.Stencil),
+                new Vertex(points[orderedHull[3]], new Vector3(outside2 * C[orderedHull[3], 0], outside2 * C[orderedHull[3], 1], C[orderedHull[3], 2]), VertexFlags.Stencil)
             );
         }
         else // p1 and p2 are on the same side of (p0, p3), the outside test is the same for both triangles
@@ -308,18 +350,21 @@ internal class GeometryBuilder
             }
             
             _vertices.AddRange(
-                new Vertex(points[orderedHull[0]], new Vector3(outside * C[orderedHull[0], 0], outside * C[orderedHull[0], 1], C[orderedHull[0], 2]), Vertex.VertexFlagPolynomial),
-                new Vertex(points[orderedHull[1]], new Vector3(outside * C[orderedHull[1], 0], outside * C[orderedHull[1], 1], C[orderedHull[1], 2]), Vertex.VertexFlagPolynomial),
-                new Vertex(points[orderedHull[2]], new Vector3(outside * C[orderedHull[2], 0], outside * C[orderedHull[2], 1], C[orderedHull[2], 2]), Vertex.VertexFlagPolynomial)
+                new Vertex(points[orderedHull[0]], new Vector3(outside * C[orderedHull[0], 0], outside * C[orderedHull[0], 1], C[orderedHull[0], 2]), VertexFlags.Stencil),
+                new Vertex(points[orderedHull[1]], new Vector3(outside * C[orderedHull[1], 0], outside * C[orderedHull[1], 1], C[orderedHull[1], 2]), VertexFlags.Stencil),
+                new Vertex(points[orderedHull[2]], new Vector3(outside * C[orderedHull[2], 0], outside * C[orderedHull[2], 1], C[orderedHull[2], 2]), VertexFlags.Stencil)
             );
             _vertices.AddRange(
-                new Vertex(points[orderedHull[0]], new Vector3(outside * C[orderedHull[0], 0], outside * C[orderedHull[0], 1], C[orderedHull[0], 2]), Vertex.VertexFlagPolynomial),
-                new Vertex(points[orderedHull[2]], new Vector3(outside * C[orderedHull[2], 0], outside * C[orderedHull[2], 1], C[orderedHull[2], 2]), Vertex.VertexFlagPolynomial),
-                new Vertex(points[orderedHull[3]], new Vector3(outside * C[orderedHull[3], 0], outside * C[orderedHull[3], 1], C[orderedHull[3], 2]), Vertex.VertexFlagPolynomial)
+                new Vertex(points[orderedHull[0]], new Vector3(outside * C[orderedHull[0], 0], outside * C[orderedHull[0], 1], C[orderedHull[0], 2]), VertexFlags.Stencil),
+                new Vertex(points[orderedHull[2]], new Vector3(outside * C[orderedHull[2], 0], outside * C[orderedHull[2], 1], C[orderedHull[2], 2]), VertexFlags.Stencil),
+                new Vertex(points[orderedHull[3]], new Vector3(outside * C[orderedHull[3], 0], outside * C[orderedHull[3], 1], C[orderedHull[3], 2]), VertexFlags.Stencil)
             );
         }
         
         AddAnchorGeometry(p0, p3);
+        ExpandBounds(p1);
+        ExpandBounds(p2);
+        ExpandBounds(p3);
     }
 
     internal void AddArcTo(Vector2 start, Vector2 p1, Vector2 end, Vector2 center, float radius)
@@ -330,12 +375,18 @@ internal class GeometryBuilder
         Vector2 implicitEnd = (end - center) / radius;
         
         _vertices.AddRange(
-            new Vertex(start, new Vector3(implicitStart, 0), Vertex.VertexFlagEllipse),
-            new Vertex(p1, new Vector3(implicit1, 0), Vertex.VertexFlagEllipse),
-            new Vertex(end, new Vector3(implicitEnd, 0), Vertex.VertexFlagEllipse)
+            new Vertex(start, new Vector3(implicitStart, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+            new Vertex(p1, new Vector3(implicit1, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+            new Vertex(end, new Vector3(implicitEnd, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil)
         );
         
         AddAnchorGeometry(start, end);
+        UpdateBounds(new Vector4(
+            x: center.X - radius,
+            y: center.Y - radius,
+            z: center.X + radius,
+            w: center.Y + radius
+        ));
     }
 
     internal void AddEllipse(Vector2 origin, float radiusX, float radiusY, float rotation, float startAngle, float endAngle, Vector2 s, Vector2 e)
@@ -362,6 +413,14 @@ internal class GeometryBuilder
             corners[i] = Vector2.Transform(corner, transform);
         }
         
+        // Update the bounds. This is fortunately exactly the transformed corners.
+        UpdateBounds(new Vector4(
+            x: MathF.Min(MathF.Min(corners[0].X, corners[1].X), MathF.Min(corners[2].X, corners[3].X)),
+            y: MathF.Min(MathF.Min(corners[0].Y, corners[1].Y), MathF.Min(corners[2].Y, corners[3].Y)),
+            z: MathF.Max(MathF.Max(corners[0].X, corners[1].X), MathF.Max(corners[2].X, corners[3].X)), 
+            w: MathF.Max(MathF.Max(corners[0].Y, corners[1].Y), MathF.Max(corners[2].Y, corners[3].Y))    
+        ));
+        
         // (cos(alpha), sin(alpha)) circle positions so we don't multiply and divide by radius
         var circleS = new Vector2(MathF.Cos(startAngle), MathF.Sin(startAngle));
         var circleE = new Vector2(MathF.Cos(endAngle), MathF.Sin(endAngle));
@@ -374,13 +433,13 @@ internal class GeometryBuilder
         if (endAngle - startAngle >= MathF.Tau) // entire ellipse
         {
             _vertices.AddRange(
-                new Vertex(corners[2], new Vector3(implicitCorners[2], 0), Vertex.VertexFlagEllipse),
-                new Vertex(corners[1], new Vector3(implicitCorners[1], 0), Vertex.VertexFlagEllipse),
-                new Vertex(corners[0], new Vector3(implicitCorners[0], 0), Vertex.VertexFlagEllipse),
+                new Vertex(corners[2], new Vector3(implicitCorners[2], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                new Vertex(corners[1], new Vector3(implicitCorners[1], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                new Vertex(corners[0], new Vector3(implicitCorners[0], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
                 
-                new Vertex(corners[2], new Vector3(implicitCorners[2], 0), Vertex.VertexFlagEllipse),
-                new Vertex(corners[0], new Vector3(implicitCorners[0], 0), Vertex.VertexFlagEllipse),
-                new Vertex(corners[3], new Vector3(implicitCorners[3], 0), Vertex.VertexFlagEllipse)
+                new Vertex(corners[2], new Vector3(implicitCorners[2], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                new Vertex(corners[0], new Vector3(implicitCorners[0], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                new Vertex(corners[3], new Vector3(implicitCorners[3], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil)
             );
             
             AddAnchorGeometry(s, e);
@@ -416,61 +475,61 @@ internal class GeometryBuilder
                     m3Quadrant = (sQuadrant + 3) % 4;
                     
                     _vertices.AddRange(
-                        new Vertex(s, new Vector3(circleS, 0), Vertex.VertexFlagEllipse),
-                        new Vertex(corners[sQuadrant], new Vector3(implicitCorners[sQuadrant], 0), Vertex.VertexFlagEllipse),
-                        new Vertex(corners[m1Quadrant], new Vector3(implicitCorners[m1Quadrant], 0), Vertex.VertexFlagEllipse),
+                        new Vertex(s, new Vector3(circleS, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                        new Vertex(corners[sQuadrant], new Vector3(implicitCorners[sQuadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                        new Vertex(corners[m1Quadrant], new Vector3(implicitCorners[m1Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
                     
-                        new Vertex(s, new Vector3(circleS, 0), Vertex.VertexFlagEllipse),
-                        new Vertex(corners[m1Quadrant], new Vector3(implicitCorners[m1Quadrant], 0), Vertex.VertexFlagEllipse),
-                        new Vertex(corners[m2Quadrant], new Vector3(implicitCorners[m2Quadrant], 0), Vertex.VertexFlagEllipse),
+                        new Vertex(s, new Vector3(circleS, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                        new Vertex(corners[m1Quadrant], new Vector3(implicitCorners[m1Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                        new Vertex(corners[m2Quadrant], new Vector3(implicitCorners[m2Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
                     
-                        new Vertex(s, new Vector3(circleS, 0), Vertex.VertexFlagEllipse),
-                        new Vertex(corners[m2Quadrant], new Vector3(implicitCorners[m2Quadrant], 0), Vertex.VertexFlagEllipse),
-                        new Vertex(e, new Vector3(circleE, 0), Vertex.VertexFlagEllipse),
+                        new Vertex(s, new Vector3(circleS, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                        new Vertex(corners[m2Quadrant], new Vector3(implicitCorners[m2Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                        new Vertex(e, new Vector3(circleE, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
                     
-                        new Vertex(e, new Vector3(circleE, 0), Vertex.VertexFlagEllipse),
-                        new Vertex(corners[m2Quadrant], new Vector3(implicitCorners[m2Quadrant], 0), Vertex.VertexFlagEllipse),
-                        new Vertex(corners[m3Quadrant], new Vector3(implicitCorners[m3Quadrant], 0), Vertex.VertexFlagEllipse),
+                        new Vertex(e, new Vector3(circleE, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                        new Vertex(corners[m2Quadrant], new Vector3(implicitCorners[m2Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                        new Vertex(corners[m3Quadrant], new Vector3(implicitCorners[m3Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
                     
-                        new Vertex(e, new Vector3(circleE, 0), Vertex.VertexFlagEllipse),
-                        new Vertex(corners[m3Quadrant], new Vector3(implicitCorners[m3Quadrant], 0), Vertex.VertexFlagEllipse),
-                        new Vertex(corners[eQuadrant], new Vector3(implicitCorners[eQuadrant], 0), Vertex.VertexFlagEllipse)
+                        new Vertex(e, new Vector3(circleE, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                        new Vertex(corners[m3Quadrant], new Vector3(implicitCorners[m3Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                        new Vertex(corners[eQuadrant], new Vector3(implicitCorners[eQuadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil)
                     );
                 }
                 else // stay in quadrant
                 {
                     _vertices.AddRange(
-                        new Vertex(s, new Vector3(circleS, 0), Vertex.VertexFlagEllipse),
-                        new Vertex(corners[sQuadrant], new Vector3(implicitCorners[sQuadrant], 0), Vertex.VertexFlagEllipse),
-                        new Vertex(e, new Vector3(circleE, 0), Vertex.VertexFlagEllipse)
+                        new Vertex(s, new Vector3(circleS, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                        new Vertex(corners[sQuadrant], new Vector3(implicitCorners[sQuadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                        new Vertex(e, new Vector3(circleE, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil)
                     ); 
                 }
                 break;
             case 1:
                 _vertices.AddRange(
-                    new Vertex(s, new Vector3(circleS, 0), Vertex.VertexFlagEllipse),
-                    new Vertex(corners[sQuadrant], new Vector3(implicitCorners[sQuadrant], 0), Vertex.VertexFlagEllipse),
-                    new Vertex(corners[eQuadrant], new Vector3(implicitCorners[eQuadrant], 0), Vertex.VertexFlagEllipse),
+                    new Vertex(s, new Vector3(circleS, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                    new Vertex(corners[sQuadrant], new Vector3(implicitCorners[sQuadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                    new Vertex(corners[eQuadrant], new Vector3(implicitCorners[eQuadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
                     
-                    new Vertex(e, new Vector3(circleE, 0), Vertex.VertexFlagEllipse),
-                    new Vertex(s, new Vector3(circleS, 0), Vertex.VertexFlagEllipse),
-                    new Vertex(corners[eQuadrant], new Vector3(implicitCorners[eQuadrant], 0), Vertex.VertexFlagEllipse)
+                    new Vertex(e, new Vector3(circleE, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                    new Vertex(s, new Vector3(circleS, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                    new Vertex(corners[eQuadrant], new Vector3(implicitCorners[eQuadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil)
                 );
                 break;
             case 2:
                 m1Quadrant = (sQuadrant + 1) % 4;
                 _vertices.AddRange(
-                    new Vertex(s, new Vector3(circleS, 0), Vertex.VertexFlagEllipse),
-                    new Vertex(corners[sQuadrant], new Vector3(implicitCorners[sQuadrant], 0), Vertex.VertexFlagEllipse),
-                    new Vertex(corners[m1Quadrant], new Vector3(implicitCorners[m1Quadrant], 0), Vertex.VertexFlagEllipse),
+                    new Vertex(s, new Vector3(circleS, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                    new Vertex(corners[sQuadrant], new Vector3(implicitCorners[sQuadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                    new Vertex(corners[m1Quadrant], new Vector3(implicitCorners[m1Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
                     
-                    new Vertex(s, new Vector3(circleS, 0), Vertex.VertexFlagEllipse),
-                    new Vertex(corners[m1Quadrant], new Vector3(implicitCorners[m1Quadrant], 0), Vertex.VertexFlagEllipse),
-                    new Vertex(e, new Vector3(circleE, 0), Vertex.VertexFlagEllipse),
+                    new Vertex(s, new Vector3(circleS, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                    new Vertex(corners[m1Quadrant], new Vector3(implicitCorners[m1Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                    new Vertex(e, new Vector3(circleE, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
                     
-                    new Vertex(e, new Vector3(circleE, 0), Vertex.VertexFlagEllipse),
-                    new Vertex(corners[m1Quadrant], new Vector3(implicitCorners[m1Quadrant], 0), Vertex.VertexFlagEllipse),
-                    new Vertex(corners[eQuadrant], new Vector3(implicitCorners[eQuadrant], 0), Vertex.VertexFlagEllipse)
+                    new Vertex(e, new Vector3(circleE, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                    new Vertex(corners[m1Quadrant], new Vector3(implicitCorners[m1Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                    new Vertex(corners[eQuadrant], new Vector3(implicitCorners[eQuadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil)
                 );
                 break;
             case 3:
@@ -479,21 +538,21 @@ internal class GeometryBuilder
                 m2Quadrant = (sQuadrant + 2) % 4;
                 m3Quadrant = (sQuadrant + 3) % 4;
                 _vertices.AddRange(
-                    new Vertex(s, new Vector3(circleS, 0), Vertex.VertexFlagEllipse),
-                    new Vertex(corners[sQuadrant], new Vector3(implicitCorners[sQuadrant], 0), Vertex.VertexFlagEllipse),
-                    new Vertex(corners[m1Quadrant], new Vector3(implicitCorners[m1Quadrant], 0), Vertex.VertexFlagEllipse),
+                    new Vertex(s, new Vector3(circleS, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                    new Vertex(corners[sQuadrant], new Vector3(implicitCorners[sQuadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                    new Vertex(corners[m1Quadrant], new Vector3(implicitCorners[m1Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
                     
-                    new Vertex(s, new Vector3(circleS, 0), Vertex.VertexFlagEllipse),
-                    new Vertex(corners[m1Quadrant], new Vector3(implicitCorners[m1Quadrant], 0), Vertex.VertexFlagEllipse),
-                    new Vertex(corners[m2Quadrant], new Vector3(implicitCorners[m2Quadrant], 0), Vertex.VertexFlagEllipse),
+                    new Vertex(s, new Vector3(circleS, 0), VertexFlags.EllipseGeometry),
+                    new Vertex(corners[m1Quadrant], new Vector3(implicitCorners[m1Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                    new Vertex(corners[m2Quadrant], new Vector3(implicitCorners[m2Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
                     
-                    new Vertex(s, new Vector3(circleS, 0), Vertex.VertexFlagEllipse),
-                    new Vertex(corners[m2Quadrant], new Vector3(implicitCorners[m2Quadrant], 0), Vertex.VertexFlagEllipse),
-                    new Vertex(e, new Vector3(circleE, 0), Vertex.VertexFlagEllipse),
+                    new Vertex(s, new Vector3(circleS, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                    new Vertex(corners[m2Quadrant], new Vector3(implicitCorners[m2Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                    new Vertex(e, new Vector3(circleE, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
                     
-                    new Vertex(e, new Vector3(circleE, 0), Vertex.VertexFlagEllipse),
-                    new Vertex(corners[m2Quadrant], new Vector3(implicitCorners[m2Quadrant], 0), Vertex.VertexFlagEllipse),
-                    new Vertex(corners[m3Quadrant], new Vector3(implicitCorners[m3Quadrant], 0), Vertex.VertexFlagEllipse)
+                    new Vertex(e, new Vector3(circleE, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                    new Vertex(corners[m2Quadrant], new Vector3(implicitCorners[m2Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
+                    new Vertex(corners[m3Quadrant], new Vector3(implicitCorners[m3Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil)
                 );
                 break;
             default:

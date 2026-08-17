@@ -32,8 +32,6 @@ namespace SilkyNvg.Paths
                 return;
             }
             
-            geometry.BeginPath(Start);
-            
             int pointIndex = 0;
             int scalarIndex = 0;
             foreach (var segmentType in _segments)
@@ -86,8 +84,6 @@ namespace SilkyNvg.Paths
                         break;
                 }
             }
-            
-            geometry.EndPath();
         }
 
         internal void AddLine(Vector2 p)

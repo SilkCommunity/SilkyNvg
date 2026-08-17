@@ -7,22 +7,17 @@ using SilkyNvg.Utils;
 
 namespace SilkyNvg
 {
-    public class Path2D
+    public class Path2D()
     {
         
-        private readonly List<SubPath> _subPaths = new List<SubPath>();
+        private readonly List<SubPath> _subPaths = [];
         
-        private bool _needNewSubPath;
-
+        private bool _needNewSubPath = true;
+        
         private bool HasSubPaths => _subPaths.Count > 0;
         
-        private SubPath CurrentSubPath => _subPaths[_subPaths.Count - 1];
+        private SubPath CurrentSubPath => _subPaths[^1];
         
-        public Path2D()
-        {
-            _needNewSubPath = true;
-        }
-
         public Path2D(Path2D path)
             : this()
         {
@@ -47,10 +42,18 @@ namespace SilkyNvg
 
         internal void FillPath(GeometryBuilder geometryBuilder)
         {
+            if (!HasSubPaths)
+            {
+                return;
+            }
+
+            Vector2 start = _subPaths[0].Start;
+            geometryBuilder.BeginPath(start);
             foreach (var subPath in _subPaths)
             {
                 subPath.BuildFillGeometry(geometryBuilder);
             }
+            geometryBuilder.EndPath();
         }
 
         private void CreateNewSubpath(Vector2 start)
