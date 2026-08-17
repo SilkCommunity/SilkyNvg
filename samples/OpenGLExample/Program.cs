@@ -55,9 +55,9 @@ internal class Program : IDisposable
 
         var path = new Path2D();
 
-        path.MoveTo(200, 20);
-        path.ArcTo(200, 130, 50, 20, 40);
-        path.LineTo(50, 20);
+        float alpha0 = MathF.PI * 0.25f;
+        path.Ellipse(600, 350, 500, 300, 0, MathF.PI * 0, MathF.PI * 3 / 2, true);
+        path.LineTo(1100, 650);
         path.ClosePath();
 
         _ctx?.BeginFrame();

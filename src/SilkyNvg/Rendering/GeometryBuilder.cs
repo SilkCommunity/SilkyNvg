@@ -338,6 +338,172 @@ internal class GeometryBuilder
         AddAnchorGeometry(start, end);
     }
 
+    internal void AddEllipse(Vector2 origin, float radiusX, float radiusY, float rotation, float startAngle, float endAngle, Vector2 s, Vector2 e)
+    {
+        var transform = Matrix3x2.CreateRotation(rotation);
+        transform.Translation = origin;
+            
+        // Bounding box bounds
+        // Order matters here. It needs to line up with the quadrants!
+        Span<Vector2> corners =
+        [
+            new Vector2(radiusX, radiusY), // bottom right
+            new Vector2(-radiusX, radiusY), // bottom left
+            new Vector2(-radiusX, -radiusY), // top left
+            new Vector2(radiusX, -radiusY), // top right
+        ];
+        Span<Vector2> implicitCorners = stackalloc Vector2[4];
+        
+        // Generate implicit corners and transform corners
+        for (int i = 0; i < 4; i++)
+        {
+            Vector2 corner = corners[i];
+            implicitCorners[i] = new Vector2(corner.X / radiusX, corner.Y / radiusY);
+            corners[i] = Vector2.Transform(corner, transform);
+        }
+        
+        // (cos(alpha), sin(alpha)) circle positions so we don't multiply and divide by radius
+        var circleS = new Vector2(MathF.Cos(startAngle), MathF.Sin(startAngle));
+        var circleE = new Vector2(MathF.Cos(endAngle), MathF.Sin(endAngle));
+            
+        // modulo reduced angle
+        // negative angles, because angle convention is stupid here.
+        float alphaS = Maths.NormaliseAngle(startAngle);
+        float alphaE = Maths.NormaliseAngle(endAngle);
+
+        if (endAngle - startAngle >= MathF.Tau) // entire ellipse
+        {
+            _vertices.AddRange(
+                new Vertex(corners[2], new Vector3(implicitCorners[2], 0), Vertex.VertexFlagEllipse),
+                new Vertex(corners[1], new Vector3(implicitCorners[1], 0), Vertex.VertexFlagEllipse),
+                new Vertex(corners[0], new Vector3(implicitCorners[0], 0), Vertex.VertexFlagEllipse),
+                
+                new Vertex(corners[2], new Vector3(implicitCorners[2], 0), Vertex.VertexFlagEllipse),
+                new Vertex(corners[0], new Vector3(implicitCorners[0], 0), Vertex.VertexFlagEllipse),
+                new Vertex(corners[3], new Vector3(implicitCorners[3], 0), Vertex.VertexFlagEllipse)
+            );
+            
+            AddAnchorGeometry(s, e);
+            return;
+        }
+
+        int sQuadrant = Maths.Quadrant(alphaS);
+        int eQuadrant = Maths.Quadrant(alphaE);
+        
+        var sPlanar = new Vector2(radiusX * MathF.Cos(alphaS), radiusY * MathF.Sin(alphaS));
+        var ePlanar = new Vector2(radiusX * MathF.Cos(alphaE), radiusY * MathF.Sin(alphaE));
+
+        int numberOfQuadrants = (eQuadrant - sQuadrant) % 4;
+        numberOfQuadrants = numberOfQuadrants >= 0 ? numberOfQuadrants : numberOfQuadrants + 4;
+        
+        /*
+         * It might not be the prettiest, that we have hardcoded the triangulations for all four polygon cases.
+         * However, this avoids any triangulation algorithms. So it's probably simpler and faster.
+         */
+        Vector2 c0, c1, c2, c3;
+        int m1Quadrant, m2Quadrant, m3Quadrant;
+        switch (numberOfQuadrants)
+        {
+            case 0:
+                // S and E Quadrants are equal here
+
+                // We need two cases here. Either we have to remain in the quadrant
+                // or go around once.
+                if (alphaS > alphaE)  // go around
+                {
+                    m1Quadrant = (sQuadrant + 1) % 4;
+                    m2Quadrant = (sQuadrant + 2) % 4;
+                    m3Quadrant = (sQuadrant + 3) % 4;
+                    
+                    _vertices.AddRange(
+                        new Vertex(s, new Vector3(circleS, 0), Vertex.VertexFlagEllipse),
+                        new Vertex(corners[sQuadrant], new Vector3(implicitCorners[sQuadrant], 0), Vertex.VertexFlagEllipse),
+                        new Vertex(corners[m1Quadrant], new Vector3(implicitCorners[m1Quadrant], 0), Vertex.VertexFlagEllipse),
+                    
+                        new Vertex(s, new Vector3(circleS, 0), Vertex.VertexFlagEllipse),
+                        new Vertex(corners[m1Quadrant], new Vector3(implicitCorners[m1Quadrant], 0), Vertex.VertexFlagEllipse),
+                        new Vertex(corners[m2Quadrant], new Vector3(implicitCorners[m2Quadrant], 0), Vertex.VertexFlagEllipse),
+                    
+                        new Vertex(s, new Vector3(circleS, 0), Vertex.VertexFlagEllipse),
+                        new Vertex(corners[m2Quadrant], new Vector3(implicitCorners[m2Quadrant], 0), Vertex.VertexFlagEllipse),
+                        new Vertex(e, new Vector3(circleE, 0), Vertex.VertexFlagEllipse),
+                    
+                        new Vertex(e, new Vector3(circleE, 0), Vertex.VertexFlagEllipse),
+                        new Vertex(corners[m2Quadrant], new Vector3(implicitCorners[m2Quadrant], 0), Vertex.VertexFlagEllipse),
+                        new Vertex(corners[m3Quadrant], new Vector3(implicitCorners[m3Quadrant], 0), Vertex.VertexFlagEllipse),
+                    
+                        new Vertex(e, new Vector3(circleE, 0), Vertex.VertexFlagEllipse),
+                        new Vertex(corners[m3Quadrant], new Vector3(implicitCorners[m3Quadrant], 0), Vertex.VertexFlagEllipse),
+                        new Vertex(corners[eQuadrant], new Vector3(implicitCorners[eQuadrant], 0), Vertex.VertexFlagEllipse)
+                    );
+                }
+                else // stay in quadrant
+                {
+                    _vertices.AddRange(
+                        new Vertex(s, new Vector3(circleS, 0), Vertex.VertexFlagEllipse),
+                        new Vertex(corners[sQuadrant], new Vector3(implicitCorners[sQuadrant], 0), Vertex.VertexFlagEllipse),
+                        new Vertex(e, new Vector3(circleE, 0), Vertex.VertexFlagEllipse)
+                    ); 
+                }
+                break;
+            case 1:
+                _vertices.AddRange(
+                    new Vertex(s, new Vector3(circleS, 0), Vertex.VertexFlagEllipse),
+                    new Vertex(corners[sQuadrant], new Vector3(implicitCorners[sQuadrant], 0), Vertex.VertexFlagEllipse),
+                    new Vertex(corners[eQuadrant], new Vector3(implicitCorners[eQuadrant], 0), Vertex.VertexFlagEllipse),
+                    
+                    new Vertex(e, new Vector3(circleE, 0), Vertex.VertexFlagEllipse),
+                    new Vertex(s, new Vector3(circleS, 0), Vertex.VertexFlagEllipse),
+                    new Vertex(corners[eQuadrant], new Vector3(implicitCorners[eQuadrant], 0), Vertex.VertexFlagEllipse)
+                );
+                break;
+            case 2:
+                m1Quadrant = (sQuadrant + 1) % 4;
+                _vertices.AddRange(
+                    new Vertex(s, new Vector3(circleS, 0), Vertex.VertexFlagEllipse),
+                    new Vertex(corners[sQuadrant], new Vector3(implicitCorners[sQuadrant], 0), Vertex.VertexFlagEllipse),
+                    new Vertex(corners[m1Quadrant], new Vector3(implicitCorners[m1Quadrant], 0), Vertex.VertexFlagEllipse),
+                    
+                    new Vertex(s, new Vector3(circleS, 0), Vertex.VertexFlagEllipse),
+                    new Vertex(corners[m1Quadrant], new Vector3(implicitCorners[m1Quadrant], 0), Vertex.VertexFlagEllipse),
+                    new Vertex(e, new Vector3(circleE, 0), Vertex.VertexFlagEllipse),
+                    
+                    new Vertex(e, new Vector3(circleE, 0), Vertex.VertexFlagEllipse),
+                    new Vertex(corners[m1Quadrant], new Vector3(implicitCorners[m1Quadrant], 0), Vertex.VertexFlagEllipse),
+                    new Vertex(corners[eQuadrant], new Vector3(implicitCorners[eQuadrant], 0), Vertex.VertexFlagEllipse)
+                );
+                break;
+            case 3:
+                // sQuadrant and eQuadrant are equal here
+                m1Quadrant = (sQuadrant + 1) % 4;
+                m2Quadrant = (sQuadrant + 2) % 4;
+                m3Quadrant = (sQuadrant + 3) % 4;
+                _vertices.AddRange(
+                    new Vertex(s, new Vector3(circleS, 0), Vertex.VertexFlagEllipse),
+                    new Vertex(corners[sQuadrant], new Vector3(implicitCorners[sQuadrant], 0), Vertex.VertexFlagEllipse),
+                    new Vertex(corners[m1Quadrant], new Vector3(implicitCorners[m1Quadrant], 0), Vertex.VertexFlagEllipse),
+                    
+                    new Vertex(s, new Vector3(circleS, 0), Vertex.VertexFlagEllipse),
+                    new Vertex(corners[m1Quadrant], new Vector3(implicitCorners[m1Quadrant], 0), Vertex.VertexFlagEllipse),
+                    new Vertex(corners[m2Quadrant], new Vector3(implicitCorners[m2Quadrant], 0), Vertex.VertexFlagEllipse),
+                    
+                    new Vertex(s, new Vector3(circleS, 0), Vertex.VertexFlagEllipse),
+                    new Vertex(corners[m2Quadrant], new Vector3(implicitCorners[m2Quadrant], 0), Vertex.VertexFlagEllipse),
+                    new Vertex(e, new Vector3(circleE, 0), Vertex.VertexFlagEllipse),
+                    
+                    new Vertex(e, new Vector3(circleE, 0), Vertex.VertexFlagEllipse),
+                    new Vertex(corners[m2Quadrant], new Vector3(implicitCorners[m2Quadrant], 0), Vertex.VertexFlagEllipse),
+                    new Vertex(corners[m3Quadrant], new Vector3(implicitCorners[m3Quadrant], 0), Vertex.VertexFlagEllipse)
+                );
+                break;
+            default:
+                // there are only four quadrants by definition of the word quadrant.
+                return;
+        }
+        
+        AddAnchorGeometry(s, e);
+    }
+
     internal void ClearGeometry()
     {
         _vertices.Clear();

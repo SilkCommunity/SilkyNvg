@@ -39,6 +39,7 @@ namespace SilkyNvg.Paths
             foreach (var segmentType in _segments)
             {
                 Vector2 p0, p1, p2, p3;
+                Vector2 s, c, e;
                 switch (segmentType)
                 {
                     case PathSegment.Line:
@@ -63,13 +64,24 @@ namespace SilkyNvg.Paths
                         pointIndex += 3;  
                         break;
                     case PathSegment.ArcTo:
-                        Vector2 s = _points[pointIndex + 0];
-                        Vector2 c = _points[pointIndex + 1];
+                        s = _points[pointIndex + 0];
+                        c = _points[pointIndex + 1];
                         p1 = _points[pointIndex + 2];
-                        Vector2 e = _points[pointIndex + 3];
+                        e = _points[pointIndex + 3];
                         float radius = _scalars[scalarIndex + 0];
                         geometry.AddArcTo(s, p1, e, c, radius);
                         pointIndex += 3;
+                        scalarIndex += 1;
+                        break;
+                    case PathSegment.Ellipse:
+                        s = _points[pointIndex + 0];
+                        Vector2 radii = _points[pointIndex + 1];
+                        Vector2 angles = _points[pointIndex + 2];
+                        c = _points[pointIndex + 3];
+                        e = _points[pointIndex + 4];
+                        float rotation = _scalars[scalarIndex + 0];
+                        geometry.AddEllipse(c, radii.X, radii.Y, rotation, angles.X, angles.Y, s, e);
+                        pointIndex += 4;
                         scalarIndex += 1;
                         break;
                 }
@@ -170,6 +182,19 @@ namespace SilkyNvg.Paths
             _points.Add(end);
             _scalars.Add(radius);
             _segments.Add(PathSegment.ArcTo);
+        }
+
+        internal void AddEllipse(Vector2 origin, float radiusX, float radiusY, float startAngle, float endAngle,
+            float rotation, Vector2 startPoint, Vector2 endPoint)
+        {
+            AddLine(startPoint);
+            
+            _points.Add(new Vector2(radiusX, radiusY));
+            _points.Add(new Vector2(startAngle, endAngle));
+            _points.Add(origin);
+            _points.Add(endPoint);
+            _scalars.Add(rotation);
+            _segments.Add(PathSegment.Ellipse);
         }
 
         internal void Close()

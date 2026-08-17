@@ -159,8 +159,59 @@ namespace SilkyNvg
         
         public void ArcTo(float x1, float y1, float x2, float y2, float radius)
             => ArcTo(new Vector2(x1, y1), new Vector2(x2, y2), radius);
+
+        public void Arc(Vector2 origin, float radius, float startAngle, float endAngle, bool counterclockwise = false)
+            => Ellipse(origin, radius, radius, 0, startAngle, endAngle, counterclockwise);
         
+        public void Arc(float x, float y, float radius, float startAngle, float endAngle, bool counterclockwise = false)
+            => Arc(new Vector2(x, y), radius, startAngle, endAngle, counterclockwise);
+        
+        public void Ellipse(Vector2 origin, float radiusX, float radiusY, float rotation, float startAngle,
+            float endAngle, bool counterclockwise = false)
+        {
+            if (origin.IsInfinityOrNan() || radiusX.IsInfinityOrNan() || radiusY.IsInfinityOrNan() ||
+                rotation.IsInfinityOrNan() || startAngle.IsInfinityOrNan() || endAngle.IsInfinityOrNan())
+            {
+                return;
+            }
+
+            if (radiusX < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(radiusX), "Radius cannot be negative!");
+            }
+
+            if (radiusY < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(radiusY), "Radius cannot be negative!");
+            }
+            
+            // Always be counterclockwise (mathematically positive direction)
+            float cwStartAngle = startAngle;
+            float cwEndAngle = endAngle;
+            
+            if (counterclockwise)
+            {
+                // NOTE: No minus-sign here!! This is because html canvas is stupid
+                // and measures angles in clockwise direction for some stupid reason.
+                cwStartAngle = endAngle;
+                cwEndAngle = startAngle;
+            }
+
+            var rotTransform = Matrix3x2.CreateRotation(-rotation);
+            Vector2 startPoint = Maths.PointOnEllipse(origin, radiusX, radiusY, rotTransform, cwStartAngle);
+            Vector2 endPoint = Maths.PointOnEllipse(origin, radiusX, radiusY, rotTransform, cwEndAngle);
+            
+            EnsureSubPathExists(startPoint);
+            
+            CurrentSubPath.AddEllipse(origin, radiusX, radiusY, cwStartAngle, cwEndAngle, rotation, startPoint,
+                endPoint);
+        }
+
+        public void Ellipse(float x, float y, float radiusX, float radiusY, float rotation, float startAngle,
+            float endAngle, bool counterclockwise = false)
+            => Ellipse(new Vector2(x, y), radiusX, radiusY, rotation, startAngle, endAngle, counterclockwise);
+
         #endregion
-        
+
     }
 }

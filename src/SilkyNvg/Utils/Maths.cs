@@ -47,6 +47,35 @@ namespace SilkyNvg.Utils
             float area = p1.X * (p2.Y - p3.Y) + p2.X * (p3.Y - p1.Y) + p3.X * (p1.Y - p2.Y);
             return area.FpEquals(0);
         }
+
+        internal static Vector2 PointOnEllipse(Vector2 origin, float radiusX, float radiusY, Matrix3x2 rotation,
+            float angle)
+        {
+            var planarPoint = new Vector2(
+                radiusX * MathF.Cos(angle),
+                radiusY * MathF.Sin(angle)
+            );
+            return Vector2.Transform(planarPoint, rotation) + origin;
+        }
+
+        internal static float NormaliseAngle(float angle)
+        {
+            float result = angle % MathF.Tau;
+            return result >= 0 ? result : result + MathF.Tau;
+        }
+
+        // Quadrant numbering:
+        //  0 - bottom right | 1 - bottom left | 2 - top left | 3 - top right
+        internal static int Quadrant(float normalisedAngle)
+        {
+            return normalisedAngle switch
+            {
+                >= 0 and < MathF.PI / 2             => 0,
+                >= MathF.PI / 2 and < MathF.PI      => 1,
+                >= MathF.PI and < 3 * MathF.PI / 2  => 2,
+                _                                   => 3
+            };
+        }
         
     }
 }
