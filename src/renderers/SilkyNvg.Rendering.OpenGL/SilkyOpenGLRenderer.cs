@@ -36,7 +36,7 @@ namespace SilkyNvg.Rendering.OpenGL
             _debugShader = new DebugShader(_gl);
         }
 
-        public void Resize(uint width, uint height)
+        public void Resize(uint width, uint height, RenderTolerances _)
         {
             _shader.Start();
             _shader.LoadViewSize(new Vector2(width, height));
@@ -48,8 +48,6 @@ namespace SilkyNvg.Rendering.OpenGL
 
         private void FillPath(int firstVertex, uint vertexCount, int coverStart)
         {
-            _shader.Start();
-            
             // _gl.Enable(EnableCap.StencilTest);
             _gl.ClearStencil(0);
             _gl.Clear(ClearBufferMask.StencilBufferBit);
@@ -100,6 +98,8 @@ namespace SilkyNvg.Rendering.OpenGL
             _gl.Disable(EnableCap.DepthTest);
             _gl.Disable(EnableCap.CullFace);
             
+            _shader.Start();
+            
             _gl.EnableVertexAttribArray(0);
             _gl.EnableVertexAttribArray(1);
             _gl.EnableVertexAttribArray(2);
@@ -112,6 +112,8 @@ namespace SilkyNvg.Rendering.OpenGL
             _gl.DisableVertexAttribArray(0);
             _gl.DisableVertexAttribArray(1);
             _gl.DisableVertexAttribArray(2);
+            
+            _shader.Stop();
             
             _gl.Disable(EnableCap.StencilTest);
         }

@@ -1,12 +1,11 @@
 using System;
 using System.Numerics;
+using SilkyNvg.Rendering;
 
 namespace SilkyNvg.Utils
 {
     internal static class Maths
     {
-        
-        internal const float FloatEpsilon = 1e-03F;
         
         internal static readonly Matrix4x4 M3 = new Matrix4x4(
               1,  0,  0, 0,
@@ -22,14 +21,14 @@ namespace SilkyNvg.Utils
             1,      1,      1, 1
         );
         
-        internal static bool FpEquals(this float a, float b)
+        internal static bool FpEquals(this float a, float b, RenderTolerances tolerances)
         {
-            return Math.Abs(a - b) <= FloatEpsilon;
+            return Math.Abs(a - b) <= tolerances.FloatingPointTol;
         }
         
-        internal static bool FpEquals(this Vector2 a, Vector2 b)
+        internal static bool FpEquals(this Vector2 a, Vector2 b, RenderTolerances tolerances)
         {
-            return (a - b).LengthSquared() <= FloatEpsilon * FloatEpsilon;
+            return (a - b).LengthSquared() <= tolerances.FloatingPointTol * tolerances.FloatingPointTol;
         }
 
         internal static bool IsInfinityOrNan(this float f)
@@ -42,10 +41,10 @@ namespace SilkyNvg.Utils
             return v.X.IsInfinityOrNan() || v.Y.IsInfinityOrNan();
         }
 
-        internal static bool PointsAreCollinear(Vector2 p1, Vector2 p2, Vector2 p3)
+        internal static bool PointsAreCollinear(Vector2 p1, Vector2 p2, Vector2 p3, RenderTolerances tolerances)
         {
             float area = p1.X * (p2.Y - p3.Y) + p2.X * (p3.Y - p1.Y) + p3.X * (p1.Y - p2.Y);
-            return area.FpEquals(0);
+            return area.FpEquals(0, tolerances);
         }
 
         internal static Vector2 PointOnEllipse(Vector2 origin, float radiusX, float radiusY, Matrix3x2 rotation,

@@ -9,194 +9,127 @@ namespace SilkyNvg.Paths
     internal class SubPath
     {
         
-        private readonly List<Vector2> _points = [];
-        private readonly List<float> _scalars = [];
-        private readonly List<PathSegment> _segments = new List<PathSegment>();
+        private readonly List<float> _segmentData = [];
+        private readonly List<PathSegment> _segments = [];
         
         internal bool IsClosed { get; private set; }
         
-        internal Vector2 Start => _points[0]; // _points always has at least one element
+        internal Vector2 Start => new(_segmentData[0], _segmentData[1]); // _points always has at least one element
         
-        private Vector2 Last => _points[^1];
+        private Vector2 Last => new (_segmentData[^2], _segmentData[^1]);
 
-        internal SubPath(Vector2 start)
+        internal SubPath(float startX, float startY)
         {
-            _points.Add(start);
+            _segmentData.Add(startX);
+            _segmentData.Add(startY);
+        }
+        
+        private void AddPoint(float x, float y)
+        {
+            _segmentData.Add(x);
+            _segmentData.Add(y);
+        }
+
+        private Vector2 GetPoint(int index)
+        {
+            return new Vector2(_segmentData[index], _segmentData[index + 1]);
         }
 
         internal void BuildFillGeometry(GeometryBuilder geometry)
         {
-            // Cannot be closed if less than three points
-            if (!IsClosed || _points.Count < 3)
-            {
-                return;
-            }
-            
-            int pointIndex = 0;
-            int scalarIndex = 0;
+            Vector2 p0 = GetPoint(0);
+            int index = 2;  // First point is skipped because it's the initial point
             foreach (var segmentType in _segments)
             {
-                Vector2 p0, p1, p2, p3;
-                Vector2 s, c, e;
+                Vector2 p1, p2, p3, o;
+                float r, rx, ry, rot, alphaS, alphaE;
                 switch (segmentType)
                 {
                     case PathSegment.Line:
-                        p0 = _points[pointIndex + 0];
-                        p1 = _points[pointIndex + 1];
-                        geometry.AddLine(p0, p1);
-                        pointIndex += 1;
+                        p1 = GetPoint(index + 0);
+                        p0 = geometry.AddLine(p0, p1);
+                        index += 2;
                         break;
                     case PathSegment.Quadratic:
-                        p0 = _points[pointIndex + 0];
-                        p1 = _points[pointIndex + 1];
-                        p2 = _points[pointIndex + 2];
-                        geometry.AddQuadratic(p0, p1, p2);
-                        pointIndex += 2;
+                        p1 = GetPoint(index + 0);
+                        p2 = GetPoint(index + 2);
+                        p0 = geometry.AddQuadratic(p0, p1, p2);
+                        index += 4;
                         break;
                     case PathSegment.Cubic:
-                        p0 = _points[pointIndex + 0];
-                        p1 = _points[pointIndex + 1];
-                        p2 = _points[pointIndex + 2];
-                        p3 = _points[pointIndex + 3];
-                        geometry.AddCubic(p0, p1, p2, p3);
-                        pointIndex += 3;  
+                        p1 = GetPoint(index + 0);
+                        p2 = GetPoint(index + 2);
+                        p3 = GetPoint(index + 4);
+                        p0 = geometry.AddCubic(p0, p1, p2, p3);
+                        index += 6;
                         break;
                     case PathSegment.ArcTo:
-                        s = _points[pointIndex + 0];
-                        c = _points[pointIndex + 1];
-                        p1 = _points[pointIndex + 2];
-                        e = _points[pointIndex + 3];
-                        float radius = _scalars[scalarIndex + 0];
-                        geometry.AddArcTo(s, p1, e, c, radius);
-                        pointIndex += 3;
-                        scalarIndex += 1;
+                        p1 = GetPoint(index + 0);
+                        p2 = GetPoint(index + 2);
+                        r = _segmentData[index + 4];
+                        p0 = geometry.AddArcTo(p0, p1, p2, r);
+                        index += 5;
                         break;
                     case PathSegment.Ellipse:
-                        s = _points[pointIndex + 0];
-                        Vector2 radii = _points[pointIndex + 1];
-                        Vector2 angles = _points[pointIndex + 2];
-                        c = _points[pointIndex + 3];
-                        e = _points[pointIndex + 4];
-                        float rotation = _scalars[scalarIndex + 0];
-                        geometry.AddEllipse(c, radii.X, radii.Y, rotation, angles.X, angles.Y, s, e);
-                        pointIndex += 4;
-                        scalarIndex += 1;
+                        o = GetPoint(index + 0);
+                        rx = _segmentData[index + 2];
+                        ry = _segmentData[index + 3];
+                        alphaS = _segmentData[index + 4];
+                        alphaE = _segmentData[index + 5];
+                        rot = _segmentData[index + 6];
+                        p0 = geometry.AddEllipse(p0, o, rx, ry, rot, alphaS, alphaE);
+                        index += 7;
                         break;
                 }
             }
         }
 
-        internal void AddLine(Vector2 p)
+        internal void AddLine(float x, float y)
         {
-            _points.Add(p);
+            AddPoint(x, y);
             _segments.Add(PathSegment.Line);
         }
 
-        internal void AddQuadratic(Vector2 cp, Vector2 p)
+        internal void AddQuadratic(float cpx, float cpy, float x, float y)
         {
-            if (Last.FpEquals(cp))
-            {
-                AddLine(p);
-            }
-            else
-            {
-                _points.Add(cp);
-                _points.Add(p);
-                _segments.Add(PathSegment.Quadratic);
-            }
+            AddPoint(cpx, cpy);
+            AddPoint(x, y);
+            _segments.Add(PathSegment.Quadratic);
         }
 
-        internal void AddCubic(Vector2 cp1, Vector2 cp2, Vector2 p)
+        internal void AddCubic(float cp1x, float cp1y, float cp2x, float cp2y, float x, float y)
         {
-            if (Last.FpEquals(cp1))
-            {
-                AddQuadratic(cp2, p);
-            }
-            else if (cp1.FpEquals(cp2))
-            {
-                AddQuadratic((cp1 + cp2) / 2, p);
-            }
-            else
-            {
-                _points.Add(cp1);
-                _points.Add(cp2);
-                _points.Add(p);
-                _segments.Add(PathSegment.Cubic);
-            }
+            AddPoint(cp1x, cp1y);
+            AddPoint(cp2x, cp2y);
+            AddPoint(x, y);
+            _segments.Add(PathSegment.Cubic);
         }
 
-        internal void AddArcTo(Vector2 p1, Vector2 p2, float radius)
+        internal void AddArcTo(float x1, float y1, float x2, float y2, float radius)
         {
-            Vector2 p0 = Last;
-
-            if (p0.FpEquals(p1) || p1.FpEquals(p2) || radius.FpEquals(0))
-            {
-                AddLine(p1);
-                return;
-            }
-
-            if (Maths.PointsAreCollinear(p0, p1, p2))
-            {
-                AddLine(p1);
-                return;
-            }
-            
-            // let ln be length of side opposite pn in triangle p0-p1-p2
-            // See: https://www.analyzemath.com/Geometry_calculators/radius_inscribed_circle.html
-            float l0 = (p2 - p1).Length();
-            float l1 = (p2 - p0).Length();
-            float l2 = (p1 - p0).Length();
-
-            float s = (l0 + l1 + l2) / 2;
-            
-            // Find inscribed circle
-            float inscribedRadius = MathF.Sqrt((s - l0) * (s - l1) * (s - l2) / s);
-            Vector2 inscribedCenter = (l0 * p0 + l1 * p1 + l2 * p2) / (l0 + l1 + l2);
-            
-            // ratio of inscribed radius to wanted radius
-            float k = radius / inscribedRadius;
-            
-            // center of circle arc
-            Vector2 center = p1 + k * (inscribedCenter - p1);
-            
-            // Tangent points that touch the lines
-            Vector2 inscribedStart = (p0 + p1) / 2 + (l0 - l1) / (2 * l2) * (p0 - p1);
-            Vector2 inscribedEnd = (p1 + p2) / 2 + (l1 - l2) / (2 * l0) * (p1 - p2);
-            
-            Vector2 toInscribedStart = inscribedStart - inscribedCenter;
-            Vector2 toInscribedEnd = inscribedEnd - inscribedCenter;
-
-            Vector2 start = center + k * toInscribedStart;
-            Vector2 end = center + k * toInscribedEnd;
-
-            AddLine(start);
-            
-            // NOTE: End needs to be last!
-            // This is because the following segment needs to start where this one ended!
-            _points.Add(center);
-            _points.Add(p1);
-            _points.Add(end);
-            _scalars.Add(radius);
+            AddPoint(x1, y1);
+            AddPoint(x2, y2);
+            _segmentData.Add(radius);
             _segments.Add(PathSegment.ArcTo);
         }
 
-        internal void AddEllipse(Vector2 origin, float radiusX, float radiusY, float startAngle, float endAngle,
-            float rotation, Vector2 startPoint, Vector2 endPoint)
+        internal void AddEllipse(float x, float y, float radiusX, float radiusY, float startAngle, float endAngle, float rotation)
         {
-            _points.Add(new Vector2(radiusX, radiusY));
-            _points.Add(new Vector2(startAngle, endAngle));
-            _points.Add(origin);
-            _points.Add(endPoint);
-            _scalars.Add(rotation);
+            AddPoint(x, y);
+            _segmentData.Add(radiusX);
+            _segmentData.Add(radiusY);
+            _segmentData.Add(startAngle);
+            _segmentData.Add(endAngle);
+            _segmentData.Add(rotation);
             _segments.Add(PathSegment.Ellipse);
         }
 
         internal void Close()
         {
             IsClosed = true;
-            if (_points.Count > 1) // Don't close if we only have one point anyway
+            if (_segmentData.Count > 2) // Don't close if we only have one point anyway
             {
-                AddLine(_points[0]);
+                AddLine(_segmentData[0], _segmentData[1]);
             }
         }
 

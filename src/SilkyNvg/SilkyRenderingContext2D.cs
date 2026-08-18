@@ -10,6 +10,7 @@ namespace SilkyNvg
         
         private readonly Path2D _defaultPath;
         private readonly GeometryBuilder _geometryBuilder;
+        private readonly RenderTolerances _tolerances;
 
         private uint _width;
         private uint _height;
@@ -28,22 +29,25 @@ namespace SilkyNvg
             set => Resize(_width, value);
         }
 
-        public void Resize(uint newWidth, uint newHeight)
+        public void Resize(uint newWidth, uint newHeight, float newPixelRatio = 1.0f)
         {
             _width = newWidth;
             _height = newHeight;
-            _renderer.Resize(newWidth, newHeight);
+            _tolerances.Update(newPixelRatio);
+            _renderer.Resize(newWidth, newHeight, _tolerances);
         }
         
         #endregion
         
-        public SilkyRenderingContext2D(uint initialWidth, uint initialHeight, ISilkyRenderer renderer)
+        public SilkyRenderingContext2D(ISilkyRenderer renderer, uint initialWidth, uint initialHeight, float initialPixelRatio = 1.0f)
         {
             _renderer = renderer;
-            Resize(initialWidth, initialHeight);
             
             _defaultPath = new Path2D();
-            _geometryBuilder = new GeometryBuilder();
+            _tolerances = new RenderTolerances();
+            _geometryBuilder = new GeometryBuilder(_tolerances);
+            
+            Resize(initialWidth, initialHeight, initialPixelRatio);
         }
 
         public void BeginFrame()

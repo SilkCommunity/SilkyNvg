@@ -33,7 +33,7 @@ internal class Program : IDisposable
         _gl = GL.GetApi(_window);
 
         _renderer = new SilkyOpenGLRenderer(_gl);
-        _ctx = new SilkyRenderingContext2D(1280, 720, _renderer);
+        _ctx = new SilkyRenderingContext2D(_renderer, 1280, 720);
         
         Resize(_window.Size);
     }

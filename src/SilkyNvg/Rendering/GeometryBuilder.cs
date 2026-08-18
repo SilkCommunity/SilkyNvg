@@ -5,12 +5,14 @@ using SilkyNvg.Utils;
 
 namespace SilkyNvg.Rendering;
 
-internal class GeometryBuilder
+internal class GeometryBuilder(RenderTolerances tol)
 {
 
     private readonly DataAccessibleArrayList<Vertex> _vertices = new();
     private readonly List<PathData> _paths = [];
 
+    private readonly RenderTolerances _tols = tol;
+    
     internal Vertex[] VertexData => _vertices.Data;
 
     internal uint VertexCount => (uint)_vertices.Count;
@@ -76,9 +78,9 @@ internal class GeometryBuilder
     private void AddAnchorGeometry(Vector2 first, Vector2 last)
     {
         // Make sure triangle is a triangle
-        if (_pathStart.FpEquals(first)) return;
-        if (_pathStart.FpEquals(last)) return;
-        if (first.FpEquals(last)) return;
+        if (_pathStart.FpEquals(first, _tols)) return;
+        if (_pathStart.FpEquals(last, _tols)) return;
+        if (first.FpEquals(last, _tols)) return;
         
         _vertices.AddRange(
             new Vertex(_pathStart, Vector3.One, VertexFlags.Stencil),
@@ -87,38 +89,46 @@ internal class GeometryBuilder
         );
     }
     
-    internal void AddLine(Vector2 p0, Vector2 p1)
+    internal Vector2 AddLine(Vector2 p0, Vector2 p1)
     {
         AddAnchorGeometry(p0, p1);
         ExpandBounds(p1);
+        return p1;
     }
     
-    internal void AddQuadratic(Vector2 p0, Vector2 p1, Vector2 p2)
+    internal Vector2 AddQuadratic(Vector2 p0, Vector2 cp, Vector2 p)
     {
+        if (p0.FpEquals(cp, _tols))
+        {
+            return AddLine(p0, p);
+        }
+        
         _vertices.AddRange(
             new Vertex(p0, Vector3.Zero, VertexFlags.Stencil),
-            new Vertex(p1, new Vector3(0.5f, 0f, 0.5f), VertexFlags.Stencil),
-            new Vertex(p2, Vector3.One, VertexFlags.Stencil)
+            new Vertex(cp, new Vector3(0.5f, 0f, 0.5f), VertexFlags.Stencil),
+            new Vertex(p, Vector3.One, VertexFlags.Stencil)
         );
 
-        AddAnchorGeometry(p0, p2);
-        ExpandBounds(p1);
-        ExpandBounds(p2);
+        AddAnchorGeometry(p0, p);
+        ExpandBounds(cp);
+        ExpandBounds(p);
+
+        return p;
     }
     
-    private void SplitCubicAndAdd(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3, float splitTime)
+    private void SplitCubicAndAdd(Vector2 p0, Vector2 cp1, Vector2 cp2, Vector2 p, float splitTime)
     {
-        Span<Vector2> points = [p0, p1, p2, p3];
+        Span<Vector2> points = [p0, cp1, cp2, p];
         Span<Vector2> left = stackalloc Vector2[4];
         Span<Vector2> right = stackalloc Vector2[4];
 
         Bezier.SplitBezier(splitTime, points, left, right);
 
-        AddCubic(left[0], left[1], left[2], left[3]);
-        AddCubic(right[0], right[1], right[2], right[3]);
+        _ = AddCubic(left[0], left[1], left[2], left[3]);
+        _ = AddCubic(right[0], right[1], right[2], right[3]);
     }
     
-    internal void AddCubic(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3)
+    internal Vector2 AddCubic(Vector2 p0, Vector2 cp1, Vector2 cp2, Vector2 p)
     {
         /* First convert the control points to the power basis, multiplying by M3
          *
@@ -128,9 +138,9 @@ internal class GeometryBuilder
          *                                      |  0  0  0  1 |
          */
         Vector2 q0 = p0;
-        Vector2 q1 = -3 * p0 + 3 * p1;
-        Vector2 q2 = 3 * p0 - 6 * p1 + 3 * p2;
-        Vector2 q3 = -p0 + 3 * p1 - 3 * p2 + p3;
+        Vector2 q1 = -3 * p0 + 3 * cp1;
+        Vector2 q2 = 3 * p0 - 6 * cp1 + 3 * cp2;
+        Vector2 q3 = -p0 + 3 * cp1 - 3 * cp2 + p;
 
         /* Compute determinants d0, d1, d2, d3, which give the coefficients of the inflection point polynomial:
          *      I(t, s) = d0 * t^3 - 3 * d1 * t^2 * s + 3 * d2 * t * s^2 - d3 * s^3
@@ -151,7 +161,7 @@ internal class GeometryBuilder
         float s = 1.0f;
         Matrix4x4 C = Matrix4x4.Identity;
         
-        if (!d1.FpEquals(0.0f) && D > -Maths.FloatEpsilon) // Serpentine or Cusp with inflection at infinity
+        if (!d1.FpEquals(0.0f, _tols) && D > -_tols.FloatingPointTol) // Serpentine or Cusp with inflection at infinity
         {
             var vl = new Vector2(
                 d2 + (float)Math.Sqrt(D / 3),
@@ -174,7 +184,7 @@ internal class GeometryBuilder
             );
             C = Matrix4x4.Multiply(Maths.M3Inverse, F);
         }
-        else if (!d1.FpEquals(0.0f) && D < -Maths.FloatEpsilon) // Loop
+        else if (!d1.FpEquals(0.0f, _tols) && D < -_tols.FloatingPointTol) // Loop
         {
             var vd = new Vector2(
                 d2 + (float)Math.Sqrt(-D),
@@ -194,16 +204,16 @@ internal class GeometryBuilder
              * is inside the control points vertex hull and would cause a shading anomaly. If this is the case,
              * subdivide the curve at this point.
              */
-            if (!vd.Y.FpEquals(0) && (vd.X / vd.Y) < (1 - Maths.FloatEpsilon) && (vd.X / vd.Y) > Maths.FloatEpsilon)
+            if (!vd.Y.FpEquals(0, _tols) && (vd.X / vd.Y) < (1 - _tols.FloatingPointTol) && (vd.X / vd.Y) > _tols.FloatingPointTol)
             {
-                SplitCubicAndAdd(p0, p1, p2, p3, vd.X / vd.Y);
-                return;
+                SplitCubicAndAdd(p0, cp1, cp2, p, vd.X / vd.Y);
+                return p;
             }
 
-            if (!ve.Y.FpEquals(0) && (ve.X / ve.Y) < (1 - Maths.FloatEpsilon) && (ve.X / ve.Y) > Maths.FloatEpsilon)
+            if (!ve.Y.FpEquals(0, _tols) && (ve.X / ve.Y) < (1 - _tols.FloatingPointTol) && (ve.X / ve.Y) > _tols.FloatingPointTol)
             {
-                SplitCubicAndAdd(p0, p1, p2, p3, ve.X / ve.Y);
-                return;
+                SplitCubicAndAdd(p0, cp1, cp2, p, ve.X / ve.Y);
+                return p;
             }
 
             var F = new Matrix4x4(
@@ -214,7 +224,7 @@ internal class GeometryBuilder
             );
             C = Matrix4x4.Multiply(Maths.M3Inverse, F);
         }
-        else if (d1.FpEquals(0.0f) && !d2.FpEquals(0.0f)) // Cusp with cusp at infinity
+        else if (d1.FpEquals(0.0f, _tols) && !d2.FpEquals(0.0f, _tols)) // Cusp with cusp at infinity
         {
             var vl = new Vector2(
                 d3,
@@ -234,19 +244,19 @@ internal class GeometryBuilder
             );
             C = Matrix4x4.Multiply(Maths.M3Inverse, F);
         }
-        else if (d1.FpEquals(0.0f) && d2.FpEquals(0.0f) && !d3.FpEquals(0.0f)) // Degenerate Quadratic
+        else if (d1.FpEquals(0.0f, _tols) && d2.FpEquals(0.0f, _tols) && !d3.FpEquals(0.0f, _tols)) // Degenerate Quadratic
         {
             AddQuadratic(
                 p0,
-                1.5f * p1 - 0.5f * p0,
-                p3
+                1.5f * cp1 - 0.5f * p0,
+                p
             );
-            return;
+            return p;
         }
-        else if (d1.FpEquals(0.0f) && d2.FpEquals(0.0f) && d3.FpEquals(0.0f)) // Degenerate line or quadratic
+        else if (d1.FpEquals(0.0f, _tols) && d2.FpEquals(0.0f, _tols) && d3.FpEquals(0.0f, _tols)) // Degenerate line or quadratic
         {
-            AddLine(p0, p3);
-            return;
+            AddLine(p0, p);
+            return p;
         }
         else
         {
@@ -254,7 +264,7 @@ internal class GeometryBuilder
         }
 
         // Compute the convex hull using gift wrapping algorithm
-        Span<Vector2> points = [p0, p1, p2, p3];
+        Span<Vector2> points = [p0, cp1, cp2, p];
         Span<int> hull = stackalloc int[4];
 
         int nHull = Bezier.CubicConvexHull(points, hull);
@@ -283,7 +293,7 @@ internal class GeometryBuilder
         // Ignore degenerate hulls
         if (nHull <= 2)
         {
-            return;
+            return p;
         }
         
         /*
@@ -361,14 +371,52 @@ internal class GeometryBuilder
             );
         }
         
-        AddAnchorGeometry(p0, p3);
-        ExpandBounds(p1);
-        ExpandBounds(p2);
-        ExpandBounds(p3);
+        AddAnchorGeometry(p0, p);
+        ExpandBounds(cp1);
+        ExpandBounds(cp2);
+        ExpandBounds(p);
+
+        return p;
     }
 
-    internal void AddArcTo(Vector2 start, Vector2 p1, Vector2 end, Vector2 center, float radius)
+    internal Vector2 AddArcTo(Vector2 p0, Vector2 p1, Vector2 p2, float radius)
     {
+        if (p0.FpEquals(p1, _tols) || p1.FpEquals(p2, _tols) || radius.FpEquals(0, _tols)
+            || Maths.PointsAreCollinear(p0, p1, p2, _tols))
+        {
+            return AddLine(p0, p1);
+        }
+
+        // let ln be length of side opposite pn in triangle p0-p1-p2
+        // See: https://www.analyzemath.com/Geometry_calculators/radius_inscribed_circle.html
+        float l0 = (p2 - p1).Length();
+        float l1 = (p2 - p0).Length();
+        float l2 = (p1 - p0).Length();
+
+        float s = (l0 + l1 + l2) / 2;
+        
+        // Find inscribed circle
+        float inscribedRadius = MathF.Sqrt((s - l0) * (s - l1) * (s - l2) / s);
+        Vector2 inscribedCenter = (l0 * p0 + l1 * p1 + l2 * p2) / (l0 + l1 + l2);
+        
+        // ratio of inscribed radius to wanted radius
+        float k = radius / inscribedRadius;
+        
+        // center of circle arc
+        Vector2 center = p1 + k * (inscribedCenter - p1);
+        
+        // Tangent points that touch the lines
+        Vector2 inscribedStart = (p0 + p1) / 2 + (l0 - l1) / (2 * l2) * (p0 - p1);
+        Vector2 inscribedEnd = (p1 + p2) / 2 + (l1 - l2) / (2 * l0) * (p1 - p2);
+        
+        Vector2 toInscribedStart = inscribedStart - inscribedCenter;
+        Vector2 toInscribedEnd = inscribedEnd - inscribedCenter;
+
+        Vector2 start = center + k * toInscribedStart;
+        Vector2 end = center + k * toInscribedEnd;
+
+        _ = AddLine(p0, start);
+        
         // Calculate implicit coordinates
         Vector2 implicitStart = (start - center) / radius;
         Vector2 implicit1 = (p1 - center) / radius;
@@ -387,13 +435,21 @@ internal class GeometryBuilder
             z: center.X + radius,
             w: center.Y + radius
         ));
+
+        return end;
     }
 
-    internal void AddEllipse(Vector2 origin, float radiusX, float radiusY, float rotation, float startAngle, float endAngle, Vector2 s, Vector2 e)
+    internal Vector2 AddEllipse(Vector2 p0, Vector2 origin, float radiusX, float radiusY, float rotation, float startAngle, float endAngle)
     {
         var transform = Matrix3x2.CreateRotation(rotation);
+        
+        // Start and end points
+        Vector2 s = p0;
+        Vector2 e = Maths.PointOnEllipse(origin, radiusX, radiusY, transform, endAngle);
+        
+        // Add translation here, this might be an optimization.
         transform.Translation = origin;
-            
+        
         // Bounding box bounds
         // Order matters here. It needs to line up with the quadrants!
         Span<Vector2> corners =
@@ -443,15 +499,12 @@ internal class GeometryBuilder
             );
             
             AddAnchorGeometry(s, e);
-            return;
+            return e;
         }
 
         int sQuadrant = Maths.Quadrant(alphaS);
         int eQuadrant = Maths.Quadrant(alphaE);
         
-        var sPlanar = new Vector2(radiusX * MathF.Cos(alphaS), radiusY * MathF.Sin(alphaS));
-        var ePlanar = new Vector2(radiusX * MathF.Cos(alphaE), radiusY * MathF.Sin(alphaE));
-
         int numberOfQuadrants = (eQuadrant - sQuadrant) % 4;
         numberOfQuadrants = numberOfQuadrants >= 0 ? numberOfQuadrants : numberOfQuadrants + 4;
         
@@ -459,7 +512,6 @@ internal class GeometryBuilder
          * It might not be the prettiest, that we have hardcoded the triangulations for all four polygon cases.
          * However, this avoids any triangulation algorithms. So it's probably simpler and faster.
          */
-        Vector2 c0, c1, c2, c3;
         int m1Quadrant, m2Quadrant, m3Quadrant;
         switch (numberOfQuadrants)
         {
@@ -557,10 +609,11 @@ internal class GeometryBuilder
                 break;
             default:
                 // there are only four quadrants by definition of the word quadrant.
-                return;
+                return e;
         }
         
         AddAnchorGeometry(s, e);
+        return e;
     }
 
     internal void ClearGeometry()

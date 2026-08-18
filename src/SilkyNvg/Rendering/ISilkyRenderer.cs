@@ -6,7 +6,7 @@ namespace SilkyNvg.Rendering
     public interface ISilkyRenderer : IDisposable
     {
 
-        void Resize(uint width, uint height);
+        void Resize(uint width, uint height, RenderTolerances tolerances);
 
         void Render(Vertex[] vertexData, uint vertexCount, IReadOnlyList<PathData> pathData);
 

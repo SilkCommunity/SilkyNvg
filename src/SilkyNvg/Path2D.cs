@@ -56,17 +56,17 @@ namespace SilkyNvg
             geometryBuilder.EndPath();
         }
 
-        private void CreateNewSubpath(Vector2 start)
+        private void CreateNewSubpath(float startX, float startY)
         {
-            _subPaths.Add(new SubPath(start));
+            _subPaths.Add(new SubPath(startX, startY));
             _needNewSubPath = false;
         }
 
-        private void EnsureSubPathExists(Vector2 p)
+        private void EnsureSubPathExists(float x, float y)
         {
             if (_needNewSubPath)
             {
-                CreateNewSubpath(p);
+                CreateNewSubpath(x, y);
             }
         }
 
@@ -80,99 +80,105 @@ namespace SilkyNvg
             }
             
             CurrentSubPath.Close();
-            CreateNewSubpath(CurrentSubPath.Start);
+            CreateNewSubpath(CurrentSubPath.Start.X, CurrentSubPath.Start.Y);
         }
 
         public void MoveTo(Vector2 p)
+            => MoveTo(p.X, p.Y);
+
+        public void MoveTo(float x, float y)
         {
-            if (p.IsInfinityOrNan())
+            if (x.IsInfinityOrNan() || y.IsInfinityOrNan())
             {
                 return;
             }
-            CreateNewSubpath(p);
+            CreateNewSubpath(x, y);
         }
 
-        public void MoveTo(float x, float y)
-            => MoveTo(new Vector2(x, y));
-
         public void LineTo(Vector2 p)
+            => LineTo(p.X, p.Y);
+
+        public void LineTo(float x, float y)
         {
-            if (p.IsInfinityOrNan())
+            if (x.IsInfinityOrNan() || y.IsInfinityOrNan())
             {
                 return;
             }
 
             if (!HasSubPaths)
             {
-                EnsureSubPathExists(p);
+                EnsureSubPathExists(x, y);
             }
             else
             {
-                CurrentSubPath.AddLine(p);
+                CurrentSubPath.AddLine(x, y);
             }
         }
-        
-        public void LineTo(float x, float y)
-            => LineTo(new Vector2(x, y));
 
         public void QuadraticCurveTo(Vector2 cp, Vector2 p)
-        {
-            if (cp.IsInfinityOrNan() || p.IsInfinityOrNan())
-            {
-                return;
-            }
-            
-            EnsureSubPathExists(cp);
-            CurrentSubPath.AddQuadratic(cp, p);
-        }
+            => QuadraticCurveTo(cp.X, cp.Y, p.X, p.Y);
 
         public void QuadraticCurveTo(float cpx, float cpy, float x, float y)
-            => QuadraticCurveTo(new Vector2(cpx, cpy), new Vector2(x, y));
+        {
+            if (cpx.IsInfinityOrNan() || cpy.IsInfinityOrNan() || x.IsInfinityOrNan() || y.IsInfinityOrNan())
+            {
+                return;
+            }
+            
+            EnsureSubPathExists(cpx, cpy);
+            CurrentSubPath.AddQuadratic(cpx, cpy, x, y);
+        }
 
         public void BezierCurveTo(Vector2 cp1, Vector2 cp2, Vector2 p)
+            => BezierCurveTo(cp1.X, cp1.Y, cp2.X, cp2.Y, p.X, p.Y);
+
+        public void BezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float x, float y)
         {
-            if (cp1.IsInfinityOrNan() || cp2.IsInfinityOrNan() || p.IsInfinityOrNan())
+            if (cp1x.IsInfinityOrNan() || cp1y.IsInfinityOrNan() || cp2x.IsInfinityOrNan() || cp2y.IsInfinityOrNan()
+                || x.IsInfinityOrNan() || y.IsInfinityOrNan())
             {
                 return;
             }
             
-            EnsureSubPathExists(cp1);
-            CurrentSubPath.AddCubic(cp1, cp2, p);
+            EnsureSubPathExists(cp1x, cp1y);
+            CurrentSubPath.AddCubic(cp1x, cp1y, cp2x, cp2y, x, y);
         }
-        
-        public void BezierCurveTo(float cp1x, float cp1y, float cp2x, float cp2y, float x, float y)
-            => BezierCurveTo(new Vector2(cp1x, cp1y), new Vector2(cp2x, cp2y), new Vector2(x, y));
 
         public void ArcTo(Vector2 p1, Vector2 p2, float radius)
+            => ArcTo(p1.X, p1.Y, p2.X, p2.Y, radius);
+
+        public void ArcTo(float x1, float y1, float x2, float y2, float radius)
         {
-            if (p1.IsInfinityOrNan() || p2.IsInfinityOrNan() || radius.IsInfinityOrNan())
+            if (x1.IsInfinityOrNan() || y1.IsInfinityOrNan() || x2.IsInfinityOrNan() || y2.IsInfinityOrNan()
+                || radius.IsInfinityOrNan())
             {
                 return;
             }
             
-            EnsureSubPathExists(p1);
+            EnsureSubPathExists(x1, y1);
 
             if (radius < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(radius), "Radius cannot be negative!");
             }
 
-            CurrentSubPath.AddArcTo(p1, p2, radius);
+            CurrentSubPath.AddArcTo(x1, y1, x2, y2, radius);
         }
-        
-        public void ArcTo(float x1, float y1, float x2, float y2, float radius)
-            => ArcTo(new Vector2(x1, y1), new Vector2(x2, y2), radius);
 
         public void Arc(Vector2 origin, float radius, float startAngle, float endAngle, bool counterclockwise = false)
             => Ellipse(origin, radius, radius, 0, startAngle, endAngle, counterclockwise);
         
         public void Arc(float x, float y, float radius, float startAngle, float endAngle, bool counterclockwise = false)
             => Arc(new Vector2(x, y), radius, startAngle, endAngle, counterclockwise);
-        
+
         public void Ellipse(Vector2 origin, float radiusX, float radiusY, float rotation, float startAngle,
             float endAngle, bool counterclockwise = false)
+            => Ellipse(origin.X, origin.Y, radiusX, radiusY, rotation, startAngle, endAngle, counterclockwise);
+
+        public void Ellipse(float x, float y, float radiusX, float radiusY, float rotation, float startAngle,
+            float endAngle, bool counterclockwise = false)
         {
-            if (origin.IsInfinityOrNan() || radiusX.IsInfinityOrNan() || radiusY.IsInfinityOrNan() ||
+            if (x.IsInfinityOrNan() || y.IsInfinityOrNan() || radiusX.IsInfinityOrNan() || radiusY.IsInfinityOrNan() ||
                 rotation.IsInfinityOrNan() || startAngle.IsInfinityOrNan() || endAngle.IsInfinityOrNan())
             {
                 return;
@@ -200,50 +206,63 @@ namespace SilkyNvg
                 cwEndAngle = startAngle;
             }
 
+            // We need to calculate this here since the start point is required for creating a new subpath.
+            // This shouldn't be too expensive though, especially since we automatically cache the starting point.
             var rotTransform = Matrix3x2.CreateRotation(-rotation);
-            Vector2 startPoint = Maths.PointOnEllipse(origin, radiusX, radiusY, rotTransform, cwStartAngle);
-            Vector2 endPoint = Maths.PointOnEllipse(origin, radiusX, radiusY, rotTransform, cwEndAngle);
+            Vector2 startPoint = Maths.PointOnEllipse(new Vector2(x, y), radiusX, radiusY, rotTransform, cwStartAngle);
             
             if (HasSubPaths)
             {
-                CurrentSubPath.AddLine(startPoint);
+                CurrentSubPath.AddLine(startPoint.X, startPoint.Y);
             }
             else
             {
-                CreateNewSubpath(startPoint);
+                CreateNewSubpath(startPoint.X, startPoint.Y);
             }
             
-            CurrentSubPath.AddEllipse(origin, radiusX, radiusY, cwStartAngle, cwEndAngle, rotation, startPoint,
-                endPoint);
+            CurrentSubPath.AddEllipse(x, y, radiusX, radiusY, cwStartAngle, cwEndAngle, rotation);
         }
 
-        public void Ellipse(float x, float y, float radiusX, float radiusY, float rotation, float startAngle,
-            float endAngle, bool counterclockwise = false)
-            => Ellipse(new Vector2(x, y), radiusX, radiusY, rotation, startAngle, endAngle, counterclockwise);
-
         public void Rect(Vector2 p, Vector2 s)
+            => Rect(p.X, p.Y, s.X, s.Y);
+
+        public void Rect(float x, float y, float w, float h)
         {
-            if (p.IsInfinityOrNan() || s.IsInfinityOrNan())
+            if (x.IsInfinityOrNan() || y.IsInfinityOrNan() || w.IsInfinityOrNan() || h.IsInfinityOrNan())
             {
                 return;
             }
             
-            CreateNewSubpath(p);
-            CurrentSubPath.AddLine(p);
-            CurrentSubPath.AddLine(p + s.X * Vector2.UnitX);
-            CurrentSubPath.AddLine(p + s);
-            CurrentSubPath.AddLine(p + s.Y * Vector2.UnitY);
+            CreateNewSubpath(x, y);
+            
+            CurrentSubPath.AddLine(x + w, y);
+            CurrentSubPath.AddLine(x + w, y + h);
+            CurrentSubPath.AddLine(x, y + h);
             CurrentSubPath.Close();
             
-            CreateNewSubpath(p);
+            CreateNewSubpath(x, y);
         }
 
-        public void Rect(float x, float y, float w, float h)
-            => Rect(new Vector2(x, y), new Vector2(w, h));
-
         public void RoundRect(Vector2 p, Vector2 s, params Vector2[] radii)
+            => RoundRect(p.X, p.Y, s.X, s.Y, radii);
+
+        public void RoundRect(Vector2 p, Vector2 s, params float[] radii)
+            => RoundRect(p.X, p.Y, s.X, s.Y, radii);
+
+        public void RoundRect(float x, float y, float w, float h, params float[] radii)
         {
-            if (p.IsInfinityOrNan() || s.IsInfinityOrNan())
+            var temp = new Vector2[radii.Length];
+            for (int i = 0; i < radii.Length; i++)
+            {
+                temp[i] = new Vector2(radii[i], radii[i]);
+            }
+
+            RoundRect(x, y, w, h, temp);
+        }
+
+        public void RoundRect(float x, float y, float w, float h, params Vector2[] radii)
+        {
+            if (x.IsInfinityOrNan() || y.IsInfinityOrNan() || w.IsInfinityOrNan() || h.IsInfinityOrNan())
             {
                 return;
             }
@@ -300,8 +319,8 @@ namespace SilkyNvg
             float bottom = lowerRight.X + lowerLeft.X;
             float left = upperLeft.Y + lowerLeft.Y;
 
-            float scale = MathF.Min(MathF.Min(MathF.Abs(s.X / top), MathF.Abs(s.Y / right)), MathF.Min(MathF.Abs(s.X / bottom),
-                MathF.Abs(s.Y / left)));
+            float scale = MathF.Min(MathF.Min(MathF.Abs(w / top), MathF.Abs(h / right)), MathF.Min(MathF.Abs(w / bottom),
+                MathF.Abs(h / left)));
             if (scale < 1)
             {
                 upperLeft *= scale;
@@ -315,10 +334,10 @@ namespace SilkyNvg
              * flip the rectangle. This seems to be common practice however, therefore we implement it here.
              */
             Vector2 temp;
-            if (s.X < 0)
+            if (w < 0)
             {
-                p = p with { X = p.X + s.X };
-                s.X = -s.X;
+                x = x + w;
+                w = -w;
 
                 temp = upperLeft;
                 upperLeft = upperRight;
@@ -328,10 +347,10 @@ namespace SilkyNvg
                 lowerRight = temp;
             }
 
-            if (s.Y < 0)
+            if (h < 0)
             {
-                p = p with { Y = p.Y + s.Y };
-                s.Y = -s.Y;
+                y = y + h;
+                y = -y;
 
                 temp = upperLeft;
                 upperLeft = lowerLeft;
@@ -341,66 +360,36 @@ namespace SilkyNvg
                 lowerRight = temp;
             }
 
-            CreateNewSubpath(p with { X = p.X + upperLeft.X });
-            CurrentSubPath.AddLine(p with { X = p.X + s.X - upperRight.X });
+            CreateNewSubpath(x + upperLeft.X, y);
+            CurrentSubPath.AddLine(x + w - upperRight.X, y);
             CurrentSubPath.AddEllipse(
-                new Vector2(
-                    p.X + s.X - upperRight.X,
-                    p.Y + upperRight.Y
-                ),
-                upperRight.X, upperRight.Y, MathF.PI * 1.5f, MathF.Tau, 0,
-                p with { X = p.X + s.X - upperRight.X },
-                p with { X = p.X + s.X, Y = p.Y + upperRight.Y }
+                x + w - upperRight.X, y + upperRight.Y,
+                upperRight.X, upperRight.Y,
+                MathF.PI * 1.5f, MathF.Tau, 0
             );
-            CurrentSubPath.AddLine(p with { X = p.X + s.X, Y = p.Y + s.Y - lowerRight.Y });
+            CurrentSubPath.AddLine(x + w, y + h - lowerRight.Y);
             CurrentSubPath.AddEllipse(
-                new Vector2(
-                    p.X + s.X - lowerRight.X,
-                    p.Y + s.Y - lowerRight.Y
-                ),
-                lowerRight.X, lowerRight.Y, 0, MathF.PI * 0.5f, 0,
-                p with { X = p.X + s.X, Y = p.Y + s.Y - lowerRight.Y },
-                p with { X = p.X + s.X - lowerRight.X, Y = p.Y + s.Y }
+                x + w - lowerRight.X,
+                y + h - lowerRight.Y,
+                lowerRight.X, lowerRight.Y,
+                0, MathF.PI * 0.5f, 0
             );
-            CurrentSubPath.AddLine(p with { X = p.X + lowerLeft.X, Y = p.Y + s.Y });
+            CurrentSubPath.AddLine(x + lowerLeft.X, y + h);
             CurrentSubPath.AddEllipse(
-                new Vector2(
-                    p.X + lowerLeft.X,
-                    p.Y + s.Y - lowerLeft.Y
-                ),
-                lowerLeft.X, lowerLeft.Y, MathF.PI * 0.5f, MathF.PI, 0,
-                p with { X = p.X + lowerLeft.X, Y = p.Y + s.Y - lowerLeft.Y },
-                p with { X = p.X, Y = p.Y + s.Y - lowerLeft.Y }
+                x + lowerLeft.X,
+                y + h - lowerLeft.Y,
+                lowerLeft.X, lowerLeft.Y,
+                MathF.PI * 0.5f, MathF.PI, 0
             );
-            CurrentSubPath.AddLine(p with { X = p.X, Y = p.Y + upperLeft.Y });
+            CurrentSubPath.AddLine(x, y + upperLeft.Y);
             CurrentSubPath.AddEllipse(
-                new Vector2(
-                    p.X + upperLeft.X,
-                    p.Y + upperLeft.Y
-                ),
-                upperLeft.X, upperLeft.Y, MathF.PI, MathF.PI * 1.5f, 0,
-                p with { X = p.X, Y = p.Y + upperLeft.Y },
-                p with { X = p.X + upperLeft.X, Y = p.Y }
+                x + upperLeft.X,
+                y + upperLeft.Y,
+                upperLeft.X, upperLeft.Y,
+                MathF.PI, MathF.PI * 1.5f, 0
             );
             CurrentSubPath.Close();
         }
-
-        public void RoundRect(Vector2 p, Vector2 s, params float[] radii)
-        {
-           var temp = new Vector2[radii.Length];
-            for (int i = 0; i < radii.Length; i++)
-            {
-                temp[i] = new Vector2(radii[i], radii[i]);
-            }
-
-            RoundRect(p, s, temp);
-        }
-
-        public void RoundRect(float x, float y, float w, float h, params Vector2[] radii)
-            => RoundRect(new Vector2(x, y), new Vector2(w, h), radii);
-
-        public void RoundRect(float x, float y, float w, float h, params float[] radii)
-            => RoundRect(new Vector2(x, y), new Vector2(w, h), radii);
 
         #endregion
 
