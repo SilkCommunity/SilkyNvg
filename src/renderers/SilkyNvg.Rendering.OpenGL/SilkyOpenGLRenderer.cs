@@ -25,6 +25,9 @@ namespace SilkyNvg.Rendering.OpenGL
         private SimpleShader _shader;
         private DebugShader _debugShader;
         
+        // We need to render to a framebuffer to support all required blending operations
+        private uint _framebufferId;
+        
         public SilkyOpenGLRenderer(GL gl)
         {
             _gl = gl;
@@ -34,6 +37,8 @@ namespace SilkyNvg.Rendering.OpenGL
             
             _shader = new SimpleShader(_gl);
             _debugShader = new DebugShader(_gl);
+
+            _framebufferId = _gl.GenFramebuffer();
         }
 
         public void Resize(uint width, uint height, RenderTolerances _)
@@ -92,7 +97,7 @@ namespace SilkyNvg.Rendering.OpenGL
             _fillVbo.Store(vertexData, vertexCount, BufferUsageARB.DynamicDraw);
             _fillVao.VertexAttributePointer<float>(0, 2, VertexAttribPointerType.Float, 6, 0);
             _fillVao.VertexAttributePointer<float>(1, 3, VertexAttribPointerType.Float, 6, 2);
-            _fillVao.VertexAttributeIPointer<VertexFlags>(2, 1, VertexAttribIType.Int, 6, 5);
+            _fillVao.VertexAttributeIPointer<int>(2, 1, VertexAttribIType.Int, 6, 5);
             
             _gl.Enable(EnableCap.StencilTest);
             _gl.Disable(EnableCap.DepthTest);
@@ -120,6 +125,8 @@ namespace SilkyNvg.Rendering.OpenGL
 
         public void Dispose()
         {
+            _gl.DeleteFramebuffer(_framebufferId);
+            
             _fillVbo.Dispose();
             _fillVao.Dispose();
             _shader.Dispose();

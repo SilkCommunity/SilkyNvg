@@ -43,13 +43,13 @@ internal class GeometryBuilder(RenderTolerances tol)
         //          the GPU takes little issue with the if-statement in the shader.
         int coverStart = _vertices.Count;
         _vertices.AddRange(
-            new Vertex(new Vector2(_currentBounds.X, _currentBounds.Y), Vector3.Zero, VertexFlags.None),
-            new Vertex(new Vector2(_currentBounds.X, _currentBounds.W), Vector3.Zero, VertexFlags.None),
-            new Vertex(new Vector2(_currentBounds.Z, _currentBounds.W), Vector3.Zero, VertexFlags.None),
+            new Vertex(new Vector2(_currentBounds.X, _currentBounds.Y), Vector3.Zero),
+            new Vertex(new Vector2(_currentBounds.X, _currentBounds.W), Vector3.Zero),
+            new Vertex(new Vector2(_currentBounds.Z, _currentBounds.W), Vector3.Zero),
             
-            new Vertex(new Vector2(_currentBounds.X, _currentBounds.Y), Vector3.Zero, VertexFlags.None),
-            new Vertex(new Vector2(_currentBounds.Z, _currentBounds.W), Vector3.Zero, VertexFlags.None),
-            new Vertex(new Vector2(_currentBounds.Z, _currentBounds.Y), Vector3.Zero, VertexFlags.None)
+            new Vertex(new Vector2(_currentBounds.X, _currentBounds.Y), Vector3.Zero),
+            new Vertex(new Vector2(_currentBounds.Z, _currentBounds.W), Vector3.Zero),
+            new Vertex(new Vector2(_currentBounds.Z, _currentBounds.Y), Vector3.Zero)
         );
         
         _paths.Add(new PathData(
@@ -83,9 +83,9 @@ internal class GeometryBuilder(RenderTolerances tol)
         if (first.FpEquals(last, _tols)) return;
         
         _vertices.AddRange(
-            new Vertex(_pathStart, Vector3.One, VertexFlags.Stencil),
-            new Vertex(first, Vector3.One, VertexFlags.Stencil),
-            new Vertex(last, Vector3.One, VertexFlags.Stencil)
+            new Vertex(_pathStart, Vector3.One, true),
+            new Vertex(first, Vector3.One, true),
+            new Vertex(last, Vector3.One, true)
         );
     }
     
@@ -104,9 +104,9 @@ internal class GeometryBuilder(RenderTolerances tol)
         }
         
         _vertices.AddRange(
-            new Vertex(p0, Vector3.Zero, VertexFlags.Stencil),
-            new Vertex(cp, new Vector3(0.5f, 0f, 0.5f), VertexFlags.Stencil),
-            new Vertex(p, Vector3.One, VertexFlags.Stencil)
+            Vertex.CreateRationalQuadratic(p0, new Vector3(0.0f, 0.0f, 1.0f)),
+            Vertex.CreateRationalQuadratic(cp, new Vector3(0.5f, 0.0f, 1.0f)),
+            Vertex.CreateRationalQuadratic(p, new Vector3(1.0f, 1.0f, 1.0f))
         );
 
         AddAnchorGeometry(p0, p);
@@ -317,9 +317,9 @@ internal class GeometryBuilder(RenderTolerances tol)
             }
 
             _vertices.AddRange(
-                new Vertex(points[orderedHull[0]], new Vector3(outside * C[orderedHull[0], 0], outside * C[orderedHull[0], 1], C[orderedHull[0], 2]), VertexFlags.Stencil),
-                new Vertex(points[orderedHull[1]], new Vector3(outside * C[orderedHull[1], 0], outside * C[orderedHull[1], 1], C[orderedHull[1], 2]), VertexFlags.Stencil),
-                new Vertex(points[orderedHull[2]], new Vector3(outside * C[orderedHull[2], 0], outside * C[orderedHull[2], 1], C[orderedHull[2], 2]), VertexFlags.Stencil)
+                Vertex.CreateCubic(points[orderedHull[0]], new Vector3(outside * C[orderedHull[0], 0], outside * C[orderedHull[0], 1], C[orderedHull[0], 2])),
+                Vertex.CreateCubic(points[orderedHull[1]], new Vector3(outside * C[orderedHull[1], 0], outside * C[orderedHull[1], 1], C[orderedHull[1], 2])),
+                Vertex.CreateCubic(points[orderedHull[2]], new Vector3(outside * C[orderedHull[2], 0], outside * C[orderedHull[2], 1], C[orderedHull[2], 2]))
             );
         }
         // From here on it follows hullCount = 4
@@ -341,14 +341,14 @@ internal class GeometryBuilder(RenderTolerances tol)
             }
             
             _vertices.AddRange(
-                new Vertex(points[orderedHull[0]], new Vector3(outside1 * C[orderedHull[0], 0], outside1 * C[orderedHull[0], 1], C[orderedHull[0], 2]), VertexFlags.Stencil),
-                new Vertex(points[orderedHull[1]], new Vector3(outside1 * C[orderedHull[1], 0], outside1 * C[orderedHull[1], 1], C[orderedHull[1], 2]), VertexFlags.Stencil),
-                new Vertex(points[orderedHull[2]], new Vector3(outside1 * C[orderedHull[2], 0], outside1 * C[orderedHull[2], 1], C[orderedHull[2], 2]), VertexFlags.Stencil)
+                Vertex.CreateCubic(points[orderedHull[0]], new Vector3(outside1 * C[orderedHull[0], 0], outside1 * C[orderedHull[0], 1], C[orderedHull[0], 2])),
+                Vertex.CreateCubic(points[orderedHull[1]], new Vector3(outside1 * C[orderedHull[1], 0], outside1 * C[orderedHull[1], 1], C[orderedHull[1], 2])),
+                Vertex.CreateCubic(points[orderedHull[2]], new Vector3(outside1 * C[orderedHull[2], 0], outside1 * C[orderedHull[2], 1], C[orderedHull[2], 2]))
             );
             _vertices.AddRange(
-                new Vertex(points[orderedHull[0]], new Vector3(outside2 * C[orderedHull[0], 0], outside2 * C[orderedHull[0], 1], C[orderedHull[0], 2]), VertexFlags.Stencil),
-                new Vertex(points[orderedHull[2]], new Vector3(outside2 * C[orderedHull[2], 0], outside2 * C[orderedHull[2], 1], C[orderedHull[2], 2]), VertexFlags.Stencil),
-                new Vertex(points[orderedHull[3]], new Vector3(outside2 * C[orderedHull[3], 0], outside2 * C[orderedHull[3], 1], C[orderedHull[3], 2]), VertexFlags.Stencil)
+                Vertex.CreateCubic(points[orderedHull[0]], new Vector3(outside2 * C[orderedHull[0], 0], outside2 * C[orderedHull[0], 1], C[orderedHull[0], 2])),
+                Vertex.CreateCubic(points[orderedHull[2]], new Vector3(outside2 * C[orderedHull[2], 0], outside2 * C[orderedHull[2], 1], C[orderedHull[2], 2])),
+                Vertex.CreateCubic(points[orderedHull[3]], new Vector3(outside2 * C[orderedHull[3], 0], outside2 * C[orderedHull[3], 1], C[orderedHull[3], 2]))
             );
         }
         else // p1 and p2 are on the same side of (p0, p3), the outside test is the same for both triangles
@@ -360,14 +360,14 @@ internal class GeometryBuilder(RenderTolerances tol)
             }
             
             _vertices.AddRange(
-                new Vertex(points[orderedHull[0]], new Vector3(outside * C[orderedHull[0], 0], outside * C[orderedHull[0], 1], C[orderedHull[0], 2]), VertexFlags.Stencil),
-                new Vertex(points[orderedHull[1]], new Vector3(outside * C[orderedHull[1], 0], outside * C[orderedHull[1], 1], C[orderedHull[1], 2]), VertexFlags.Stencil),
-                new Vertex(points[orderedHull[2]], new Vector3(outside * C[orderedHull[2], 0], outside * C[orderedHull[2], 1], C[orderedHull[2], 2]), VertexFlags.Stencil)
+                Vertex.CreateCubic(points[orderedHull[0]], new Vector3(outside * C[orderedHull[0], 0], outside * C[orderedHull[0], 1], C[orderedHull[0], 2])),
+                Vertex.CreateCubic(points[orderedHull[1]], new Vector3(outside * C[orderedHull[1], 0], outside * C[orderedHull[1], 1], C[orderedHull[1], 2])),
+                Vertex.CreateCubic(points[orderedHull[2]], new Vector3(outside * C[orderedHull[2], 0], outside * C[orderedHull[2], 1], C[orderedHull[2], 2]))
             );
             _vertices.AddRange(
-                new Vertex(points[orderedHull[0]], new Vector3(outside * C[orderedHull[0], 0], outside * C[orderedHull[0], 1], C[orderedHull[0], 2]), VertexFlags.Stencil),
-                new Vertex(points[orderedHull[2]], new Vector3(outside * C[orderedHull[2], 0], outside * C[orderedHull[2], 1], C[orderedHull[2], 2]), VertexFlags.Stencil),
-                new Vertex(points[orderedHull[3]], new Vector3(outside * C[orderedHull[3], 0], outside * C[orderedHull[3], 1], C[orderedHull[3], 2]), VertexFlags.Stencil)
+                Vertex.CreateCubic(points[orderedHull[0]], new Vector3(outside * C[orderedHull[0], 0], outside * C[orderedHull[0], 1], C[orderedHull[0], 2])),
+                Vertex.CreateCubic(points[orderedHull[2]], new Vector3(outside * C[orderedHull[2], 0], outside * C[orderedHull[2], 1], C[orderedHull[2], 2])),
+                Vertex.CreateCubic(points[orderedHull[3]], new Vector3(outside * C[orderedHull[3], 0], outside * C[orderedHull[3], 1], C[orderedHull[3], 2]))
             );
         }
         
@@ -422,11 +422,11 @@ internal class GeometryBuilder(RenderTolerances tol)
         Vector2 implicit1 = (p1 - center) / radius;
         Vector2 implicitEnd = (end - center) / radius;
         
-        _vertices.AddRange(
+        /*_vertices.AddRange(
             new Vertex(start, new Vector3(implicitStart, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
             new Vertex(p1, new Vector3(implicit1, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
             new Vertex(end, new Vector3(implicitEnd, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil)
-        );
+        );*/
         
         AddAnchorGeometry(start, end);
         UpdateBounds(new Vector4(
@@ -486,7 +486,7 @@ internal class GeometryBuilder(RenderTolerances tol)
         float alphaS = Maths.NormaliseAngle(startAngle);
         float alphaE = Maths.NormaliseAngle(endAngle);
 
-        if (endAngle - startAngle >= MathF.Tau) // entire ellipse
+        /*if (endAngle - startAngle >= MathF.Tau) // entire ellipse
         {
             _vertices.AddRange(
                 new Vertex(corners[2], new Vector3(implicitCorners[2], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
@@ -500,7 +500,7 @@ internal class GeometryBuilder(RenderTolerances tol)
             
             AddAnchorGeometry(s, e);
             return e;
-        }
+        }*/
 
         int sQuadrant = Maths.Quadrant(alphaS);
         int eQuadrant = Maths.Quadrant(alphaE);
@@ -513,7 +513,7 @@ internal class GeometryBuilder(RenderTolerances tol)
          * However, this avoids any triangulation algorithms. So it's probably simpler and faster.
          */
         int m1Quadrant, m2Quadrant, m3Quadrant;
-        switch (numberOfQuadrants)
+        /*switch (numberOfQuadrants)
         {
             case 0:
                 // S and E Quadrants are equal here
@@ -610,7 +610,7 @@ internal class GeometryBuilder(RenderTolerances tol)
             default:
                 // there are only four quadrants by definition of the word quadrant.
                 return e;
-        }
+        }*/
         
         AddAnchorGeometry(s, e);
         return e;

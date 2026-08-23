@@ -57,10 +57,13 @@ internal class Program : IDisposable
         var path = new Path2D();
 
         float alpha0 = MathF.PI * 0.25f;
-        path.RoundRect(10, 20, 150, 100, 40);
-        path.RoundRect(10, 150, 150, 100, 10, 40);
-        path.RoundRect(400, 20, 200, 100, 0, 30, 50, 60);
-        path.RoundRect(400, 150, -200, 100, 0, 30, 50, 60);
+        path.MoveTo(600, 500);
+        path.BezierCurveTo(600, 350, 900, 650, 900, 500);
+        path.ClosePath();
+        //path.RoundRect(10, 20, 150, 100, 40);
+        //path.RoundRect(10, 150, 150, 100, 10, 40);
+        //path.RoundRect(400, 20, 200, 100, 0, 30, 50, 60);
+        //path.RoundRect(400, 150, -200, 100, 0, 30, 50, 60);
         
         _ctx?.BeginFrame();
         
