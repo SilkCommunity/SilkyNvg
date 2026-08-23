@@ -95,6 +95,35 @@ internal class GeometryBuilder(RenderTolerances tol)
         ExpandBounds(p1);
         return p1;
     }
+
+    internal void AddRationalQuadratic(Vector3 p0, Vector3 p1, Vector3 p2)
+    {
+        Vector3 tangent0 = 2 * (p1 - p0);
+        Vector3 tangent1 = 2 * (p2 - p1);
+        Vector3 line01 = p2 - p0;
+
+        var klm0 = new Vector3(
+            Vector3.Dot(p0, line01),
+            Vector3.Dot(p0, tangent0),
+            Vector3.Dot(p0, tangent1)
+        );
+        var klm1 = new Vector3(
+            Vector3.Dot(p1, line01),
+            Vector3.Dot(p1, tangent0),
+            Vector3.Dot(p1, tangent1)
+        );
+        var klm2 = new Vector3(
+            Vector3.Dot(p2, line01),
+            Vector3.Dot(p2, tangent0),
+            Vector3.Dot(p2, tangent1)
+        );
+        
+        _vertices.AddRange(
+            Vertex.CreateRationalQuadratic(new Vector2(p0.X, p0.Y), klm0),
+            Vertex.CreateRationalQuadratic(new Vector2(p1.X, p1.Y), klm1),
+            Vertex.CreateRationalQuadratic(new Vector2(p2.X, p2.Y), klm2)
+        );
+    }
     
     internal Vector2 AddQuadratic(Vector2 p0, Vector2 cp, Vector2 p)
     {
@@ -103,10 +132,12 @@ internal class GeometryBuilder(RenderTolerances tol)
             return AddLine(p0, p);
         }
         
+        //AddRationalQuadratic(new Vector3(p0, 1.0f), new Vector3(cp, 1.0f), new Vector3(p, 1.0f));
+        
         _vertices.AddRange(
-            Vertex.CreateRationalQuadratic(p0, new Vector3(0.0f, 0.0f, 1.0f)),
-            Vertex.CreateRationalQuadratic(cp, new Vector3(0.5f, 0.0f, 1.0f)),
-            Vertex.CreateRationalQuadratic(p, new Vector3(1.0f, 1.0f, 1.0f))
+            Vertex.CreateRationalQuadratic(p0, new Vector3(0.0f, 2.0f, 0.0f)),
+            Vertex.CreateRationalQuadratic(cp, new Vector3(1.0f, 0.0f, 0.0f)),
+            Vertex.CreateRationalQuadratic(p, new Vector3(0.0f, 0.0f, 2.0f))
         );
 
         AddAnchorGeometry(p0, p);
@@ -441,179 +472,111 @@ internal class GeometryBuilder(RenderTolerances tol)
 
     internal Vector2 AddEllipse(Vector2 p0, Vector2 origin, float radiusX, float radiusY, float rotation, float startAngle, float endAngle)
     {
-        var transform = Matrix3x2.CreateRotation(rotation);
+        float counterclockwise = 1.0f;
         
-        // Start and end points
-        Vector2 s = p0;
-        Vector2 e = Maths.PointOnEllipse(origin, radiusX, radiusY, transform, endAngle);
+        var ellipseTransform = Matrix3x2.CreateRotation(rotation);
+        ellipseTransform.Translation = origin;
+
+        Vector2 start = p0;
+        Vector2 end = Vector2.Transform(Maths.PointOnEllipse(radiusX, radiusY, endAngle), ellipseTransform);
         
-        // Add translation here, this might be an optimization.
-        transform.Translation = origin;
+        float delta = endAngle - startAngle;
+       
+        // Add origin into bounds
+        ExpandBounds(origin);
         
-        // Bounding box bounds
-        // Order matters here. It needs to line up with the quadrants!
-        Span<Vector2> corners =
-        [
-            new Vector2(radiusX, radiusY), // bottom right
-            new Vector2(-radiusX, radiusY), // bottom left
-            new Vector2(-radiusX, -radiusY), // top left
-            new Vector2(radiusX, -radiusY), // top right
-        ];
-        Span<Vector2> implicitCorners = stackalloc Vector2[4];
-        
-        // Generate implicit corners and transform corners
-        for (int i = 0; i < 4; i++)
+        if (delta >= MathF.Tau) // entire ellipse
         {
-            Vector2 corner = corners[i];
-            implicitCorners[i] = new Vector2(corner.X / radiusX, corner.Y / radiusY);
-            corners[i] = Vector2.Transform(corner, transform);
+            startAngle = 0.0f;
+            endAngle = MathF.Tau;
+            delta = MathF.Tau;
+        }
+
+        /*
+         * Split angles such that we never have a section with angle > 90°
+         */
+        Span<float> startAngles = stackalloc float[4];
+        Span<float> endAngles =  stackalloc float[4];
+        int nSections = 0;
+
+        if (MathF.Abs(delta) > MathF.PI * 3 / 2)
+        {
+            nSections = 4;
+            delta /= 4;
+        }
+        else if (MathF.Abs(delta) > MathF.PI)
+        {
+            nSections = 3;
+            delta /= 3;
+        }
+        else if (MathF.Abs(delta) > MathF.PI / 2)
+        {
+            nSections = 2;
+            delta /= 2;
+        }
+        else
+        {
+            nSections = 1;
+        }
+
+        // Generate sections start and end points
+        for (int i = 0; i < nSections; i++)
+        {
+            startAngles[i] = startAngle + i * delta;
+            endAngles[i] = startAngle + (i + 1) * delta;
         }
         
-        // Update the bounds. This is fortunately exactly the transformed corners.
-        UpdateBounds(new Vector4(
-            x: MathF.Min(MathF.Min(corners[0].X, corners[1].X), MathF.Min(corners[2].X, corners[3].X)),
-            y: MathF.Min(MathF.Min(corners[0].Y, corners[1].Y), MathF.Min(corners[2].Y, corners[3].Y)),
-            z: MathF.Max(MathF.Max(corners[0].X, corners[1].X), MathF.Max(corners[2].X, corners[3].X)), 
-            w: MathF.Max(MathF.Max(corners[0].Y, corners[1].Y), MathF.Max(corners[2].Y, corners[3].Y))    
-        ));
-        
-        // (cos(alpha), sin(alpha)) circle positions so we don't multiply and divide by radius
-        var circleS = new Vector2(MathF.Cos(startAngle), MathF.Sin(startAngle));
-        var circleE = new Vector2(MathF.Cos(endAngle), MathF.Sin(endAngle));
-            
-        // modulo reduced angle
-        // negative angles, because angle convention is stupid here.
-        float alphaS = Maths.NormaliseAngle(startAngle);
-        float alphaE = Maths.NormaliseAngle(endAngle);
+        // Calculate weight for rational Bezier
+        float w = MathF.Cos(delta / 2);
 
-        /*if (endAngle - startAngle >= MathF.Tau) // entire ellipse
+        for (int i = 0; i < nSections; i++)
+        {
+            float alphaS = startAngles[i];
+            float alphaE = endAngles[i];
+            Vector2 startPoint = Vector2.Transform(Maths.PointOnEllipse(radiusX, radiusY, alphaS), ellipseTransform);
+            Vector2 endPoint   = Vector2.Transform(Maths.PointOnEllipse(radiusX, radiusY, alphaE), ellipseTransform);
+            
+            /*
+             * Compute normalized control points
+             */
+            float theta = (alphaS + alphaE) / 2;
+            
+            Vector2 cp = Vector2.Transform(
+                new Vector2(radiusX * MathF.Cos(theta), radiusY * MathF.Sin(theta)) / w,
+                ellipseTransform
+            );
+
+            // Expand bounds. This is tighter and thus probably better than using the general bounding box of the ellipse
+            ExpandBounds(startPoint);
+            ExpandBounds(endPoint);
+            ExpandBounds(cp);
+            
+            _vertices.AddRange(
+                Vertex.CreateRationalQuadratic(startPoint, 2 * w * Vector3.UnitY),
+                Vertex.CreateRationalQuadratic(cp, Vector3.UnitX),
+                Vertex.CreateRationalQuadratic(endPoint, 2 * w * Vector3.UnitZ)
+            );
+            _vertices.AddRange(
+                Vertex.CreateLinear(startPoint, Vector3.Zero),
+                Vertex.CreateLinear(endPoint, Vector3.Zero),
+                Vertex.CreateLinear(origin, Vector3.Zero)
+            );
+        }
+
+        // Make sure we have a connecting line from start to end
+        Vector2 first = Vector2.Transform(Maths.PointOnEllipse(radiusX, radiusY, startAngle), ellipseTransform);
+        Vector2 last  = Vector2.Transform(Maths.PointOnEllipse(radiusX, radiusY, endAngle), ellipseTransform);
+        if (!first.FpEquals(last, _tols))
         {
             _vertices.AddRange(
-                new Vertex(corners[2], new Vector3(implicitCorners[2], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                new Vertex(corners[1], new Vector3(implicitCorners[1], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                new Vertex(corners[0], new Vector3(implicitCorners[0], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                
-                new Vertex(corners[2], new Vector3(implicitCorners[2], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                new Vertex(corners[0], new Vector3(implicitCorners[0], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                new Vertex(corners[3], new Vector3(implicitCorners[3], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil)
+                Vertex.CreateLinear(first, Vector3.Zero),
+                Vertex.CreateLinear(origin, Vector3.Zero),
+                Vertex.CreateLinear(last, Vector3.Zero)
             );
-            
-            AddAnchorGeometry(s, e);
-            return e;
-        }*/
-
-        int sQuadrant = Maths.Quadrant(alphaS);
-        int eQuadrant = Maths.Quadrant(alphaE);
+        }
+        AddAnchorGeometry(start, end);
         
-        int numberOfQuadrants = (eQuadrant - sQuadrant) % 4;
-        numberOfQuadrants = numberOfQuadrants >= 0 ? numberOfQuadrants : numberOfQuadrants + 4;
-        
-        /*
-         * It might not be the prettiest, that we have hardcoded the triangulations for all four polygon cases.
-         * However, this avoids any triangulation algorithms. So it's probably simpler and faster.
-         */
-        int m1Quadrant, m2Quadrant, m3Quadrant;
-        /*switch (numberOfQuadrants)
-        {
-            case 0:
-                // S and E Quadrants are equal here
-
-                // We need two cases here. Either we have to remain in the quadrant
-                // or go around once.
-                if (alphaS > alphaE)  // go around
-                {
-                    m1Quadrant = (sQuadrant + 1) % 4;
-                    m2Quadrant = (sQuadrant + 2) % 4;
-                    m3Quadrant = (sQuadrant + 3) % 4;
-                    
-                    _vertices.AddRange(
-                        new Vertex(s, new Vector3(circleS, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                        new Vertex(corners[sQuadrant], new Vector3(implicitCorners[sQuadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                        new Vertex(corners[m1Quadrant], new Vector3(implicitCorners[m1Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                    
-                        new Vertex(s, new Vector3(circleS, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                        new Vertex(corners[m1Quadrant], new Vector3(implicitCorners[m1Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                        new Vertex(corners[m2Quadrant], new Vector3(implicitCorners[m2Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                    
-                        new Vertex(s, new Vector3(circleS, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                        new Vertex(corners[m2Quadrant], new Vector3(implicitCorners[m2Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                        new Vertex(e, new Vector3(circleE, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                    
-                        new Vertex(e, new Vector3(circleE, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                        new Vertex(corners[m2Quadrant], new Vector3(implicitCorners[m2Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                        new Vertex(corners[m3Quadrant], new Vector3(implicitCorners[m3Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                    
-                        new Vertex(e, new Vector3(circleE, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                        new Vertex(corners[m3Quadrant], new Vector3(implicitCorners[m3Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                        new Vertex(corners[eQuadrant], new Vector3(implicitCorners[eQuadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil)
-                    );
-                }
-                else // stay in quadrant
-                {
-                    _vertices.AddRange(
-                        new Vertex(s, new Vector3(circleS, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                        new Vertex(corners[sQuadrant], new Vector3(implicitCorners[sQuadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                        new Vertex(e, new Vector3(circleE, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil)
-                    ); 
-                }
-                break;
-            case 1:
-                _vertices.AddRange(
-                    new Vertex(s, new Vector3(circleS, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                    new Vertex(corners[sQuadrant], new Vector3(implicitCorners[sQuadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                    new Vertex(corners[eQuadrant], new Vector3(implicitCorners[eQuadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                    
-                    new Vertex(e, new Vector3(circleE, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                    new Vertex(s, new Vector3(circleS, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                    new Vertex(corners[eQuadrant], new Vector3(implicitCorners[eQuadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil)
-                );
-                break;
-            case 2:
-                m1Quadrant = (sQuadrant + 1) % 4;
-                _vertices.AddRange(
-                    new Vertex(s, new Vector3(circleS, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                    new Vertex(corners[sQuadrant], new Vector3(implicitCorners[sQuadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                    new Vertex(corners[m1Quadrant], new Vector3(implicitCorners[m1Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                    
-                    new Vertex(s, new Vector3(circleS, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                    new Vertex(corners[m1Quadrant], new Vector3(implicitCorners[m1Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                    new Vertex(e, new Vector3(circleE, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                    
-                    new Vertex(e, new Vector3(circleE, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                    new Vertex(corners[m1Quadrant], new Vector3(implicitCorners[m1Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                    new Vertex(corners[eQuadrant], new Vector3(implicitCorners[eQuadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil)
-                );
-                break;
-            case 3:
-                // sQuadrant and eQuadrant are equal here
-                m1Quadrant = (sQuadrant + 1) % 4;
-                m2Quadrant = (sQuadrant + 2) % 4;
-                m3Quadrant = (sQuadrant + 3) % 4;
-                _vertices.AddRange(
-                    new Vertex(s, new Vector3(circleS, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                    new Vertex(corners[sQuadrant], new Vector3(implicitCorners[sQuadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                    new Vertex(corners[m1Quadrant], new Vector3(implicitCorners[m1Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                    
-                    new Vertex(s, new Vector3(circleS, 0), VertexFlags.EllipseGeometry),
-                    new Vertex(corners[m1Quadrant], new Vector3(implicitCorners[m1Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                    new Vertex(corners[m2Quadrant], new Vector3(implicitCorners[m2Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                    
-                    new Vertex(s, new Vector3(circleS, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                    new Vertex(corners[m2Quadrant], new Vector3(implicitCorners[m2Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                    new Vertex(e, new Vector3(circleE, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                    
-                    new Vertex(e, new Vector3(circleE, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                    new Vertex(corners[m2Quadrant], new Vector3(implicitCorners[m2Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-                    new Vertex(corners[m3Quadrant], new Vector3(implicitCorners[m3Quadrant], 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil)
-                );
-                break;
-            default:
-                // there are only four quadrants by definition of the word quadrant.
-                return e;
-        }*/
-        
-        AddAnchorGeometry(s, e);
-        return e;
+        return last;
     }
 
     internal void ClearGeometry()

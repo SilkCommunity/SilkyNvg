@@ -206,10 +206,17 @@ namespace SilkyNvg
                 cwEndAngle = startAngle;
             }
 
+            cwStartAngle = Maths.NormaliseAngle(cwStartAngle);
+            cwEndAngle = Maths.NormaliseAngle(cwEndAngle);
+
+            if (cwEndAngle < cwStartAngle)
+                cwEndAngle += MathF.Tau;
+
             // We need to calculate this here since the start point is required for creating a new subpath.
             // This shouldn't be too expensive though, especially since we automatically cache the starting point.
-            var rotTransform = Matrix3x2.CreateRotation(-rotation);
-            Vector2 startPoint = Maths.PointOnEllipse(new Vector2(x, y), radiusX, radiusY, rotTransform, cwStartAngle);
+            var ellipseTransform = Matrix3x2.CreateRotation(-rotation);
+            ellipseTransform.Translation = new Vector2(x, y);
+            Vector2 startPoint = Vector2.Transform(Maths.PointOnEllipse(radiusX, radiusY, cwStartAngle), ellipseTransform);
             
             if (HasSubPaths)
             {

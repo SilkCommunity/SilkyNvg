@@ -53,7 +53,8 @@ namespace SilkyNvg.Rendering.OpenGL
 
         private void FillPath(int firstVertex, uint vertexCount, int coverStart)
         {
-            // _gl.Enable(EnableCap.StencilTest);
+            _shader.Start();
+            _gl.Enable(EnableCap.StencilTest);
             _gl.ClearStencil(0);
             _gl.Clear(ClearBufferMask.StencilBufferBit);
             
@@ -82,11 +83,11 @@ namespace SilkyNvg.Rendering.OpenGL
             
             _gl.DrawArrays(PrimitiveType.Triangles, coverStart, 6);
 
-            /*_gl.Disable(EnableCap.StencilTest);
+            _gl.Disable(EnableCap.StencilTest);
             
             _debugShader.Start();
             _gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Line);
-            _gl.DrawArrays(PrimitiveType.Triangles, coverStart, 6);*/
+            _gl.DrawArrays(PrimitiveType.Triangles, firstVertex, vertexCount);
             
         }
 
@@ -103,7 +104,7 @@ namespace SilkyNvg.Rendering.OpenGL
             _gl.Disable(EnableCap.DepthTest);
             _gl.Disable(EnableCap.CullFace);
             
-            _shader.Start();
+            // _shader.Start();
             
             _gl.EnableVertexAttribArray(0);
             _gl.EnableVertexAttribArray(1);
