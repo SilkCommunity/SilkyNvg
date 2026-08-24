@@ -57,12 +57,10 @@ internal class Program : IDisposable
         var path = new Path2D();
 
         float alpha0 = MathF.PI * 0.25f;
-        path.Ellipse(600, 350, 500, 300, MathF.PI * 0.0f, MathF.PI * 0, -MathF.PI * 1.5f, true);
+        path.MoveTo(180, 90);
+        path.ArcTo(180, 130, 110, 130, 130);
+        path.LineTo(110, 130);
         path.ClosePath();
-        //path.RoundRect(10, 20, 150, 100, 40);
-        //path.RoundRect(10, 150, 150, 100, 10, 40);
-        //path.RoundRect(400, 20, 200, 100, 0, 30, 50, 60);
-        //path.RoundRect(400, 150, -200, 100, 0, 30, 50, 60);
         
         _ctx?.BeginFrame();
         

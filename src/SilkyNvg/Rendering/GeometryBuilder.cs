@@ -443,37 +443,41 @@ internal class GeometryBuilder(RenderTolerances tol)
         Vector2 toInscribedStart = inscribedStart - inscribedCenter;
         Vector2 toInscribedEnd = inscribedEnd - inscribedCenter;
 
-        Vector2 start = center + k * toInscribedStart;
-        Vector2 end = center + k * toInscribedEnd;
+        // Compute start and end points
+        Vector2 toStart = k * toInscribedStart;
+        Vector2 toEnd = k * toInscribedEnd;
+        
+        Vector2 start = center + toStart;
+        Vector2 end = center + toEnd;
 
+        // Add line to start
         _ = AddLine(p0, start);
+
+        // Angle between start and end points
+        float theta = MathF.Acos(Vector2.Dot(toStart, toEnd) / (toStart.Length() * toEnd.Length()));
+        float w = MathF.Cos(theta / 2);
+
+        var cp = (toStart + toEnd) / (2 * w * w) + center;
         
-        // Calculate implicit coordinates
-        Vector2 implicitStart = (start - center) / radius;
-        Vector2 implicit1 = (p1 - center) / radius;
-        Vector2 implicitEnd = (end - center) / radius;
-        
-        /*_vertices.AddRange(
-            new Vertex(start, new Vector3(implicitStart, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-            new Vertex(p1, new Vector3(implicit1, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil),
-            new Vertex(end, new Vector3(implicitEnd, 0), VertexFlags.EllipseGeometry | VertexFlags.Stencil)
-        );*/
-        
+        _vertices.AddRange(
+            Vertex.CreateRationalQuadratic(start, 2 * w * Vector3.UnitY),
+            Vertex.CreateRationalQuadratic(cp, Vector3.UnitX),
+            Vertex.CreateRationalQuadratic(end, 2 * w * Vector3.UnitZ)
+        );
         AddAnchorGeometry(start, end);
+        
         UpdateBounds(new Vector4(
             x: center.X - radius,
             y: center.Y - radius,
             z: center.X + radius,
             w: center.Y + radius
         ));
-
+        
         return end;
     }
 
     internal Vector2 AddEllipse(Vector2 p0, Vector2 origin, float radiusX, float radiusY, float rotation, float startAngle, float endAngle)
     {
-        float counterclockwise = 1.0f;
-        
         var ellipseTransform = Matrix3x2.CreateRotation(rotation);
         ellipseTransform.Translation = origin;
 
