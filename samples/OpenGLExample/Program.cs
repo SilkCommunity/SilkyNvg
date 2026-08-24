@@ -54,17 +54,27 @@ internal class Program : IDisposable
         _gl!.ClearColor(0.2f, 0.3f, 0.4f, 1.0f);
         _gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.StencilBufferBit);
 
-        var path = new Path2D();
-
-        float alpha0 = MathF.PI * 0.25f;
-        path.MoveTo(180, 90);
-        path.ArcTo(180, 130, 110, 130, 130);
-        path.LineTo(110, 130);
-        path.ClosePath();
+        var starPath = new Path2D();
+        var circlePath1 = new Path2D();
+        var circlePath2 = new Path2D();
         
         _ctx?.BeginFrame();
+
+        starPath.MoveTo(250, 75);
+        starPath.LineTo(323, 301);
+        starPath.LineTo(131, 161);
+        starPath.LineTo(369, 161);
+        starPath.LineTo(177, 301);
+        starPath.ClosePath();
+        _ctx?.Fill(starPath);
+
+        circlePath1.Arc(600, 188, 107, 0, MathF.Tau, counterclockwise: false);
+        circlePath1.Arc(600, 188, 49, 0, MathF.Tau, counterclockwise: false);
+        _ctx?.Fill(circlePath1);
         
-        _ctx?.Fill(path);
+        circlePath2.Arc(950, 188, 107, 0, MathF.Tau, counterclockwise: false);
+        circlePath2.Arc(950, 188, 49, 0, MathF.Tau, counterclockwise: true);
+        _ctx?.Fill(circlePath2);
         
         _ctx?.EndFrame();
     }

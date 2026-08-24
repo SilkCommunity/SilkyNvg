@@ -209,7 +209,7 @@ namespace SilkyNvg
             cwStartAngle = Maths.NormaliseAngle(cwStartAngle);
             cwEndAngle = Maths.NormaliseAngle(cwEndAngle);
 
-            if (cwEndAngle < cwStartAngle)
+            if (cwEndAngle <= cwStartAngle)
                 cwEndAngle += MathF.Tau;
 
             // We need to calculate this here since the start point is required for creating a new subpath.
