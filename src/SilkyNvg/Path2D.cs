@@ -40,20 +40,13 @@ namespace SilkyNvg
             _subPaths.Clear();
         }
 
-        internal void FillPath(GeometryBuilder geometryBuilder)
+        internal void FillPath()
         {
             if (!HasSubPaths)
             {
                 return;
             }
-
-            Vector2 start = _subPaths[0].Start;
-            geometryBuilder.BeginPath(start);
-            foreach (var subPath in _subPaths)
-            {
-                subPath.BuildFillGeometry(geometryBuilder);
-            }
-            geometryBuilder.EndPath();
+            
         }
 
         private void CreateNewSubpath(float startX, float startY)

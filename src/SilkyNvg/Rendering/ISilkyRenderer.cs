@@ -1,14 +1,11 @@
 using System;
-using System.Collections.Generic;
+using System.Numerics;
 
-namespace SilkyNvg.Rendering
+namespace SilkyNvg.Rendering;
+
+public interface ISilkyRenderer : IDisposable
 {
-    public interface ISilkyRenderer : IDisposable
-    {
 
-        void Resize(uint width, uint height, RenderTolerances tolerances);
+    void Resize(float newWidth, float newHeight, RenderTolerances tolerances);
 
-        void Render(Vertex[] vertexData, uint vertexCount, IReadOnlyList<PathData> pathData);
-
-    }
 }
