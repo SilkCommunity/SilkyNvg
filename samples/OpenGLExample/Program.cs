@@ -11,7 +11,7 @@ namespace OpenGLExample;
 internal class Program : IDisposable
 {
     
-    private static void OpenGLDebugCallback(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint message, nint userParam)
+    private static void OpenGlDebugCallback(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint message, nint userParam)
     {
         if (type == GLEnum.DebugTypeError)
         {
@@ -43,7 +43,7 @@ internal class Program : IDisposable
         _gl = GL.GetApi(_window);
 
         // Setup GL debug callback
-        _gl.DebugMessageCallback(OpenGLDebugCallback, null);
+        _gl.DebugMessageCallback(OpenGlDebugCallback, null);
         
         _renderer = new SilkyOpenGLRenderer(_gl);
         _ctx = new SilkyRenderingContext2D(_renderer, 1280, 720);
@@ -67,27 +67,18 @@ internal class Program : IDisposable
         _gl!.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.StencilBufferBit);
         _gl.ClearColor(0.2f, 0.3f, 0.4f, 1.0f);
 
-        var starPath = new Path2D();
-        var circlePath1 = new Path2D();
-        var circlePath2 = new Path2D();
+        var path = new Path2D();
         
         _ctx?.BeginFrame();
 
-        starPath.MoveTo(250, 75);
-        starPath.LineTo(323, 301);
-        starPath.LineTo(131, 161);
-        starPath.LineTo(369, 161);
-        starPath.LineTo(177, 301);
-        starPath.ClosePath();
-        _ctx?.Fill(starPath);
+        path.MoveTo(250, 75);
+        path.LineTo(323, 301);
+        path.LineTo(131, 161);
+        path.LineTo(369, 161);
+        path.LineTo(177, 301);
+        path.ClosePath();
+        _ctx?.Fill(path);
 
-        circlePath1.Arc(600, 188, 107, 0, MathF.Tau, counterclockwise: false);
-        circlePath1.Arc(600, 188, 49, 0, MathF.Tau, counterclockwise: false);
-        _ctx?.Fill(circlePath1);
-        
-        circlePath2.Arc(950, 188, 107, 0, MathF.Tau, counterclockwise: false);
-        circlePath2.Arc(950, 188, 49, 0, MathF.Tau, counterclockwise: true);
-        _ctx?.Fill(circlePath2);
         
         _ctx?.EndFrame();
     }

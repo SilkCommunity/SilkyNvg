@@ -62,13 +62,12 @@ namespace SilkyNvg
 
         public void BeginPath()
         {
-            _defaultPath.ClearSubPaths();
+            _renderer.Container.Clear();
         }
 
         public void Fill(Path2D path)
         {
-            // TODO: Apply Transform
-            path.FillPath();
+            
         }
         
         #endregion
