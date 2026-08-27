@@ -10,13 +10,13 @@ namespace SilkyNvg
     public class Path2D()
     {
         
-        private readonly List<SubPath> _subPaths = [];
+        private readonly List<Subpath> _subPaths = [];
         
         private bool _needNewSubPath = true;
         
         private bool HasSubPaths => _subPaths.Count > 0;
         
-        private SubPath CurrentSubPath => _subPaths[^1];
+        private Subpath CurrentSubpath => _subPaths[^1];
         
         public Path2D(Path2D path)
             : this()
@@ -51,7 +51,7 @@ namespace SilkyNvg
 
         private void CreateNewSubpath(float startX, float startY)
         {
-            _subPaths.Add(new SubPath(startX, startY));
+            _subPaths.Add(new Subpath(startX, startY));
             _needNewSubPath = false;
         }
 
@@ -72,8 +72,8 @@ namespace SilkyNvg
                 return;
             }
             
-            CurrentSubPath.Close();
-            CreateNewSubpath(CurrentSubPath.Start.X, CurrentSubPath.Start.Y);
+            CurrentSubpath.Close();
+            CreateNewSubpath(CurrentSubpath.Start.X, CurrentSubpath.Start.Y);
         }
 
         public void MoveTo(Vector2 p)
@@ -104,7 +104,7 @@ namespace SilkyNvg
             }
             else
             {
-                CurrentSubPath.AddLine(x, y);
+                CurrentSubpath.AddLine(x, y);
             }
         }
 
@@ -119,7 +119,7 @@ namespace SilkyNvg
             }
             
             EnsureSubPathExists(cpx, cpy);
-            CurrentSubPath.AddQuadratic(cpx, cpy, x, y);
+            CurrentSubpath.AddQuadratic(cpx, cpy, x, y);
         }
 
         public void BezierCurveTo(Vector2 cp1, Vector2 cp2, Vector2 p)
@@ -134,7 +134,7 @@ namespace SilkyNvg
             }
             
             EnsureSubPathExists(cp1x, cp1y);
-            CurrentSubPath.AddCubic(cp1x, cp1y, cp2x, cp2y, x, y);
+            CurrentSubpath.AddCubic(cp1x, cp1y, cp2x, cp2y, x, y);
         }
 
         public void ArcTo(Vector2 p1, Vector2 p2, float radius)
@@ -155,7 +155,7 @@ namespace SilkyNvg
                 throw new ArgumentOutOfRangeException(nameof(radius), "Radius cannot be negative!");
             }
 
-            CurrentSubPath.AddArcTo(x1, y1, x2, y2, radius);
+            CurrentSubpath.AddArcTo(x1, y1, x2, y2, radius);
         }
 
         public void Arc(Vector2 origin, float radius, float startAngle, float endAngle, bool counterclockwise = false)
@@ -213,14 +213,14 @@ namespace SilkyNvg
             
             if (HasSubPaths)
             {
-                CurrentSubPath.AddLine(startPoint.X, startPoint.Y);
+                CurrentSubpath.AddLine(startPoint.X, startPoint.Y);
             }
             else
             {
                 CreateNewSubpath(startPoint.X, startPoint.Y);
             }
             
-            CurrentSubPath.AddEllipse(x, y, radiusX, radiusY, cwStartAngle, cwEndAngle, rotation);
+            CurrentSubpath.AddEllipse(x, y, radiusX, radiusY, cwStartAngle, cwEndAngle, rotation);
         }
 
         public void Rect(Vector2 p, Vector2 s)
@@ -235,10 +235,10 @@ namespace SilkyNvg
             
             CreateNewSubpath(x, y);
             
-            CurrentSubPath.AddLine(x + w, y);
-            CurrentSubPath.AddLine(x + w, y + h);
-            CurrentSubPath.AddLine(x, y + h);
-            CurrentSubPath.Close();
+            CurrentSubpath.AddLine(x + w, y);
+            CurrentSubpath.AddLine(x + w, y + h);
+            CurrentSubpath.AddLine(x, y + h);
+            CurrentSubpath.Close();
             
             CreateNewSubpath(x, y);
         }
@@ -361,34 +361,34 @@ namespace SilkyNvg
             }
 
             CreateNewSubpath(x + upperLeft.X, y);
-            CurrentSubPath.AddLine(x + w - upperRight.X, y);
-            CurrentSubPath.AddEllipse(
+            CurrentSubpath.AddLine(x + w - upperRight.X, y);
+            CurrentSubpath.AddEllipse(
                 x + w - upperRight.X, y + upperRight.Y,
                 upperRight.X, upperRight.Y,
                 MathF.PI * 1.5f, MathF.Tau, 0
             );
-            CurrentSubPath.AddLine(x + w, y + h - lowerRight.Y);
-            CurrentSubPath.AddEllipse(
+            CurrentSubpath.AddLine(x + w, y + h - lowerRight.Y);
+            CurrentSubpath.AddEllipse(
                 x + w - lowerRight.X,
                 y + h - lowerRight.Y,
                 lowerRight.X, lowerRight.Y,
                 0, MathF.PI * 0.5f, 0
             );
-            CurrentSubPath.AddLine(x + lowerLeft.X, y + h);
-            CurrentSubPath.AddEllipse(
+            CurrentSubpath.AddLine(x + lowerLeft.X, y + h);
+            CurrentSubpath.AddEllipse(
                 x + lowerLeft.X,
                 y + h - lowerLeft.Y,
                 lowerLeft.X, lowerLeft.Y,
                 MathF.PI * 0.5f, MathF.PI, 0
             );
-            CurrentSubPath.AddLine(x, y + upperLeft.Y);
-            CurrentSubPath.AddEllipse(
+            CurrentSubpath.AddLine(x, y + upperLeft.Y);
+            CurrentSubpath.AddEllipse(
                 x + upperLeft.X,
                 y + upperLeft.Y,
                 upperLeft.X, upperLeft.Y,
                 MathF.PI, MathF.PI * 1.5f, 0
             );
-            CurrentSubPath.Close();
+            CurrentSubpath.Close();
         }
 
         #endregion

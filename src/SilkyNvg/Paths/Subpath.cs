@@ -2,14 +2,14 @@ using System.Numerics;
 
 namespace SilkyNvg.Paths
 {
-    internal class SubPath
+    internal class Subpath
     {
         
         internal bool IsClosed { get; private set; }
         
         internal Vector2 Start { get; }
         
-        internal SubPath(float startX, float startY)
+        internal Subpath(float startX, float startY)
         {
             Start = new Vector2(startX, startY);
         }
