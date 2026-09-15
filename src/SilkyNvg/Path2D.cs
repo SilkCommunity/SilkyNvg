@@ -46,6 +46,8 @@ namespace SilkyNvg
                 return;
             }
 
+            scene.AddPath();
+
             Vector2 start = _subPaths[0].Start;
             foreach (var subPath in _subPaths)
             {

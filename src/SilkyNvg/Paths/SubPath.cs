@@ -8,7 +8,6 @@ namespace SilkyNvg.Paths
     {
         
         private readonly List<Vector2> _points = [];
-        private readonly List<float> _segmentArcW1s = [];
         private readonly List<PathSegment> _segments = [];
 
         private Vector2 _endPoint;
@@ -24,6 +23,13 @@ namespace SilkyNvg.Paths
 
         internal void BuildFillGeometry(ISceneContainer scene)
         {
+            if (_segments.Count <= 0)
+            {
+                return;
+            }
+            
+            scene.AddSubpath();
+            
             int pointIdx = 0;
             for (int i = 0; i < _segments.Count; i++)
             {

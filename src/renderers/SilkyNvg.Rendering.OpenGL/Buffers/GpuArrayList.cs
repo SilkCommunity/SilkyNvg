@@ -84,6 +84,17 @@ internal sealed unsafe class GpuArrayList<T> : IDisposable
         _gl.BindBufferRange(BufferTargetARB.ShaderStorageBuffer, binding, BufferId, offset, size);
     }
 
+    internal void GetRef(uint index, ref T data)
+    {
+        if (index >= Count)
+        {
+            throw new ArgumentOutOfRangeException(nameof(index));
+        }
+        
+        var ptr = Unsafe.Add<byte>(_map, RegionOffset(_currentRegion) + (int)index * (int)sizeof(T));
+        data = Unsafe.AsRef<T>(ptr);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Add(T value)
     {
