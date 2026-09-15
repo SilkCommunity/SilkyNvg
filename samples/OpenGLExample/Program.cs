@@ -67,14 +67,6 @@ internal class Program : IDisposable
         starPath.LineTo(177, 301);
         starPath.ClosePath();
         _ctx?.Fill(starPath);
-
-        circlePath1.Arc(600, 188, 107, 0, MathF.Tau, counterclockwise: false);
-        circlePath1.Arc(600, 188, 49, 0, MathF.Tau, counterclockwise: false);
-        _ctx?.Fill(circlePath1);
-        
-        circlePath2.Arc(950, 188, 107, 0, MathF.Tau, counterclockwise: false);
-        circlePath2.Arc(950, 188, 49, 0, MathF.Tau, counterclockwise: true);
-        _ctx?.Fill(circlePath2);
         
         _ctx?.EndFrame();
     }

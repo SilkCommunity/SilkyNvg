@@ -8,7 +8,5 @@ namespace SilkyNvg.Rendering
 
         void Resize(uint width, uint height, RenderTolerances tolerances);
 
-        void Render(Vertex[] vertexData, uint vertexCount, IReadOnlyList<PathData> pathData);
-
     }
 }
