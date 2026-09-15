@@ -14,5 +14,7 @@ namespace SilkyNvg.Rendering
 
         void EndFrame();
 
+        void Rasterize();
+
     }
 }

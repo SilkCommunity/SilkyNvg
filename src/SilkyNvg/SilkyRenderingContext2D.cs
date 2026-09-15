@@ -55,6 +55,7 @@ namespace SilkyNvg
 
         public void EndFrame()
         {
+            _renderer.Rasterize();
             _renderer.EndFrame();
         }
         
