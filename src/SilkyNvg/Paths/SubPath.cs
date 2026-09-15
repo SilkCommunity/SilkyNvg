@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Numerics;
+using SilkyNvg.Rendering;
 
 namespace SilkyNvg.Paths
 {
@@ -21,9 +22,23 @@ namespace SilkyNvg.Paths
             _endPoint = start;
         }
 
-        internal void BuildFillGeometry()
+        internal void BuildFillGeometry(ISceneContainer scene)
         {
-            
+            int pointIdx = 0;
+            for (int i = 0; i < _segments.Count; i++)
+            {
+                var segmentType = _segments[i];
+
+                Vector2 p0, p1, p2, p3;
+                switch (segmentType)
+                {
+                    case PathSegment.Line:
+                        p0 = _points[pointIdx++];
+                        p1 = _points[pointIdx++];
+                        scene.AddLinear(p0, p1, 0);
+                        break;
+                }
+            }
         }
 
         internal void AddLineTo(Vector2 p)

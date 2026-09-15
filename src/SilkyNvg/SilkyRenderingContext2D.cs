@@ -50,12 +50,12 @@ namespace SilkyNvg
 
         public void BeginFrame()
         {
-            
+            _renderer.BeginFrame();
         }
 
         public void EndFrame()
         {
-            
+            _renderer.EndFrame();
         }
         
         #region DrawPath
@@ -68,7 +68,7 @@ namespace SilkyNvg
         public void Fill(Path2D path)
         {
             // TODO: Apply Transform
-            path.FillPath();
+            path.FillPath(_renderer.SceneContainer);
         }
         
         #endregion

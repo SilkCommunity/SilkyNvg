@@ -11,8 +11,8 @@ internal static class Errors
         GLEnum err;
         while ((err = gl.GetError()) != GLEnum.NoError)
         {
-            Log.Error($"GL Error {err} at {location}");
-            throw new Exception($"GL Error {err} at {location}");
+            Log.Error($"GL Error {err} at \"{location}\"");
+            throw new Exception($"GL Error {err} at \"{location}\"");
         }
     }
     

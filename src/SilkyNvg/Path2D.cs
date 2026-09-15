@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 using SilkyNvg.Paths;
+using SilkyNvg.Rendering;
 using SilkyNvg.Utils;
 
 namespace SilkyNvg
@@ -38,7 +39,7 @@ namespace SilkyNvg
             _subPaths.Clear();
         }
 
-        internal void FillPath()
+        internal void FillPath(ISceneContainer scene)
         {
             if (!HasSubPaths)
             {
@@ -48,7 +49,7 @@ namespace SilkyNvg
             Vector2 start = _subPaths[0].Start;
             foreach (var subPath in _subPaths)
             {
-                subPath.BuildFillGeometry();
+                subPath.BuildFillGeometry(scene);
             }
         }
 

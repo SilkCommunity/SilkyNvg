@@ -131,6 +131,7 @@ internal sealed unsafe class GpuArrayList<T> : IDisposable
         }
 
         _fences[_currentRegion] = _gl.FenceSync(SyncCondition.SyncGpuCommandsComplete, (uint)0).ToInt32();
+        Errors.CheckGLError("create fence", _gl);
     }
 
     private int RegionOffset(int region)
@@ -153,13 +154,15 @@ internal sealed unsafe class GpuArrayList<T> : IDisposable
 
         Log.Info($"Allocating new {_debugName}-Buffer. region_size={RegionByteSize} B, total_size={totalSize} B");
         
-        BufferId = _gl.GenBuffer();
+        BufferId = _gl.CreateBuffer();
         Errors.CheckGLError("gen buffer", _gl);
-
+        _gl.ObjectLabel(ObjectIdentifier.Buffer, BufferId, (uint)_debugName.Length, _debugName);
+        
         const BufferStorageMask flags =
+            BufferStorageMask.DynamicStorageBit |
             BufferStorageMask.MapWriteBit |
             BufferStorageMask.MapPersistentBit |
-            BufferStorageMask.MapPersistentBit;
+            BufferStorageMask.MapCoherentBit;
 
         _gl.NamedBufferStorage(BufferId, totalSize, null, flags);
         Errors.CheckGLError($"map buffer id: {BufferId}", _gl);
