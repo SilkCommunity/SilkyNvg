@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 using Silk.NET.OpenGL;
 using SilkyNvg.Rendering.OpenGL.Buffers;
@@ -21,10 +22,12 @@ namespace SilkyNvg.Rendering.OpenGL
         private Vao _vao;
 
         private SimpleShader _shader;
+
+        private uint _textureId;
         
         public ISceneContainer SceneContainer => _scene;
 
-        public SilkyOpenGLRenderer(GL gl)
+        public unsafe SilkyOpenGLRenderer(GL gl)
         {
             _gl = gl;
 
@@ -40,6 +43,22 @@ namespace SilkyNvg.Rendering.OpenGL
             _vao.VertexAttributePointer<Vector2>(0, 2, VertexAttribPointerType.Float, 1, 0);
 
             _shader = new SimpleShader(_gl);
+
+            _textureId = _gl.GenTexture();
+            _gl.ActiveTexture(TextureUnit.Texture0);
+            _gl.BindTexture(TextureTarget.Texture2D, _textureId);
+            _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+            _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+            _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);
+            _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+            _gl.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba32f, 512, 512, 0, GLEnum.Rgba, GLEnum.Float,
+                null);
+            _gl.BindImageTexture(0, _textureId, 0, false, 0, BufferAccessARB.ReadWrite, InternalFormat.Rgba32f);
+
+            var colourData = new float[512 * 512 * 4];
+            Array.Fill(colourData, 0.5f);
+            
+            _gl.ClearTexImage(_textureId, 0, PixelFormat.Rgba, PixelType.Float, colourData);
         }
 
         public void Resize(uint width, uint height, RenderTolerances _)
@@ -80,6 +99,7 @@ namespace SilkyNvg.Rendering.OpenGL
             _vao.Dispose();
             _vbo.Dispose();
             _shader.Dispose();
+            _gl.DeleteTexture(_textureId);
         }
         
     }
