@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using Silk.NET.Core.Native;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
@@ -9,6 +10,15 @@ namespace OpenGLExample;
 
 internal class Program : IDisposable
 {
+    
+    private static void OpenGlDebugCallback(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint message, nint userParam)
+    {
+        if (type == GLEnum.DebugTypeError)
+        {
+            string msg = SilkMarshal.PtrToString(message) ?? "(unavailable)";
+            Console.Error.WriteLine($"OpenGL Error: {source} {type} {id} {severity} \"{msg}\"");
+        }
+    }
     
     private readonly IWindow _window;
     
@@ -28,10 +38,13 @@ internal class Program : IDisposable
         _window.Closing += Close;
     }
 
-    private void Load()
+    private unsafe void Load()
     {
         _gl = GL.GetApi(_window);
 
+        // Setup GL debug callback
+        _gl.DebugMessageCallback(OpenGlDebugCallback, null);
+        
         _renderer = new SilkyOpenGLRenderer(_gl);
         _ctx = new SilkyRenderingContext2D(_renderer, 1280, 720);
         
