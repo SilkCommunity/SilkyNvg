@@ -9,6 +9,11 @@ namespace SilkyNvg.Rendering.OpenGL;
 internal class SceneContainer : ISceneContainer, IDisposable
 {
 
+    private const uint InitialVertexCount = 256;
+    private const uint InitialSegmentCount = 256;
+    private const uint InitialSubpathCount = 64;
+    private const uint InitialPathCount = 16;
+    
     private readonly GpuArrayList<Vector2> _vertices;
     private readonly GpuArrayList<SegmentData> _segments;
     private readonly GpuArrayList<SubpathData> _subpaths;
@@ -24,10 +29,10 @@ internal class SceneContainer : ISceneContainer, IDisposable
     
     internal SceneContainer(int framesInFlight, GL gl)
     {
-        _vertices = new GpuArrayList<Vector2>(1, framesInFlight, "vertex_buffer", gl);
-        _segments = new GpuArrayList<SegmentData>(1, framesInFlight, "segment_buffer", gl);
-        _subpaths = new GpuArrayList<SubpathData>(1, framesInFlight, "subpath_buffer", gl);
-        _paths = new  GpuArrayList<PathData>(1, framesInFlight, "path_buffer", gl);
+        _vertices = new GpuArrayList<Vector2>(InitialVertexCount, framesInFlight, "vertex_buffer", gl);
+        _segments = new GpuArrayList<SegmentData>(InitialSegmentCount, framesInFlight, "segment_buffer", gl);
+        _subpaths = new GpuArrayList<SubpathData>(InitialSubpathCount, framesInFlight, "subpath_buffer", gl);
+        _paths = new  GpuArrayList<PathData>(InitialPathCount, framesInFlight, "path_buffer", gl);
     }
 
     internal void BeginFrame()
