@@ -6,29 +6,19 @@ namespace SilkyNvg.Paths
     internal class SubPath
     {
         
-        private readonly List<float> _segmentData = [];
-        private readonly List<bool> _segmentFlags = [];
+        private readonly List<Vector2> _points = [];
+        private readonly List<float> _segmentArcW1s = [];
         private readonly List<PathSegment> _segments = [];
 
-        private float _lastEndX;
-        private float _lastEndY;
+        private Vector2 _endPoint;
         
         internal bool IsClosed { get; private set; }
+
+        internal Vector2 Start => _points[0]; // _points always has at least one element
         
-        internal Vector2 Start => new(_segmentData[0], _segmentData[1]); // _points always has at least one element
-        
-        internal SubPath(float startX, float startY)
+        internal SubPath(Vector2 start)
         {
-            _segmentData.Add(startX);
-            _segmentData.Add(startY);
-            _lastEndX = startX;
-            _lastEndY = startY;
-        }
-        
-        private void AddPoint(float x, float y)
-        {
-            _segmentData.Add(x);
-            _segmentData.Add(y);
+            _endPoint = start;
         }
 
         internal void BuildFillGeometry()
@@ -36,17 +26,19 @@ namespace SilkyNvg.Paths
             
         }
 
-        internal void AddLineTo(float x, float y)
+        internal void AddLineTo(Vector2 p)
         {
-            AddPoint(_lastEndX, _lastEndY);
-            AddPoint(x, y);
+            _points.Add(p);
+            _points.Add(_endPoint);
+
+            _endPoint = p;
             _segments.Add(PathSegment.Line);
         }
 
         internal void Close()
         {
             IsClosed = true;
-            AddLineTo(Start.X, Start.Y);
+            AddLineTo(Start);
         }
 
     }

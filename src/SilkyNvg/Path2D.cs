@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Numerics;
 using SilkyNvg.Paths;
-using SilkyNvg.Rendering;
 using SilkyNvg.Utils;
 
 namespace SilkyNvg
@@ -54,48 +52,54 @@ namespace SilkyNvg
             }
         }
 
-        private void CreateNewSubpath(float startX, float startY)
+        private void CreateNewSubpath(Vector2 start)
         {
-            _subPaths.Add(new SubPath(startX, startY));
+            _subPaths.Add(new SubPath(start));
             _needNewSubPath = false;
         }
 
-        private void EnsureSubPathExists(float x, float y)
+        private void EnsureSubPathExists(Vector2 p)
         {
             if (_needNewSubPath)
             {
-                CreateNewSubpath(x, y);
+                CreateNewSubpath(p);
             }
         }
 
         #region Path
 
-        public void MoveTo(float x, float y)
+        public void MoveTo(Vector2 p)
         {
-            if (x.IsInfinityOrNan() || y.IsInfinityOrNan()) return;
-            CreateNewSubpath(x, y);
+            if (p.IsInfinityOrNan()) return;
+            CreateNewSubpath(p);
         }
+        
+        public void MoveTo(float x, float y)
+            =>  MoveTo(new Vector2(x, y));
 
         public void ClosePath()
         {
             if (!HasSubPaths) return;
 
             CurrentSubPath.Close();
-            CreateNewSubpath(CurrentSubPath.Start.X, CurrentSubPath.Start.Y);
+            CreateNewSubpath(CurrentSubPath.Start);
         }
 
-        public void LineTo(float x, float y)
+        public void LineTo(Vector2 p)
         {
-            if (x.IsInfinityOrNan() || y.IsInfinityOrNan()) return;
+            if (p.IsInfinityOrNan()) return;
             if (!HasSubPaths)
             {
-                EnsureSubPathExists(x, y);
+                EnsureSubPathExists(p);
             }
             else
             {
-                CurrentSubPath.AddLineTo(x, y);
+                CurrentSubPath.AddLineTo(p);
             }
         }
+        
+        public void LineTo(float x, float y)
+            => LineTo(new Vector2(x, y));
 
         #endregion
 
