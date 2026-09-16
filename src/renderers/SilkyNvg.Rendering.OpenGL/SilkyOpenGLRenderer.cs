@@ -101,18 +101,20 @@ namespace SilkyNvg.Rendering.OpenGL
 
         private void RasterizeImpl()
         {
+            _scene.BindAll();
+            
             uint nVerts = _scene.VertexCount;
             uint nSegments = _scene.SegmentCount;
             uint nPaths = _scene.PathCount;
             
             // Calculate intersection times and number of intersections
-            _makeIntersection0Shader.Start();
-            _makeIntersection0Shader.LoadUInt(nSegments, "nSegments");
-            
             _segmentPixelCount.EnsureCapacity(nSegments + 1);
             _segmentPixelCount.Bind(4);
             _monotonicCutpointCache.EnsureCapacity(nSegments);
             _monotonicCutpointCache.Bind(5);
+            
+            _makeIntersection0Shader.Start();
+            _makeIntersection0Shader.LoadUInt(nSegments, "nSegments");
             
             _makeIntersection0Shader.Dispatch(nSegments);
             
@@ -120,6 +122,8 @@ namespace SilkyNvg.Rendering.OpenGL
             const MapBufferAccessMask accessMask = MapBufferAccessMask.ReadBit;
             Span<int> pcnt = _segmentPixelCount.Map(accessMask);
             Span<SegmentMonotonicCutpoints> monotonicCutpoints = _monotonicCutpointCache.Map(accessMask);
+
+            Span<SegmentData> segs = _scene._segments.WrittenSpan;
             
             _segmentPixelCount.Unmap();
             _monotonicCutpointCache.Unmap();

@@ -15,10 +15,10 @@ internal class SceneContainer : ISceneContainer, IDisposable
     private const uint InitialSubpathCount = 64;
     private const uint InitialPathCount = 16;
     
-    private readonly GpuArrayList<Vector2> _vertices;
-    private readonly GpuArrayList<SegmentData> _segments;
-    private readonly GpuArrayList<SubpathData> _subpaths;
-    private readonly GpuArrayList<PathData> _paths;
+    internal readonly GpuArrayList<Vector2> _vertices;
+    internal readonly GpuArrayList<SegmentData> _segments;
+    internal readonly GpuArrayList<SubpathData> _subpaths;
+    internal readonly GpuArrayList<PathData> _paths;
 
     internal uint VertexCount => _vertices.Count;
 
@@ -42,13 +42,16 @@ internal class SceneContainer : ISceneContainer, IDisposable
         _segments.MakeCurrentFrameCurrent();
         _subpaths.MakeCurrentFrameCurrent();
         _paths.MakeCurrentFrameCurrent();
-        
+    }
+
+    internal void BindAll()
+    {
         _vertices.Bind(0);
         _segments.Bind(1);
         _subpaths.Bind(2);
         _paths.Bind(3);
     }
-
+    
     private void AddVertex(Vector2 v)
     {
         _vertices.Add(v);
@@ -90,8 +93,8 @@ internal class SceneContainer : ISceneContainer, IDisposable
     
     public void AddLinear(Vector2 p0, Vector2 p1, float offset)
     {
-        AddVertex(p0, p1);
         AddSegment(SegmentType.Linear, offset);
+        AddVertex(p0, p1);
     }
 
     public void AddQuadratic(Vector2 p0, Vector2 p1, Vector2 p2, float offset)
