@@ -14,6 +14,9 @@ namespace SilkyNvg.Rendering.OpenGL
             new(-0.5f, 0.5f), new(-0.5f, -0.5f), new(0.5f, 0.5f),
             new(0.5f, 0.5f), new(-0.5f, -0.5f), new(0.5f, -0.5f)
         ];
+
+        private readonly Ssbo<int> _curvePixelCount;
+        private readonly Ssbo<float> _monotonicCutpointCache;
         
         private readonly SceneContainer _scene;
         private readonly GL _gl;
@@ -34,6 +37,9 @@ namespace SilkyNvg.Rendering.OpenGL
 
             _scene = new SceneContainer(3, gl);
 
+            _curvePixelCount = new Ssbo<int>(3, "curve_pixel_count", BufferStorageMask.None, _gl);
+            _monotonicCutpointCache = new Ssbo<float>(3, "monotonic_cutpoint_cache", BufferStorageMask.None, _gl);
+            
             _vao = new Vao(_gl);
             _vao.Bind();
 
@@ -69,10 +75,16 @@ namespace SilkyNvg.Rendering.OpenGL
         public void BeginFrame()
         {
             _scene.BeginFrame();
+            
+            _curvePixelCount.BeginFrame();
+            _monotonicCutpointCache.BeginFrame();
         }
 
         public void EndFrame()
         {
+            _curvePixelCount.EndFrame();
+            _monotonicCutpointCache.EndFrame();
+            
             _scene.EndFrame();
 
             _scene.Clear();
@@ -80,6 +92,9 @@ namespace SilkyNvg.Rendering.OpenGL
 
         private void RasterizeImpl()
         {
+            _curvePixelCount.Bind(0);
+            _monotonicCutpointCache.Bind(1);
+            
             _computeShader.Start();
             _gl.DispatchCompute(512, 512, 1);
             _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
@@ -100,6 +115,9 @@ namespace SilkyNvg.Rendering.OpenGL
         {
             _scene.Dispose();
 
+            _curvePixelCount.Dispose();
+            _monotonicCutpointCache.Dispose();
+            
             _vao.Dispose();
             _vbo.Dispose();
             _shader.Dispose();
