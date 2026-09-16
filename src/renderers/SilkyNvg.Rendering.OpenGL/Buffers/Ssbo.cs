@@ -9,9 +9,11 @@ namespace SilkyNvg.Rendering.OpenGL.Buffers;
 internal sealed class Ssbo<T> : IDisposable
     where T : unmanaged
 {
-
+    
     private readonly string _debugName;
+    
     private readonly uint _elementSize;
+    private readonly uint _alignment;
     private readonly BufferStorageMask _storageMask;
 
     private readonly FrameManager _frameManager;
@@ -33,18 +35,18 @@ internal sealed class Ssbo<T> : IDisposable
         _gl = gl;
         
         _elementSize = (uint)Marshal.SizeOf<T>();
-        
-        Capacity = 0;
+
+        _alignment = (uint)_gl.GetInteger(GetPName.ShaderStorageBufferOffsetAlignment);
     }
 
-    private int RegionOffset(int region)
+    private int RegionOffset()
     {
-        return region * (int)_regionSizeBytes;
+        return _currentRegion * (int)_regionSizeBytes;
     }
 
     private unsafe void Allocate(uint capacityElements)
     {
-        _regionSizeBytes = capacityElements * _elementSize;
+        _regionSizeBytes = Utils.Utils.Align(capacityElements * _elementSize, _alignment);
         uint totalSize = _regionSizeBytes * (uint)_frameManager.FramesInFlight;
         
         Log.Info($"Allocating new {_debugName}-SSBO. region_size={_regionSizeBytes} B, total_size={totalSize} B");
@@ -66,7 +68,10 @@ internal sealed class Ssbo<T> : IDisposable
         uint oldBufferId = _bufferId;
         Allocate(newCapacity);
 
-        _gl.DeleteBuffer(oldBufferId);
+        if (oldBufferId != 0)
+        {
+            _gl.DeleteBuffer(oldBufferId);
+        }
     }
 
     internal void EnsureCapacity(uint requiredCapacity)
@@ -88,10 +93,11 @@ internal sealed class Ssbo<T> : IDisposable
 
     internal void Bind(uint binding)
     {
-        int offset = RegionOffset(_currentRegion);
+        int offset = RegionOffset();
         uint size = _regionSizeBytes;
 
         _gl.BindBufferRange(BufferTargetARB.ShaderStorageBuffer, binding, _bufferId, offset, size);
+        Errors.CheckGLError($"bind SSBO (\"{_debugName}\")", _gl);
     }
 
     internal void MakeCurrentFrameCurrent()

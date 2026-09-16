@@ -2,6 +2,7 @@ using System;
 using System.Numerics;
 using Silk.NET.OpenGL;
 using SilkyNvg.Rendering.OpenGL.Buffers;
+using SilkyNvg.Rendering.OpenGL.Data;
 using SilkyNvg.Rendering.OpenGL.Shaders;
 using SilkyNvg.Rendering.OpenGL.Synchronization;
 
@@ -19,8 +20,9 @@ namespace SilkyNvg.Rendering.OpenGL
         private readonly FrameManager _frameManager;
         private readonly SceneContainer _scene;
         
-        private readonly Ssbo<int> _curvePixelCount;
-        private readonly Ssbo<float> _monotonicCutpointCache;
+        private readonly Ssbo<int> _segmentPixelCount;
+        private readonly Ssbo<SegmentMonotonicCutpoints> _monotonicCutpointCache;
+        private readonly ComputeShader _makeIntersection0Shader;
         
         private readonly GL _gl;
 
@@ -41,8 +43,11 @@ namespace SilkyNvg.Rendering.OpenGL
             _frameManager = new FrameManager(3, _gl);
             _scene = new SceneContainer(_frameManager, gl);
             
-            _curvePixelCount = new Ssbo<int>(BufferStorageMask.None, _frameManager, "curve_pixel_count", _gl);
-            _monotonicCutpointCache = new Ssbo<float>(BufferStorageMask.None, _frameManager, "monotonic_cutpoint_cache", _gl);
+            _segmentPixelCount = new Ssbo<int>(BufferStorageMask.None,
+                _frameManager, "curve_pixel_count", _gl);
+            _monotonicCutpointCache = new Ssbo<SegmentMonotonicCutpoints>(BufferStorageMask.None,
+                _frameManager, "monotonic_cutpoint_cache", _gl);
+            _makeIntersection0Shader = new ComputeShader(256, "make_intersection_0.comp.glsl", _gl);
             
             _vao = new Vao(_gl);
             _vao.Bind();
@@ -54,7 +59,7 @@ namespace SilkyNvg.Rendering.OpenGL
             _vao.VertexAttributePointer<Vector2>(0, 2, VertexAttribPointerType.Float, 1, 0);
 
             _shader = new SimpleShader(_gl);
-            _computeShader = new ComputeShader(gl);
+            _computeShader = new ComputeShader(0, "compute.comp.glsl", gl);
 
             _textureId = _gl.GenTexture();
             _gl.ActiveTexture(TextureUnit.Texture0);
@@ -83,7 +88,7 @@ namespace SilkyNvg.Rendering.OpenGL
             _scene.MakeCurrentFrameCurrent();
             _scene.Clear();
             
-            _curvePixelCount.MakeCurrentFrameCurrent();
+            _segmentPixelCount.MakeCurrentFrameCurrent();
             _monotonicCutpointCache.MakeCurrentFrameCurrent();
         }
 
@@ -94,8 +99,20 @@ namespace SilkyNvg.Rendering.OpenGL
 
         private void RasterizeImpl()
         {
-            _curvePixelCount.Bind(0);
-            _monotonicCutpointCache.Bind(1);
+            uint nVerts = _scene.VertexCount;
+            uint nSegments = _scene.SegmentCount;
+            uint nPaths = _scene.PathCount;
+            
+            // Calculate intersection times and number of intersections
+            _makeIntersection0Shader.Start();
+            _makeIntersection0Shader.LoadUInt(nSegments, "nSegments");
+            
+            _segmentPixelCount.EnsureCapacity(nSegments + 1);
+            _segmentPixelCount.Bind(4);
+            _monotonicCutpointCache.EnsureCapacity(nSegments);
+            _monotonicCutpointCache.Bind(5);
+            
+            _makeIntersection0Shader.Dispatch(nSegments);
             
             _computeShader.Start();
             _gl.DispatchCompute(512, 512, 1);
@@ -115,11 +132,13 @@ namespace SilkyNvg.Rendering.OpenGL
         
         public void Dispose()
         {
+            _segmentPixelCount.Dispose();
+            _monotonicCutpointCache.Dispose();
+            _makeIntersection0Shader.Dispose();
+            
             _scene.Dispose();
             _frameManager.Dispose();
             
-            _curvePixelCount.Dispose();
-            _monotonicCutpointCache.Dispose();
             
             _vao.Dispose();
             _vbo.Dispose();

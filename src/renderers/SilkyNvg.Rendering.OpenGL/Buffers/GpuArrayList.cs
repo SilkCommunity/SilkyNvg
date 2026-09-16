@@ -11,6 +11,8 @@ internal sealed unsafe class GpuArrayList<T> : IDisposable
 {
 
     private readonly string _debugName;
+
+    private readonly uint _alignment;
     
     private readonly FrameManager _frameManager;
     private readonly GL _gl;
@@ -67,6 +69,8 @@ internal sealed unsafe class GpuArrayList<T> : IDisposable
         _currentRegion = 0;
         _disposed = false;
 
+        _alignment = (uint)_gl.GetInteger(GetPName.ShaderStorageBufferOffsetAlignment);
+
         Allocate(initialCapacity);
     }
 
@@ -74,10 +78,17 @@ internal sealed unsafe class GpuArrayList<T> : IDisposable
     {
         ThrowIfDisposed();
 
+        // would crash otherwise.
+        if (Count == 0)
+        {
+            return;
+        }
+        
         int offset = RegionOffset(_currentRegion);
         uint size = Count * (uint)sizeof(T);
-
+        
         _gl.BindBufferRange(BufferTargetARB.ShaderStorageBuffer, binding, BufferId, offset, size);
+        Errors.CheckGLError($"bind array list buffer (\"{_debugName}\" at binding {binding})", _gl);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -126,7 +137,7 @@ internal sealed unsafe class GpuArrayList<T> : IDisposable
     {
         uint elementSize = (uint)sizeof(T);
 
-        RegionByteSize = capacityElements * elementSize;
+        RegionByteSize = Utils.Utils.Align(capacityElements * elementSize, _alignment);
         uint totalSize = RegionByteSize * (uint)_frameManager.FramesInFlight;
 
         Log.Info($"Allocating new {_debugName}-Buffer. region_size={RegionByteSize} B, total_size={totalSize} B");

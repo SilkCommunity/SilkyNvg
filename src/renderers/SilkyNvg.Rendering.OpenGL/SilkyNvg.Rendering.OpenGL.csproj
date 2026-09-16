@@ -40,6 +40,8 @@
       <EmbeddedResource Include="Shaders\ShaderCode\debug.frag.glsl" />
       <None Remove="Shaders\ShaderCode\compute.comp.glsl" />
       <EmbeddedResource Include="Shaders\ShaderCode\compute.comp.glsl" />
+      <None Remove="Shaders\ShaderCode\make_intersection_0.comp.glsl" />
+      <EmbeddedResource Include="Shaders\ShaderCode\make_intersection_0.comp.glsl" />
     </ItemGroup>
 
 </Project>

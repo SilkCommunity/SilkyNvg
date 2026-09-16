@@ -1,13 +1,17 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Silk.NET.OpenGL;
+using SilkyNvg.Rendering.OpenGL.Utils;
 
 namespace SilkyNvg.Rendering.OpenGL.Shaders
 {
     internal abstract class ShaderProgramme : IDisposable
     {
 
+        private readonly Dictionary<string, int> _uniformLocations = new();
+        
         protected readonly uint ProgrammeId;
         protected readonly GL Gl;
         
@@ -62,6 +66,36 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
         internal void Stop()
         {
             Gl.UseProgram(0);
+        }
+
+        private int GetUniformLocation(string uniformName)
+        {
+            if (!_uniformLocations.TryGetValue(uniformName, out var location))
+            {
+                location = Gl.GetUniformLocation(ProgrammeId, uniformName);
+                Errors.CheckGLError($"Get UniformLocation: \"{uniformName}\"", Gl);
+                _uniformLocations.Add(uniformName, location);
+            }
+
+            return location;
+        }
+
+        internal void LoadInt(int value, string uniformName)
+        {
+            Gl.Uniform1(GetUniformLocation(uniformName), value);
+            Errors.CheckGLError($"load int ({uniformName})", Gl);
+        }
+
+        internal void LoadUInt(uint value, string uniformName)
+        {
+            Gl.Uniform1(GetUniformLocation(uniformName), value);
+            Errors.CheckGLError($"load uint ({uniformName})", Gl);
+        }
+
+        internal void LoadFloat(float value, string uniformName)
+        {
+            Gl.Uniform1(GetUniformLocation(uniformName), value);
+            Errors.CheckGLError($"load float ({uniformName})", Gl);
         }
 
         public void Dispose()

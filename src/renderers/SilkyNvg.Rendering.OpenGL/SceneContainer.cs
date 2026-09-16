@@ -42,6 +42,11 @@ internal class SceneContainer : ISceneContainer, IDisposable
         _segments.MakeCurrentFrameCurrent();
         _subpaths.MakeCurrentFrameCurrent();
         _paths.MakeCurrentFrameCurrent();
+        
+        _vertices.Bind(0);
+        _segments.Bind(1);
+        _subpaths.Bind(2);
+        _paths.Bind(3);
     }
 
     private void AddVertex(Vector2 v)
