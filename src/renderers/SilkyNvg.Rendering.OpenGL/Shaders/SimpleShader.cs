@@ -9,7 +9,7 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
         private readonly int _locationViewSize;
 
         public SimpleShader(GL gl) : base(gl,
-            ("shader.vert.glsl", ShaderType.VertexShader), ("shader.frag.glsl", ShaderType.FragmentShader))
+            (null, "shader.vert.glsl", ShaderType.VertexShader), (null, "shader.frag.glsl", ShaderType.FragmentShader))
         {
             _locationViewSize = Gl.GetUniformLocation(ProgrammeId, "viewSize");
         }

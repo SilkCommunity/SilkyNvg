@@ -15,7 +15,7 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
         protected readonly uint ProgrammeId;
         protected readonly GL Gl;
         
-        protected ShaderProgramme(GL gl, params (string, ShaderType)[] shaders)
+        protected ShaderProgramme(GL gl, params (string?, string, ShaderType)[] shaders)
         {
             Gl = gl;
 
@@ -24,8 +24,9 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
             Span<uint> shaderIds = stackalloc uint[shaders.Length];
             for (int i = 0; i < shaders.Length; i++)
             {
-                string code = LoadShaderCode(shaders[i].Item1);
-                ShaderType type = shaders[i].Item2;
+                string header = shaders[i].Item1 != null ? LoadShaderCode(shaders[i].Item1!) : "";
+                string code = header + Environment.NewLine + LoadShaderCode(shaders[i].Item2);
+                ShaderType type = shaders[i].Item3;
                 
                 uint shaderId = Gl.CreateShader(type);
                 Gl.ShaderSource(shaderId, code);

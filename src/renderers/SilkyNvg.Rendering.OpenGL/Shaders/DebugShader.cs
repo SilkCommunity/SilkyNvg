@@ -9,7 +9,7 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
         private readonly int _locationViewSize;
 
         public DebugShader(GL gl) : base(gl,
-            ("debug.vert.glsl", ShaderType.VertexShader), ("debug.frag.glsl", ShaderType.FragmentShader))
+            (null, "debug.vert.glsl", ShaderType.VertexShader), (null, "debug.frag.glsl", ShaderType.FragmentShader))
         {
             _locationViewSize = Gl.GetUniformLocation(ProgrammeId, "viewSize");
         }

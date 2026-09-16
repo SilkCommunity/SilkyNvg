@@ -8,8 +8,8 @@ internal sealed class ComputeShader : ShaderProgramme
 
     private readonly uint _workGroupSize;
     
-    internal ComputeShader(uint workGroupSize, string shaderSource, GL gl)
-        : base(gl, (shaderSource, ShaderType.ComputeShader))
+    internal ComputeShader(uint workGroupSize, string? header, string shaderSource, GL gl)
+        : base(gl, (header, shaderSource, ShaderType.ComputeShader))
     {
         _workGroupSize = workGroupSize;
     }

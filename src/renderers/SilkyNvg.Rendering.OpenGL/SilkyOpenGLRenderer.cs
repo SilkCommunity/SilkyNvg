@@ -42,12 +42,14 @@ namespace SilkyNvg.Rendering.OpenGL
 
             _frameManager = new FrameManager(3, _gl);
             _scene = new SceneContainer(_frameManager, gl);
+
+            const BufferStorageMask storageMask = BufferStorageMask.MapReadBit;
             
-            _segmentPixelCount = new Ssbo<int>(BufferStorageMask.None,
+            _segmentPixelCount = new Ssbo<int>(storageMask,
                 _frameManager, "curve_pixel_count", _gl);
-            _monotonicCutpointCache = new Ssbo<SegmentMonotonicCutpoints>(BufferStorageMask.None,
+            _monotonicCutpointCache = new Ssbo<SegmentMonotonicCutpoints>(storageMask,
                 _frameManager, "monotonic_cutpoint_cache", _gl);
-            _makeIntersection0Shader = new ComputeShader(256, "make_intersection_0.comp.glsl", _gl);
+            _makeIntersection0Shader = new ComputeShader(256, "shader_header.h.glsl", "make_intersection_0.comp.glsl", _gl);
             
             _vao = new Vao(_gl);
             _vao.Bind();
@@ -59,7 +61,7 @@ namespace SilkyNvg.Rendering.OpenGL
             _vao.VertexAttributePointer<Vector2>(0, 2, VertexAttribPointerType.Float, 1, 0);
 
             _shader = new SimpleShader(_gl);
-            _computeShader = new ComputeShader(0, "compute.comp.glsl", gl);
+            _computeShader = new ComputeShader(0, null, "compute.comp.glsl", gl);
 
             _textureId = _gl.GenTexture();
             _gl.ActiveTexture(TextureUnit.Texture0);
@@ -113,6 +115,14 @@ namespace SilkyNvg.Rendering.OpenGL
             _monotonicCutpointCache.Bind(5);
             
             _makeIntersection0Shader.Dispatch(nSegments);
+            
+            // as a test, map buffers
+            const MapBufferAccessMask accessMask = MapBufferAccessMask.ReadBit;
+            Span<int> pcnt = _segmentPixelCount.Map(accessMask);
+            Span<SegmentMonotonicCutpoints> monotonicCutpoints = _monotonicCutpointCache.Map(accessMask);
+            
+            _segmentPixelCount.Unmap();
+            _monotonicCutpointCache.Unmap();
             
             _computeShader.Start();
             _gl.DispatchCompute(512, 512, 1);
