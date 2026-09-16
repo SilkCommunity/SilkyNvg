@@ -22,6 +22,7 @@ namespace SilkyNvg.Rendering.OpenGL
         private Vao _vao;
 
         private SimpleShader _shader;
+        private ComputeShader _computeShader;
 
         private uint _textureId;
         
@@ -43,6 +44,7 @@ namespace SilkyNvg.Rendering.OpenGL
             _vao.VertexAttributePointer<Vector2>(0, 2, VertexAttribPointerType.Float, 1, 0);
 
             _shader = new SimpleShader(_gl);
+            _computeShader = new ComputeShader(gl);
 
             _textureId = _gl.GenTexture();
             _gl.ActiveTexture(TextureUnit.Texture0);
@@ -56,8 +58,6 @@ namespace SilkyNvg.Rendering.OpenGL
             _gl.BindImageTexture(0, _textureId, 0, false, 0, BufferAccessARB.ReadWrite, InternalFormat.Rgba32f);
 
             var colourData = new float[512 * 512 * 4];
-            Array.Fill(colourData, 0.5f);
-            
             _gl.ClearTexImage(_textureId, 0, PixelFormat.Rgba, PixelType.Float, colourData);
         }
 
@@ -80,6 +80,10 @@ namespace SilkyNvg.Rendering.OpenGL
 
         private void RasterizeImpl()
         {
+            _computeShader.Start();
+            _gl.DispatchCompute(512, 512, 1);
+            _gl.MemoryBarrier(MemoryBarrierMask.ShaderImageAccessBarrierBit);
+            
             _shader.Start();
 
             _vao.Bind();
@@ -99,6 +103,7 @@ namespace SilkyNvg.Rendering.OpenGL
             _vao.Dispose();
             _vbo.Dispose();
             _shader.Dispose();
+            _computeShader.Dispose();
             _gl.DeleteTexture(_textureId);
         }
         
