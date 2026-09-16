@@ -91,6 +91,32 @@ internal sealed class Ssbo<T> : IDisposable
         _gl.NamedBufferSubData(_bufferId, 0, data);
     }
 
+    internal unsafe Span<T> Map(MapBufferAccessMask accessMask)
+    {
+        int offset = RegionOffset();
+        uint size = _regionSizeBytes;
+        
+        var map = _gl.MapNamedBufferRange(_bufferId, offset, size, accessMask);
+        Errors.CheckGLError("map buffer", _gl);
+
+        if (map == null)
+        {
+            _gl.DeleteBuffer(_bufferId);
+            _bufferId = 0;
+
+            throw new InvalidOperationException("Failed to persistently map OpenGL buffer.");
+        }
+
+        var ptr = (T*)map;
+        return new Span<T>(ptr, (int)Capacity);
+    }
+
+    internal void Unmap()
+    {
+        _gl.UnmapNamedBuffer(_bufferId);
+        Errors.CheckGLError("unmap buffer", _gl);
+    }
+
     internal void Bind(uint binding)
     {
         int offset = RegionOffset();
