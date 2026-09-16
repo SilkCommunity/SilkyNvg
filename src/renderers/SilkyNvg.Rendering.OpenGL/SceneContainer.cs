@@ -3,6 +3,7 @@ using System.Numerics;
 using Silk.NET.OpenGL;
 using SilkyNvg.Rendering.OpenGL.Buffers;
 using SilkyNvg.Rendering.OpenGL.Data;
+using SilkyNvg.Rendering.OpenGL.Synchronization;
 
 namespace SilkyNvg.Rendering.OpenGL;
 
@@ -27,24 +28,20 @@ internal class SceneContainer : ISceneContainer, IDisposable
     
     internal uint PathCount => _paths.Count;
     
-    internal SceneContainer(int framesInFlight, GL gl)
+    internal SceneContainer(FrameManager frameManager, GL gl)
     {
-        _vertices = new GpuArrayList<Vector2>(InitialVertexCount, framesInFlight, "vertex_buffer", gl);
-        _segments = new GpuArrayList<SegmentData>(InitialSegmentCount, framesInFlight, "segment_buffer", gl);
-        _subpaths = new GpuArrayList<SubpathData>(InitialSubpathCount, framesInFlight, "subpath_buffer", gl);
-        _paths = new  GpuArrayList<PathData>(InitialPathCount, framesInFlight, "path_buffer", gl);
+        _vertices = new GpuArrayList<Vector2>(InitialVertexCount, frameManager, "vertex_buffer", gl);
+        _segments = new GpuArrayList<SegmentData>(InitialSegmentCount, frameManager, "segment_buffer", gl);
+        _subpaths = new GpuArrayList<SubpathData>(InitialSubpathCount, frameManager, "subpath_buffer", gl);
+        _paths = new  GpuArrayList<PathData>(InitialPathCount, frameManager, "path_buffer", gl);
     }
 
-    internal void BeginFrame()
+    internal void MakeCurrentFrameCurrent()
     {
-        _vertices.BeginFrame();
-        _segments.BeginFrame();
-    }
-
-    internal void EndFrame()
-    {
-        _vertices.EndFrame();
-        _segments.EndFrame();
+        _vertices.MakeCurrentFrameCurrent();
+        _segments.MakeCurrentFrameCurrent();
+        _subpaths.MakeCurrentFrameCurrent();
+        _paths.MakeCurrentFrameCurrent();
     }
 
     private void AddVertex(Vector2 v)

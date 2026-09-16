@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using Silk.NET.OpenGL;
+using SilkyNvg.Rendering.OpenGL.Synchronization;
 using SilkyNvg.Rendering.OpenGL.Utils;
 
 namespace SilkyNvg.Rendering.OpenGL.Buffers;
@@ -12,9 +13,8 @@ internal sealed class Ssbo<T> : IDisposable
     private readonly string _debugName;
     private readonly uint _elementSize;
     private readonly BufferStorageMask _storageMask;
-    
-    private readonly int _framesInFlight;
-    private readonly int[] _fences;
+
+    private readonly FrameManager _frameManager;
     
     private readonly GL _gl;
 
@@ -25,58 +25,16 @@ internal sealed class Ssbo<T> : IDisposable
 
     internal uint Capacity { get; private set; }
     
-    internal Ssbo(int framesInFlight, string debugName, BufferStorageMask storageMask, GL gl)
+    internal Ssbo(BufferStorageMask storageMask, FrameManager frameManager, string debugName, GL gl)
     {
-        _framesInFlight = framesInFlight;
-        _debugName = debugName;
         _storageMask = storageMask;
+        _frameManager = frameManager;
+        _debugName = debugName;
         _gl = gl;
         
-        _fences = new int[framesInFlight];
         _elementSize = (uint)Marshal.SizeOf<T>();
         
         Capacity = 0;
-    }
-    
-    private void WaitForRegion(int regionIndex)
-    {
-        int fence = _fences[regionIndex];
-
-        if (fence == 0)
-        {
-            return;
-        }
-        
-        // first try a zero-timeout poll
-        var result = _gl.ClientWaitSync(fence, (uint)0, 0);
-        Errors.CheckGLError("zero-timeout wait", _gl);
-        if (result is GLEnum.AlreadySignaled or GLEnum.ConditionSatisfied)
-        {
-            _gl.DeleteSync(fence);
-            _fences[regionIndex] = 0;
-            return;
-        }
-        
-        Log.Info("Waiting for region " + (regionIndex + 1) + " / " + _framesInFlight + " to complete");
-        
-        // actually wait
-        while (true)
-        {
-            // try again in 0.1 s
-            result = _gl.ClientWaitSync(fence, (uint)0, 1_000_000);
-            Errors.CheckGLError("fence wait", _gl);
-            if (result is GLEnum.AlreadySignaled or GLEnum.ConditionSatisfied)
-            {
-                break;
-            }
-            else if(result is GLEnum.WaitFailed)
-            {
-                throw new InvalidOperationException("glClientWaitSync failed.");
-            }
-        }
-
-        _gl.DeleteSync(fence);
-        _fences[regionIndex] = 0;
     }
 
     private int RegionOffset(int region)
@@ -87,7 +45,7 @@ internal sealed class Ssbo<T> : IDisposable
     private unsafe void Allocate(uint capacityElements)
     {
         _regionSizeBytes = capacityElements * _elementSize;
-        uint totalSize = _regionSizeBytes * (uint)_framesInFlight;
+        uint totalSize = _regionSizeBytes * (uint)_frameManager.FramesInFlight;
         
         Log.Info($"Allocating new {_debugName}-SSBO. region_size={_regionSizeBytes} B, total_size={totalSize} B");
 
@@ -103,10 +61,7 @@ internal sealed class Ssbo<T> : IDisposable
     
     private void Reallocate(uint newCapacity)
     {
-        for (int i = 0; i < _framesInFlight; i++)
-        {
-            WaitForRegion(i);
-        }
+        _frameManager.WaitOnAll();
 
         uint oldBufferId = _bufferId;
         Allocate(newCapacity);
@@ -139,35 +94,13 @@ internal sealed class Ssbo<T> : IDisposable
         _gl.BindBufferRange(BufferTargetARB.ShaderStorageBuffer, binding, _bufferId, offset, size);
     }
 
-    internal void BeginFrame()
+    internal void MakeCurrentFrameCurrent()
     {
-        _currentRegion = (_currentRegion + 1)  % _framesInFlight;
-        WaitForRegion(_currentRegion);
-    }
-
-    internal void EndFrame()
-    {
-        if (_fences[_currentRegion] != 0)
-        {
-            _gl.DeleteSync(_fences[_currentRegion]);
-            _fences[_currentRegion] = 0;
-        }
-
-        _fences[_currentRegion] = _gl.FenceSync(SyncCondition.SyncGpuCommandsComplete, (uint)0).ToInt32();
-        Errors.CheckGLError("create fence", _gl);
+        _currentRegion = _frameManager.CurrentFrame;
     }
     
     public void Dispose()
     {
-        for (int i = 0; i < _framesInFlight; i++)
-        {
-            if (_fences[i] != 0)
-            {
-                WaitForRegion(i);
-                _fences[i] = 0;
-            }
-        }
-
         if (_bufferId != 0)
         {
             _gl.DeleteBuffer(_bufferId);

@@ -3,10 +3,11 @@ using System.Numerics;
 using Silk.NET.OpenGL;
 using SilkyNvg.Rendering.OpenGL.Buffers;
 using SilkyNvg.Rendering.OpenGL.Shaders;
+using SilkyNvg.Rendering.OpenGL.Synchronization;
 
 namespace SilkyNvg.Rendering.OpenGL
 {
-    public class SilkyOpenGLRenderer : ISilkyRenderer
+    public sealed class SilkyOpenGLRenderer : ISilkyRenderer
     {
 
         private static readonly Vector2[] Vertices =
@@ -15,10 +16,12 @@ namespace SilkyNvg.Rendering.OpenGL
             new(0.5f, 0.5f), new(-0.5f, -0.5f), new(0.5f, -0.5f)
         ];
 
+        private readonly FrameManager _frameManager;
+        private readonly SceneContainer _scene;
+        
         private readonly Ssbo<int> _curvePixelCount;
         private readonly Ssbo<float> _monotonicCutpointCache;
         
-        private readonly SceneContainer _scene;
         private readonly GL _gl;
 
         private Vbo _vbo;
@@ -35,10 +38,11 @@ namespace SilkyNvg.Rendering.OpenGL
         {
             _gl = gl;
 
-            _scene = new SceneContainer(3, gl);
-
-            _curvePixelCount = new Ssbo<int>(3, "curve_pixel_count", BufferStorageMask.None, _gl);
-            _monotonicCutpointCache = new Ssbo<float>(3, "monotonic_cutpoint_cache", BufferStorageMask.None, _gl);
+            _frameManager = new FrameManager(3, _gl);
+            _scene = new SceneContainer(_frameManager, gl);
+            
+            _curvePixelCount = new Ssbo<int>(BufferStorageMask.None, _frameManager, "curve_pixel_count", _gl);
+            _monotonicCutpointCache = new Ssbo<float>(BufferStorageMask.None, _frameManager, "monotonic_cutpoint_cache", _gl);
             
             _vao = new Vao(_gl);
             _vao.Bind();
@@ -74,20 +78,18 @@ namespace SilkyNvg.Rendering.OpenGL
 
         public void BeginFrame()
         {
-            _scene.BeginFrame();
+            _frameManager.BeginFrame();
             
-            _curvePixelCount.BeginFrame();
-            _monotonicCutpointCache.BeginFrame();
+            _scene.MakeCurrentFrameCurrent();
+            _scene.Clear();
+            
+            _curvePixelCount.MakeCurrentFrameCurrent();
+            _monotonicCutpointCache.MakeCurrentFrameCurrent();
         }
 
         public void EndFrame()
         {
-            _curvePixelCount.EndFrame();
-            _monotonicCutpointCache.EndFrame();
-            
-            _scene.EndFrame();
-
-            _scene.Clear();
+            _frameManager.EndFrame();
         }
 
         private void RasterizeImpl()
@@ -114,7 +116,8 @@ namespace SilkyNvg.Rendering.OpenGL
         public void Dispose()
         {
             _scene.Dispose();
-
+            _frameManager.Dispose();
+            
             _curvePixelCount.Dispose();
             _monotonicCutpointCache.Dispose();
             

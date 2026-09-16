@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using Silk.NET.OpenGL;
+using SilkyNvg.Rendering.OpenGL.Synchronization;
 using SilkyNvg.Rendering.OpenGL.Utils;
 
 namespace SilkyNvg.Rendering.OpenGL.Buffers;
@@ -11,9 +12,7 @@ internal sealed unsafe class GpuArrayList<T> : IDisposable
 
     private readonly string _debugName;
     
-    private readonly int _framesInFlight;
-    private readonly int[] _fences;
-    
+    private readonly FrameManager _frameManager;
     private readonly GL _gl;
 
     private void* _map;
@@ -57,15 +56,12 @@ internal sealed unsafe class GpuArrayList<T> : IDisposable
         }
     }
 
-    internal GpuArrayList(uint initialCapacity, int framesInFlight, string debugName, GL gl)
+    internal GpuArrayList(uint initialCapacity, FrameManager frameManager, string debugName, GL gl)
     {
         ArgumentOutOfRangeException.ThrowIfZero(initialCapacity);
-        ArgumentOutOfRangeException.ThrowIfLessThan(framesInFlight, 2);
         
         _debugName = debugName;
-        
-        _framesInFlight = framesInFlight;
-        _fences = new int[_framesInFlight];
+        _frameManager = frameManager;
         _gl = gl;
 
         _currentRegion = 0;
@@ -108,30 +104,11 @@ internal sealed unsafe class GpuArrayList<T> : IDisposable
         Count = 0;
     }
 
-    internal void BeginFrame()
+    internal void MakeCurrentFrameCurrent()
     {
         ThrowIfDisposed();
-
-        _currentRegion = (_currentRegion + 1) % _framesInFlight;
-
-        WaitForRegion(_currentRegion);
+        _currentRegion = _frameManager.CurrentFrame;
         Count = 0;
-    }
-
-    internal void EndFrame()
-    {
-        ThrowIfDisposed();
-
-        // If the previous fence should still exist, delete
-        // Note that glDeleteSync waits for the fence to complete.
-        if (_fences[_currentRegion] != 0)
-        {
-            _gl.DeleteSync(_fences[_currentRegion]);
-            _fences[_currentRegion] = 0;
-        }
-
-        _fences[_currentRegion] = _gl.FenceSync(SyncCondition.SyncGpuCommandsComplete, (uint)0).ToInt32();
-        Errors.CheckGLError("create fence", _gl);
     }
 
     private int RegionOffset(int region)
@@ -150,7 +127,7 @@ internal sealed unsafe class GpuArrayList<T> : IDisposable
         uint elementSize = (uint)sizeof(T);
 
         RegionByteSize = capacityElements * elementSize;
-        uint totalSize = RegionByteSize * (uint)_framesInFlight;
+        uint totalSize = RegionByteSize * (uint)_frameManager.FramesInFlight;
 
         Log.Info($"Allocating new {_debugName}-Buffer. region_size={RegionByteSize} B, total_size={totalSize} B");
         
@@ -208,57 +185,13 @@ internal sealed unsafe class GpuArrayList<T> : IDisposable
     private void Reallocate(uint newCapacity)
     {
         // wait for all regions to complete
-        for (int i = 0; i < _framesInFlight; i++)
-        {
-            WaitForRegion(i);
-        }
+        _frameManager.WaitOnAll();
 
         uint oldBufferId = BufferId;
         Allocate(newCapacity);
         
         // no need to unmap, this happens automatically when deleting the buffer
         _gl.DeleteBuffer(oldBufferId);
-    }
-
-    private void WaitForRegion(int regionIndex)
-    {
-        int fence = _fences[regionIndex];
-
-        if (fence == 0)
-        {
-            return;
-        }
-        
-        // first try a zero-timeout poll
-        var result = _gl.ClientWaitSync(fence, (uint)0, 0);
-        Errors.CheckGLError("zero-timeout wait", _gl);
-        if (result is GLEnum.AlreadySignaled or GLEnum.ConditionSatisfied)
-        {
-            _gl.DeleteSync(fence);
-            _fences[regionIndex] = 0;
-            return;
-        }
-        
-        Log.Info("Waiting for region " + (regionIndex + 1) + " / " + _framesInFlight + " to complete");
-        
-        // actually wait
-        while (true)
-        {
-            // try again in 0.1 s
-            result = _gl.ClientWaitSync(fence, (uint)0, 1_000_000);
-            Errors.CheckGLError("fence wait", _gl);
-            if (result is GLEnum.AlreadySignaled or GLEnum.ConditionSatisfied)
-            {
-                break;
-            }
-            else if(result is GLEnum.WaitFailed)
-            {
-                throw new InvalidOperationException("glClientWaitSync failed.");
-            }
-        }
-
-        _gl.DeleteSync(fence);
-        _fences[regionIndex] = 0;
     }
 
     private void ThrowIfDisposed()
@@ -277,16 +210,6 @@ internal sealed unsafe class GpuArrayList<T> : IDisposable
         }
         
         _disposed = true;
-
-        for (int i = 0; i < _framesInFlight; i++)
-        {
-            if (_fences[i] != 0)
-            {
-                // WaitForRegion automatically deletes the fence
-                WaitForRegion(i);
-                _fences[i] = 0;
-            }
-        }
 
         if (BufferId != 0)
         {
