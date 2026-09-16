@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Numerics;
 using System.Reflection;
 using Silk.NET.OpenGL;
 using SilkyNvg.Rendering.OpenGL.Utils;
@@ -98,6 +99,15 @@ namespace SilkyNvg.Rendering.OpenGL.Shaders
             Gl.Uniform1(GetUniformLocation(uniformName), value);
             Errors.CheckGLError($"load float ({uniformName})", Gl);
         }
+
+        internal void LoadVector2(float x, float y, string uniformName)
+        {
+            Gl.Uniform2(GetUniformLocation(uniformName), x, y);
+            Errors.CheckGLError($"load vec2 ({uniformName})", Gl);
+        }
+        
+        internal void LoadVector2(Vector2 v, string uniformName)
+            => LoadVector2(v.X, v.Y, uniformName);
 
         public void Dispose()
         {

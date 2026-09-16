@@ -5,6 +5,7 @@ using SilkyNvg.Rendering.OpenGL.Buffers;
 using SilkyNvg.Rendering.OpenGL.Data;
 using SilkyNvg.Rendering.OpenGL.Shaders;
 using SilkyNvg.Rendering.OpenGL.Synchronization;
+using SilkyNvg.Rendering.OpenGL.Utils;
 
 namespace SilkyNvg.Rendering.OpenGL
 {
@@ -26,6 +27,10 @@ namespace SilkyNvg.Rendering.OpenGL
         
         private readonly GL _gl;
 
+        // These are guaranteed to be initialized via Resize() when the context is created.
+        private uint _width = 0;
+        private uint _height = 0;
+        
         private Vbo _vbo;
         private Vao _vao;
 
@@ -80,7 +85,13 @@ namespace SilkyNvg.Rendering.OpenGL
 
         public void Resize(uint width, uint height, RenderTolerances _)
         {
+            Log.Info($"Resizing Renderer: ({_width} x {_height}) -> ({width} x {height})");
             
+            _width = width;
+            _height = height;
+
+            _makeIntersection0Shader.Start();
+            _makeIntersection0Shader.LoadVector2(_width, _height, "output_size");
         }
 
         public void BeginFrame()
@@ -109,12 +120,13 @@ namespace SilkyNvg.Rendering.OpenGL
             
             // Calculate intersection times and number of intersections
             _segmentPixelCount.EnsureCapacity(nSegments + 1);
-            _segmentPixelCount.Bind(4);
             _monotonicCutpointCache.EnsureCapacity(nSegments);
+            
+            _segmentPixelCount.Bind(4);
             _monotonicCutpointCache.Bind(5);
             
             _makeIntersection0Shader.Start();
-            _makeIntersection0Shader.LoadUInt(nSegments, "nSegments");
+            _makeIntersection0Shader.LoadUInt(nSegments, "n_segments");
             
             _makeIntersection0Shader.Dispatch(nSegments);
             
